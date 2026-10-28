@@ -21,6 +21,7 @@ out/
 
 # Data: uploads never committed; seed Parquet is committed on purpose
 data/uploads/
+data/raw/
 *.duckdb
 *.duckdb.wal
 
