@@ -1,0 +1,13 @@
+{
+  "common": {
+    "brand": "CivicLens",
+    "language": "Language",
+    "skipToContent": "Skip to content"
+  },
+  "landing": {
+    "eyebrow": "Public-sector data engine · EN / FR / ES data",
+    "title": "From messy public files to decisions you can defend.",
+    "subtitle": "Upload contracts, budgets or program data. CivicLens profiles it, teaches you how to clean it, models it in SQL, flags what deserves a second look, and builds the executive report.",
+    "status": "Day 1 scaffold — the full experience is under construction."
+  }
+}

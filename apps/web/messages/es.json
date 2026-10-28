@@ -1,0 +1,13 @@
+{
+  "common": {
+    "brand": "CivicLens",
+    "language": "Idioma",
+    "skipToContent": "Ir al contenido"
+  },
+  "landing": {
+    "eyebrow": "Motor de datos del sector público · datos en EN / FR / ES",
+    "title": "De archivos públicos desordenados a decisiones que puedes defender.",
+    "subtitle": "Sube contratos, presupuestos o datos de programas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y genera el reporte ejecutivo.",
+    "status": "Estructura del día 1 — la experiencia completa está en construcción."
+  }
+}

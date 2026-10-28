@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-ground text-text font-sans;
+}
+
+/* Self-hosted fonts (@fontsource) — no runtime call to Google Fonts. */
+:root {
+  --font-sans: "IBM Plex Sans";
+  --font-mono: "IBM Plex Mono";
+}
