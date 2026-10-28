@@ -1,0 +1,10 @@
+# One definition per KPI (spec M4). The SQL is the same in every language.
+total_spend: {name: Total spend, definition: Sum of contract values converted to CAD with the rate of each signed month.}
+contract_count: {name: Contracts, definition: Number of contracts after cleaning (duplicates removed).}
+avg_value: {name: Average value, definition: Mean contract value in CAD. Sensitive to very large contracts — read it with the median.}
+median_value: {name: Median value, definition: The middle contract value in CAD; half the contracts are smaller.}
+direct_award_share: {name: Direct award share, definition: Share of contracts awarded without competition (canonical award type “direct”).}
+hhi: {name: Supplier concentration (HHI), definition: "Sum of squared supplier shares of spend, from 0 to 1. Below 0.15 is unconcentrated; above 0.25 is highly concentrated."}
+single_bidder_share: {name: Single-bidder share, definition: Share of contracts with exactly one bid among those that report the number of bids.}
+yoy_growth: {name: Year-over-year growth, definition: Change in spend between the two most recent fiscal years that each hold at least 10 % of the contracts.}
+quality_score: {name: Data quality score, definition: "Completeness, validity, uniqueness and consistency of the data, from 0 to 100 (after cleaning when a recipe was applied)."}

@@ -394,5 +394,69 @@
       "hash": "Output fingerprint (SHA-256) — the same recipe on the same file always gives this value",
       "continue": "Continue to SQL lab →"
     }
+  },
+  "sql": {
+    "metaTitle": "SQL lab · CivicLens",
+    "title": "SQL lab",
+    "subtitle": "Your clean data, modeled as a star schema. Start from a guided question or write your own query.",
+    "engineChip": "DuckDB · read-only",
+    "notReady": "We are still analysing this dataset. This page refreshes on its own.",
+    "notFound": {
+      "title": "We could not find this dataset",
+      "body": "Uploaded files are deleted after 24 hours. Try one of the sample datasets.",
+      "action": "Open the Colombian sample"
+    },
+    "originRecommended": "No recipe has been applied yet, so this schema uses the recommended cleaning options. <link>Choose your own in the Cleaning studio</link>.",
+    "schema": {
+      "title": "Star schema",
+      "hint": "One fact table of contracts, joined to five dimensions by their keys.",
+      "rows": "{count, plural, one {# row} other {# rows}}",
+      "columnsCount": "{n} columns"
+    },
+    "guided": {
+      "title": "Guided questions · {n}",
+      "showAll": "See all {n} →",
+      "showFewer": "Show fewer"
+    },
+    "editor": {
+      "title": "Query",
+      "label": "SQL query",
+      "guardrails": "Read-only · {seconds} s timeout · {rows, number} row limit",
+      "run": "Run query",
+      "running": "Running…",
+      "hint": "One SELECT or WITH statement. Press Ctrl + Enter (⌘ + Enter on Mac) to run."
+    },
+    "results": {
+      "title": "Results · {count, plural, one {# row} other {# rows}} · {ms} ms",
+      "caption": "Query results",
+      "running": "Running the query…",
+      "empty": "The query ran but returned no rows.",
+      "truncated": "Stopped at {rows, number} rows",
+      "displayCap": "Showing the first {shown} of {count, number} rows.",
+      "unreachable": "The engine did not answer. Try again in a few seconds."
+    },
+    "teaches": "What this query teaches:",
+    "edited": "You edited the query — the explanation is for the original guided question.",
+    "concepts": {
+      "label": "SQL concepts",
+      "join": "JOIN",
+      "cte": "CTE",
+      "window_function": "Window function",
+      "aggregation": "Aggregation",
+      "subquery": "Subquery"
+    },
+    "kpis": {
+      "title": "KPI catalog",
+      "subtitle": "One shared definition per KPI, computed in SQL on this star schema. Amounts in CAD.",
+      "owner": "Owner: {owner}",
+      "formula": "Show the SQL",
+      "owners": {
+        "finance": "Finance",
+        "procurement": "Procurement",
+        "data": "Data team",
+        "audit": "Audit"
+      }
+    },
+    "continue": "Continue to ML lab →"
   }
 }
