@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 WEB_DIR = ROOT / "apps" / "web" / "messages"
 API_DIR = ROOT / "apps" / "api" / "app" / "i18n"
 LOCALES = ("en", "es")
-PLACEHOLDER = re.compile(r"\{(\w+)")
+PLACEHOLDER = re.compile(r"\{(\w+)\s*[,}]")  # ICU argument names, not plural branch text
 
 
 def flatten(node: dict, prefix: str = "") -> dict[str, str]:

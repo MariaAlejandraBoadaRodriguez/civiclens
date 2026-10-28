@@ -283,7 +283,7 @@
       "body": "{count, plural, one {# columna parece contener} other {# columnas parecen contener}} información personal. Enmascáralas antes del análisis para que nunca lleguen a un gráfico, una exportación o una respuesta de la API.",
       "mask": "Enmascarar todo",
       "review": "Revisar",
-      "maskNote": "Enmascarar es un paso de limpieza: lo aplicas en el Estudio de limpieza.",
+      "maskNote": "Enmascarar es un paso de la receta: «Enmascarar todo» lo abre en el Estudio de limpieza.",
       "noneTitle": "No se detectaron datos personales",
       "noneBody": "Buscamos correos electrónicos, teléfonos, números de identificación y columnas con nombres de personas. No encontramos coincidencias."
     },
@@ -321,6 +321,78 @@
     "footer": {
       "summary": "<strong>{count, plural, one {# columna requiere} other {# columnas requieren}} atención</strong> de {total}: listo para el estudio de limpieza.",
       "continue": "Continuar a la limpieza →"
+    }
+  },
+  "clean": {
+    "metaTitle": "Estudio de limpieza · CivicLens",
+    "title": "Estudio de limpieza",
+    "subtitle": "Un problema a la vez: qué es, por qué importa, tus opciones y qué le hace cada decisión a los números.",
+    "qualityChip": "Calidad {before}",
+    "qualityChipAfter": "Calidad {before} → {after}",
+    "assumption": "Las vistas previas y el impacto en los KPI suponen que los problemas anteriores usan su opción recomendada.",
+    "notReady": "Todavía estamos analizando este conjunto de datos. Esta página se actualiza sola.",
+    "noIssues": "No encontramos problemas: este conjunto de datos está listo para el laboratorio SQL.",
+    "notFound": {
+      "title": "No encontramos este conjunto de datos",
+      "body": "Los archivos cargados se eliminan a las 24 horas. Prueba uno de los conjuntos de datos de ejemplo.",
+      "action": "Abrir el ejemplo de Colombia"
+    },
+    "list": {
+      "label": "Problemas",
+      "resolved": "Problemas · {done} de {total} resueltos",
+      "done": "Listo",
+      "skipped": "Omitido",
+      "now": "Ahora",
+      "todo": "Pendiente"
+    },
+    "issue": {
+      "eyebrow": "Problema {n} de {total} · {category}",
+      "legend": "Elige qué hacer",
+      "recommended": "{label} (recomendado)",
+      "apply": "Aplicar decisión",
+      "skip": "Omitir por ahora",
+      "learnMore": "Más información"
+    },
+    "preview": {
+      "caption": "Ejemplos de {columns} · {rows} filas afectadas",
+      "empty": "∅ vacío",
+      "removed": "fila eliminada"
+    },
+    "kpi": {
+      "label": "Impacto en el KPI · {kpi}",
+      "mixed_currencies": "no comparable",
+      "not_standardized": "aún no disponible",
+      "no_amount": "sin columna de monto",
+      "unavailable": "no disponible",
+      "dominant": "Se cuentan solo los montos en {currency} hasta unificar las monedas.",
+      "assumption": "Calculado sobre todo el conjunto de datos."
+    },
+    "recipe": {
+      "titleDraft": "Receta de limpieza · borrador",
+      "titleVersion": "Receta de limpieza · v{version}",
+      "empty": "Aplica una decisión para agregar el primer paso.",
+      "pending": "Resaltado: la opción que estás viendo, todavía sin aplicar.",
+      "formats": "Formato de la receta",
+      "codeLabel": "Código {format}",
+      "exportFormat": "Formato del archivo",
+      "export": "Exportar receta como código",
+      "replayNote": "Las recetas guardadas se pueden reaplicar al archivo del próximo mes, desde aquí o mediante la API."
+    },
+    "run": {
+      "title": "Aplicar la receta",
+      "summary": "{done} de {total} problemas decididos · {steps, plural, =0 {todavía sin pasos} one {# paso} other {# pasos}} en la receta.",
+      "apply": "Guardar y aplicar la receta",
+      "saving": "Guardando la receta…",
+      "applying": "Aplicando la receta a todas las filas…",
+      "failed": "No se pudo aplicar la receta",
+      "networkTitle": "No pudimos conectar con el motor",
+      "networkDetail": "Revisa tu conexión e inténtalo de nuevo.",
+      "quality": "Puntaje de calidad de datos",
+      "qualityValue": "{before} → {after}",
+      "rows": "Filas",
+      "rowsValue": "{before} → {after}",
+      "hash": "Huella del resultado (SHA-256): la misma receta sobre el mismo archivo siempre da este valor",
+      "continue": "Continuar al laboratorio SQL →"
     }
   }
 }

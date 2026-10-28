@@ -2,20 +2,25 @@
 
 from __future__ import annotations
 
+import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
 from app.api.problems import ProblemError
+from app.api.v1.recipes import RecipeInput, validated
 from app.config import settings
+from app.core.cleaning.ops import OPERATIONS
 from app.core.ingest.detect import UnsupportedFormatError, detect_format
 from app.core.seed.registry import SEEDS
-from app.db.models import Dataset, DatasetSource, DatasetStatus, Job
+from app.db.models import Dataset, DatasetSource, DatasetStatus, Job, JobStatus, JobType, Recipe
 from app.db.session import get_session
 from app.i18n.loader import Translator
+from app.services import cleaning
 from app.services import datasets as svc
 
 router = APIRouter(prefix="/api/v1/datasets", tags=["datasets"])
@@ -107,7 +112,8 @@ def get_dataset(dataset_id: str, session: SessionDep, t: TDep) -> dict:
 @router.get("/{dataset_id}/profile")
 def get_profile(dataset_id: str, session: SessionDep, t: TDep) -> dict:
     ds = _get(session, dataset_id)
-    profile = svc.load_profile(ds) if ds.status == DatasetStatus.PROFILED else None
+    ready = ds.status in (DatasetStatus.PROFILED, DatasetStatus.CLEANED)
+    profile = svc.load_profile(ds) if ready else None
     if profile is None:
         raise ProblemError(409, "dataset.not_ready")
     columns = []
@@ -139,3 +145,57 @@ def get_profile(dataset_id: str, session: SessionDep, t: TDep) -> dict:
         "is_seed": ds.source == DatasetSource.SEED,
         "columns": columns,
     }
+
+
+@router.get("/{dataset_id}/issues")
+def get_issues(dataset_id: str, session: SessionDep, t: TDep) -> dict:
+    """Issue cards for the Cleaning Studio (machine fields + localized texts)."""
+    ds = _get(session, dataset_id)
+    if ds.status not in (DatasetStatus.PROFILED, DatasetStatus.CLEANED):
+        raise ProblemError(409, "dataset.not_ready")
+    profile = svc.load_profile(ds) or {}
+    data = cleaning.localized_issues(ds, t)
+    after = (ds.profile_json or {}).get("quality_after")
+    return {
+        "dataset": dataset_out(ds, t),
+        "quality": profile.get("quality"),
+        "quality_after": after,
+        "columns": data["columns"],
+        "issues": data["issues"],
+        "op_labels": {op: t(f"recipes.ops.{op}") for op in OPERATIONS},
+    }
+
+
+class ApplyRecipeBody(BaseModel):
+    recipe_id: uuid.UUID | None = None
+    recipe: RecipeInput | None = None
+
+
+@router.post("/{dataset_id}/recipes/apply", status_code=202)
+def apply_recipe(
+    dataset_id: str, body: ApplyRecipeBody, background: BackgroundTasks, session: SessionDep
+) -> JSONResponse:
+    ds = _get(session, dataset_id)
+    if body.recipe_id:
+        recipe = session.get(Recipe, body.recipe_id)
+        if recipe is None:
+            raise ProblemError(404, "recipe.not_found", recipe_id=str(body.recipe_id))
+        steps, recipe_id = recipe.steps_json, str(recipe.id)
+    elif body.recipe:
+        steps, recipe_id = validated(body.recipe.steps), None
+    else:
+        raise ProblemError(422, "request.invalid", fields=["recipe_id", "recipe"])
+    job = Job(
+        type=JobType.APPLY_RECIPE,
+        status=JobStatus.QUEUED,
+        dataset_id=ds.id,
+        input_json={"recipe_id": recipe_id, "steps": steps},
+    )
+    session.add(job)
+    session.commit()
+    background.add_task(cleaning.run_apply_job, job.id)
+    return JSONResponse(
+        {"id": str(job.id), "status": job.status.value},
+        status_code=202,
+        headers={"Location": f"/api/v1/jobs/{job.id}"},
+    )

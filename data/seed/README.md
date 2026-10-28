@@ -105,6 +105,21 @@ This is what the ingest screen profiles and what the Cleaning Studio fixes.
 Canada and Québec demo files are deterministic subsets (10,000 / 20,000 seed rows) to keep XLSX
 reading fast; the seed Parquet files above are unchanged.
 
+## FX table — `data/fx_rates.csv`
+
+Used by the Cleaning Studio to convert currencies with the rate of each contract's signed month
+(ROADMAP A5: static, dated, cited). Columns: `month`, `currency` (COP, USD, CAD), `cad_per_unit`, `source`.
+Rebuild with `python scripts/fetch_fx.py`.
+
+| Pair | Source | Status |
+|---|---|---|
+| COP per USD | TRM, Superintendencia Financiera de Colombia (datos.gov.co `32sa-8pi3`, CC BY-SA 4.0) — monthly mean of daily values, 2015-01 → 2026-10 | ✅ official |
+| CAD per USD | Bank of Canada `FXMUSDCAD` monthly average | ⚠️ **approximate annual averages** — the Bank of Canada, StatCan, ECB and FRED hosts are blocked from the build sandbox |
+
+**To replace the approximation:** download https://www.bankofcanada.ca/valet/observations/FXMUSDCAD/csv
+and run `python scripts/fetch_fx.py --boc-csv FXMUSDCAD.csv`. Rows built from the approximation say so in their `source` column,
+and the Cleaning Studio shows that source under the currency KPI.
+
 ## If a download breaks later
 
 - **Canada full CSV** (`contracts.csv`, ~640 MB) is served from `opencanada.blob.core.windows.net`, which the Claude cloud sandbox cannot reach; the script uses the CKAN datastore API instead. To audit against the original file, download

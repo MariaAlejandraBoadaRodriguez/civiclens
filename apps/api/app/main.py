@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.problems import ProblemError, problem_handler, validation_handler
-from app.api.v1 import datasets, jobs
+from app.api.v1 import datasets, jobs, recipes
 from app.config import settings
 from app.i18n.loader import Translator, negotiate
 
@@ -35,7 +35,7 @@ app.add_middleware(
     allow_origins=settings.allowed_origins,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
-    expose_headers=["Content-Language", "Location"],
+    expose_headers=["Content-Language", "Location", "Content-Disposition"],
 )
 app.add_exception_handler(ProblemError, problem_handler)
 app.add_exception_handler(RequestValidationError, validation_handler)
@@ -52,6 +52,7 @@ async def locale_middleware(request: Request, call_next):
 
 app.include_router(datasets.router)
 app.include_router(jobs.router)
+app.include_router(recipes.router)
 
 
 @app.get("/health", tags=["ops"])

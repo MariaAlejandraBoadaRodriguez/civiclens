@@ -31,3 +31,13 @@ server:
   internal:
     title: Something went wrong on our side
     detail: The error was logged. Try again in a moment.
+recipe:
+  invalid:
+    title: The recipe is not valid
+    detail: "Step {step}: {message}"
+  not_found:
+    title: Recipe not found
+    detail: "No recipe with id {recipe_id}."
+  failed:
+    title: The recipe could not be applied
+    detail: A step failed on this file. The error was logged.

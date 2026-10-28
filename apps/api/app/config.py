@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     # Files: committed seed Parquet (read-only) and a writable working directory.
     seed_dir: Path = REPO_ROOT / "data" / "seed"
+    fx_path: Path = REPO_ROOT / "data" / "fx_rates.csv"
     data_dir: Path = REPO_ROOT / "data" / "runtime"
     upload_max_mb: int = 50
     upload_ttl_hours: int = 24

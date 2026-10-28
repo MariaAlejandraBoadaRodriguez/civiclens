@@ -6,6 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     SEED_DIR=/srv/data/seed \
+    FX_PATH=/srv/data/fx_rates.csv \
     DATA_DIR=/srv/var
 
 WORKDIR /srv
@@ -15,6 +16,7 @@ COPY apps/api/alembic.ini ./
 COPY apps/api/app ./app
 RUN pip install --upgrade pip && pip install .
 COPY data/seed/*.parquet ./data/seed/
+COPY data/fx_rates.csv ./data/
 
 RUN useradd --create-home appuser && mkdir -p /srv/var && chown appuser /srv/var
 USER appuser

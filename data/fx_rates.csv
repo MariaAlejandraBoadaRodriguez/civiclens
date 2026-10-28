@@ -1,0 +1,427 @@
+month,currency,cad_per_unit,source
+2015-01,CAD,1.0,identity
+2015-01,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-01,COP,0.0005327,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-02,CAD,1.0,identity
+2015-02,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-02,COP,0.00052728,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-03,CAD,1.0,identity
+2015-03,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-03,COP,0.00049362,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-04,CAD,1.0,identity
+2015-04,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-04,COP,0.00051255,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-05,CAD,1.0,identity
+2015-05,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-05,COP,0.000524,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-06,CAD,1.0,identity
+2015-06,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-06,COP,0.00050037,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-07,CAD,1.0,identity
+2015-07,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-07,COP,0.00046817,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-08,CAD,1.0,identity
+2015-08,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-08,COP,0.00042305,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-09,CAD,1.0,identity
+2015-09,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-09,COP,0.00041645,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-10,CAD,1.0,identity
+2015-10,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-10,COP,0.00043562,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-11,CAD,1.0,identity
+2015-11,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-11,COP,0.0004263,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2015-12,CAD,1.0,identity
+2015-12,USD,1.279,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2015-12,COP,0.0003942,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-01,CAD,1.0,identity
+2016-01,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-01,COP,0.0004026,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-02,CAD,1.0,identity
+2016-02,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-02,COP,0.00039453,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-03,CAD,1.0,identity
+2016-03,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-03,COP,0.00042127,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-04,CAD,1.0,identity
+2016-04,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-04,COP,0.00044285,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-05,CAD,1.0,identity
+2016-05,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-05,COP,0.00044231,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-06,CAD,1.0,identity
+2016-06,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-06,COP,0.00044289,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-07,CAD,1.0,identity
+2016-07,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-07,COP,0.00044615,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-08,CAD,1.0,identity
+2016-08,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-08,COP,0.00044791,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-09,CAD,1.0,identity
+2016-09,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-09,COP,0.00045386,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-10,CAD,1.0,identity
+2016-10,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-10,COP,0.00045167,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-11,CAD,1.0,identity
+2016-11,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-11,COP,0.00042711,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2016-12,CAD,1.0,identity
+2016-12,USD,1.325,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2016-12,COP,0.00044017,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-01,CAD,1.0,identity
+2017-01,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-01,COP,0.00044166,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-02,CAD,1.0,identity
+2017-02,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-02,COP,0.00045061,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-03,CAD,1.0,identity
+2017-03,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-03,COP,0.00044097,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-04,CAD,1.0,identity
+2017-04,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-04,COP,0.00045109,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-05,CAD,1.0,identity
+2017-05,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-05,COP,0.00044409,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-06,CAD,1.0,identity
+2017-06,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-06,COP,0.00043876,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-07,CAD,1.0,identity
+2017-07,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-07,COP,0.00042724,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-08,CAD,1.0,identity
+2017-08,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-08,COP,0.00043665,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-09,CAD,1.0,identity
+2017-09,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-09,COP,0.00044475,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-10,CAD,1.0,identity
+2017-10,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-10,COP,0.000439,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-11,CAD,1.0,identity
+2017-11,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-11,COP,0.00043055,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2017-12,CAD,1.0,identity
+2017-12,USD,1.298,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2017-12,COP,0.00043391,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-01,CAD,1.0,identity
+2018-01,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-01,COP,0.0004528,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-02,CAD,1.0,identity
+2018-02,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-02,COP,0.00045309,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-03,CAD,1.0,identity
+2018-03,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-03,COP,0.00045492,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-04,CAD,1.0,identity
+2018-04,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-04,COP,0.00046868,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-05,CAD,1.0,identity
+2018-05,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-05,COP,0.00045287,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-06,CAD,1.0,identity
+2018-06,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-06,COP,0.00044765,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-07,CAD,1.0,identity
+2018-07,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-07,COP,0.00044974,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-08,CAD,1.0,identity
+2018-08,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-08,COP,0.0004379,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-09,CAD,1.0,identity
+2018-09,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-09,COP,0.00042719,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-10,CAD,1.0,identity
+2018-10,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-10,COP,0.00041964,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-11,CAD,1.0,identity
+2018-11,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-11,COP,0.00040522,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2018-12,CAD,1.0,identity
+2018-12,USD,1.296,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2018-12,COP,0.00040343,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-01,CAD,1.0,identity
+2019-01,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-01,COP,0.00042001,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-02,CAD,1.0,identity
+2019-02,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-02,COP,0.00042617,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-03,CAD,1.0,identity
+2019-03,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-03,COP,0.00042427,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-04,CAD,1.0,identity
+2019-04,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-04,COP,0.00042071,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-05,CAD,1.0,identity
+2019-05,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-05,COP,0.00040113,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-06,CAD,1.0,identity
+2019-06,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-06,COP,0.00040788,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-07,CAD,1.0,identity
+2019-07,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-07,COP,0.00041362,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-08,CAD,1.0,identity
+2019-08,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-08,COP,0.00038877,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-09,CAD,1.0,identity
+2019-09,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-09,COP,0.00039067,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-10,CAD,1.0,identity
+2019-10,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-10,COP,0.00038601,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-11,CAD,1.0,identity
+2019-11,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-11,COP,0.00038887,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2019-12,CAD,1.0,identity
+2019-12,USD,1.327,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2019-12,COP,0.00039307,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-01,CAD,1.0,identity
+2020-01,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-01,COP,0.000404,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-02,CAD,1.0,identity
+2020-02,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-02,COP,0.00039253,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-03,CAD,1.0,identity
+2020-03,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-03,COP,0.00034504,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-04,CAD,1.0,identity
+2020-04,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-04,COP,0.00033638,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-05,CAD,1.0,identity
+2020-05,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-05,COP,0.00034776,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-06,CAD,1.0,identity
+2020-06,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-06,COP,0.00036326,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-07,CAD,1.0,identity
+2020-07,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-07,COP,0.00036633,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-08,CAD,1.0,identity
+2020-08,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-08,COP,0.000354,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-09,CAD,1.0,identity
+2020-09,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-09,COP,0.0003574,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-10,CAD,1.0,identity
+2020-10,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-10,COP,0.00034975,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-11,CAD,1.0,identity
+2020-11,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-11,COP,0.00036488,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2020-12,CAD,1.0,identity
+2020-12,USD,1.341,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2020-12,COP,0.00038662,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-01,CAD,1.0,identity
+2021-01,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-01,COP,0.00035797,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-02,CAD,1.0,identity
+2021-02,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-02,COP,0.00035247,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-03,CAD,1.0,identity
+2021-03,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-03,COP,0.00034673,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-04,CAD,1.0,identity
+2021-04,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-04,COP,0.00034339,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-05,CAD,1.0,identity
+2021-05,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-05,COP,0.00033512,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-06,CAD,1.0,identity
+2021-06,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-06,COP,0.00033967,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-07,CAD,1.0,identity
+2021-07,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-07,COP,0.00032708,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-08,CAD,1.0,identity
+2021-08,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-08,COP,0.00032248,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-09,CAD,1.0,identity
+2021-09,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-09,COP,0.00032812,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-10,CAD,1.0,identity
+2021-10,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-10,COP,0.0003324,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-11,CAD,1.0,identity
+2021-11,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-11,COP,0.00032115,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2021-12,CAD,1.0,identity
+2021-12,USD,1.254,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2021-12,COP,0.00031605,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-01,CAD,1.0,identity
+2022-01,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-01,COP,0.00032507,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-02,CAD,1.0,identity
+2022-02,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-02,COP,0.00033029,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-03,CAD,1.0,identity
+2022-03,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-03,COP,0.00034187,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-04,CAD,1.0,identity
+2022-04,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-04,COP,0.00034193,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-05,CAD,1.0,identity
+2022-05,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-05,COP,0.00032278,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-06,CAD,1.0,identity
+2022-06,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-06,COP,0.00033168,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-07,CAD,1.0,identity
+2022-07,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-07,COP,0.0002964,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-08,CAD,1.0,identity
+2022-08,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-08,COP,0.0003006,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-09,CAD,1.0,identity
+2022-09,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-09,COP,0.00029329,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-10,CAD,1.0,identity
+2022-10,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-10,COP,0.00027559,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-11,CAD,1.0,identity
+2022-11,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-11,COP,0.00026382,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2022-12,CAD,1.0,identity
+2022-12,USD,1.301,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2022-12,COP,0.00027161,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-01,CAD,1.0,identity
+2023-01,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-01,COP,0.00028709,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-02,CAD,1.0,identity
+2023-02,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-02,COP,0.00028145,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-03,CAD,1.0,identity
+2023-03,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-03,COP,0.00028356,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-04,CAD,1.0,identity
+2023-04,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-04,COP,0.00029778,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-05,CAD,1.0,identity
+2023-05,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-05,COP,0.00029756,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-06,CAD,1.0,identity
+2023-06,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-06,COP,0.0003204,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-07,CAD,1.0,identity
+2023-07,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-07,COP,0.00033239,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-08,CAD,1.0,identity
+2023-08,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-08,COP,0.00033195,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-09,CAD,1.0,identity
+2023-09,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-09,COP,0.00033683,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-10,CAD,1.0,identity
+2023-10,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-10,COP,0.00031998,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-11,CAD,1.0,identity
+2023-11,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-11,COP,0.00033436,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2023-12,CAD,1.0,identity
+2023-12,USD,1.35,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2023-12,COP,0.00034141,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-01,CAD,1.0,identity
+2024-01,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-01,COP,0.00034892,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-02,CAD,1.0,identity
+2024-02,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-02,COP,0.00034837,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-03,CAD,1.0,identity
+2024-03,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-03,COP,0.00035082,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-04,CAD,1.0,identity
+2024-04,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-04,COP,0.00035426,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-05,CAD,1.0,identity
+2024-05,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-05,COP,0.00035451,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-06,CAD,1.0,identity
+2024-06,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-06,COP,0.00033768,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-07,CAD,1.0,identity
+2024-07,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-07,COP,0.0003401,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-08,CAD,1.0,identity
+2024-08,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-08,COP,0.00033681,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-09,CAD,1.0,identity
+2024-09,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-09,COP,0.00032657,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-10,CAD,1.0,identity
+2024-10,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-10,COP,0.00032177,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-11,CAD,1.0,identity
+2024-11,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-11,COP,0.00031053,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2024-12,CAD,1.0,identity
+2024-12,USD,1.37,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2024-12,COP,0.00031246,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-01,CAD,1.0,identity
+2025-01,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-01,COP,0.000325,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-02,CAD,1.0,identity
+2025-02,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-02,COP,0.00033748,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-03,CAD,1.0,identity
+2025-03,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-03,COP,0.00033749,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-04,CAD,1.0,identity
+2025-04,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-04,COP,0.0003264,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-05,CAD,1.0,identity
+2025-05,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-05,COP,0.00033202,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-06,CAD,1.0,identity
+2025-06,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-06,COP,0.00033912,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-07,CAD,1.0,identity
+2025-07,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-07,COP,0.00034447,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-08,CAD,1.0,identity
+2025-08,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-08,COP,0.00034445,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-09,CAD,1.0,identity
+2025-09,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-09,COP,0.00035634,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-10,CAD,1.0,identity
+2025-10,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-10,COP,0.0003594,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-11,CAD,1.0,identity
+2025-11,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-11,COP,0.00036907,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2025-12,CAD,1.0,identity
+2025-12,USD,1.395,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2025-12,COP,0.00036735,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-01,CAD,1.0,identity
+2026-01,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-01,COP,0.00037366,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-02,CAD,1.0,identity
+2026-02,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-02,COP,0.00037513,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-03,CAD,1.0,identity
+2026-03,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-03,COP,0.00037148,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-04,CAD,1.0,identity
+2026-04,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-04,COP,0.0003819,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-05,CAD,1.0,identity
+2026-05,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-05,COP,0.00037108,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-06,CAD,1.0,identity
+2026-06,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-06,COP,0.00039461,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-07,CAD,1.0,identity
+2026-07,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-07,COP,0.00042176,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-08,CAD,1.0,identity
+2026-08,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-08,COP,0.00044135,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-09,CAD,1.0,identity
+2026-09,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-09,COP,0.00043337,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"
+2026-10,CAD,1.0,identity
+2026-10,USD,1.38,approximate annual average (replace with Bank of Canada FXMUSDCAD)
+2026-10,COP,0.00043084,"TRM, Superfinanciera de Colombia (datos.gov.co 32sa-8pi3) × approximate annual average (replace with Bank of Canada FXMUSDCAD)"

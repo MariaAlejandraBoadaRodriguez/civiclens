@@ -95,3 +95,66 @@ export type Job = {
   result: Record<string, unknown> | null;
   error: Problem | null;
 };
+
+export type RecipeStep = { op: string; args: Record<string, unknown> };
+
+export type KpiValue = {
+  value: number | null;
+  currency: string | null;
+  unit?: "ratio";
+  reason?: "mixed_currencies" | "not_standardized" | "no_amount";
+  scope?: "dominant_currency";
+};
+
+export type IssueOption = {
+  option_id: string;
+  label: string;
+  hint: string;
+  recommended: boolean;
+  steps: RecipeStep[];
+  params: Record<string, unknown>;
+};
+
+export type PreviewCell = string | number | boolean | null;
+
+export type Issue = {
+  issue_id: string;
+  issue_type: string;
+  category: "completeness" | "uniqueness" | "validity" | "consistency";
+  category_label: string;
+  field: string | null;
+  affected_rows: number;
+  position: number;
+  of: number;
+  title: string;
+  what: string;
+  why: string;
+  learn_more: string;
+  fx_note?: string;
+  options: IssueOption[];
+  preview_columns: string[];
+  preview_before: PreviewCell[][];
+  preview_after: Record<string, PreviewCell[][]>;
+  kpi_id: string | null;
+  kpi_label: string | null;
+  kpi_before: KpiValue | null;
+  kpi_after: Record<string, KpiValue>;
+};
+
+export type IssuesResponse = {
+  dataset: Dataset;
+  quality: Quality | null;
+  quality_after: Quality | null;
+  columns: string[];
+  issues: Issue[];
+  op_labels: Record<string, string>;
+};
+
+export type ApplyResult = {
+  output_hash: string;
+  rows_before: number;
+  rows_after: number;
+  steps: { op: string; rows_before: number; rows_after: number; cells_changed: number }[];
+  quality_before: Quality;
+  quality_after: Quality;
+};
