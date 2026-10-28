@@ -1,13 +1,212 @@
 {
   "common": {
     "brand": "CivicLens",
-    "language": "Language",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "apiDocs": "API docs",
+    "loading": "Loading…",
+    "before": "Before",
+    "after": "After",
+    "afterWith": "After · {label}",
+    "becomes": "becomes",
+    "whatWeFound": "What we found:",
+    "whyItMatters": "Why it matters:",
+    "copy": "Copy",
+    "copied": "Copied",
+    "languageSwitcher": {
+      "label": "Interface language",
+      "names": {
+        "en": "English",
+        "es": "Español"
+      }
+    },
+    "wakingUp": {
+      "title": "Waking up the engine…",
+      "body": "The free server sleeps when idle. The first request can take up to a minute; everything after is fast."
+    },
+    "metaDescription": "Public-sector data engine: ingest, clean, model, predict and report — in English and Spanish."
+  },
+  "nav": {
+    "lifecycle": "Lifecycle",
+    "step": "Step {n}:",
+    "ingest": "Ingest",
+    "clean": "Clean",
+    "sql": "SQL",
+    "ml": "ML",
+    "dashboard": "Dashboard"
   },
   "landing": {
     "eyebrow": "Public-sector data engine · EN / FR / ES data",
     "title": "From messy public files to decisions you can defend.",
     "subtitle": "Upload contracts, budgets or program data. CivicLens profiles it, teaches you how to clean it, models it in SQL, flags what deserves a second look, and builds the executive report.",
-    "status": "Day 1 scaffold — the full experience is under construction."
+    "status": "Early build — the full experience is under construction.",
+    "designLink": "See the design system"
+  },
+  "design": {
+    "metaTitle": "Design system · CivicLens",
+    "eyebrow": "Design system · v0",
+    "title": "Components and tokens",
+    "intro": "Every screen is built from these pieces. Switch the language in the header: all text, numbers and dates change with it.",
+    "sampleNote": "Sample values for illustration",
+    "sections": {
+      "colors": "Color tokens",
+      "typography": "Typography",
+      "buttons": "Buttons",
+      "badges": "Badges",
+      "cards": "Cards and alerts",
+      "score": "Data quality score",
+      "kpis": "KPI tiles",
+      "issue": "Issue card",
+      "table": "Data table",
+      "tabs": "Tabs",
+      "states": "Empty, loading and cold-start states",
+      "formatting": "Locale formatting"
+    },
+    "colors": {
+      "ground": "Page background",
+      "surface": "Cards and controls",
+      "ink": "Headings, header, dark panels",
+      "text": "Body text",
+      "muted": "Secondary text",
+      "line": "Card borders",
+      "primary": "Primary actions, good values",
+      "primaryTint": "Selected items, language badges",
+      "flag": "Needs attention",
+      "flagTint": "Warning backgrounds",
+      "flagText": "Text on warning backgrounds",
+      "success": "Resolved, improvement"
+    },
+    "type": {
+      "display": "Display · 48 / 600",
+      "h1": "Page title · 30 / 600",
+      "h2": "Section title · 18 / 600",
+      "body": "Body · 16 / 400 — We read the file as-is. Nothing is changed yet.",
+      "small": "Small · 13 / 400 — CSV, XLSX or JSON · up to 50 MB · deleted after 24 h",
+      "mono": "Mono · 14 — signed_date · amount_cad"
+    },
+    "buttons": {
+      "primary": "Apply decision",
+      "secondary": "Skip for now",
+      "ghost": "Learn more",
+      "attention": "Mask both",
+      "link": "Continue to cleaning →",
+      "disabled": "Disabled",
+      "stateNote": "Every button has hover, keyboard focus (blue ring) and disabled states."
+    },
+    "badges": {
+      "csv": "CSV",
+      "flag": "Split contract",
+      "success": "Done",
+      "info": "Now"
+    },
+    "card": {
+      "title": "What one run produces",
+      "rowScore": "Data quality score",
+      "rowScoreValue": "before → after",
+      "rowRecipe": "Cleaning recipe",
+      "rowRecipeValue": "JSON · pandas · SQL",
+      "rowSchema": "Star schema",
+      "rowSchemaValue": "1 fact · 5 dims"
+    },
+    "pii": {
+      "title": "Personal data detected",
+      "body": "2 columns look like personal information. Mask them before analysis so they never reach a chart, export or API response.",
+      "colId": "ID number",
+      "colEmail": "email",
+      "mask": "Mask both",
+      "review": "Review"
+    },
+    "warning": "Flags are leads for human review, never accusations. Results depend on data quality and on thresholds set per jurisdiction.",
+    "score": {
+      "outOf": "/ 100",
+      "label": "Overall data quality score",
+      "completeness": "Completeness",
+      "uniqueness": "Uniqueness",
+      "validity": "Validity",
+      "consistency": "Consistency"
+    },
+    "kpi": {
+      "totalSpend": "Total spend",
+      "totalSpendNote": "+6.8% YoY",
+      "contracts": "Contracts",
+      "contractsNote": "after dedup",
+      "avgValue": "Avg value",
+      "avgValueNote": "median {median}",
+      "directAward": "Direct award",
+      "directAwardNote": "+3 pts",
+      "hhi": "Concentration (HHI)",
+      "hhiNote": "unconcentrated",
+      "quality": "Data quality",
+      "qualityNote": "was {before}"
+    },
+    "issue": {
+      "eyebrow": "Issue 3 of 7 · Consistency",
+      "title": "Amounts are in 3 different currencies",
+      "found": "{cop} rows in COP, {usd} in USD and {cad} in CAD inside amount_original.",
+      "why": "adding them together makes total spend meaningless, and comparing Colombia with Canada needs a single currency.",
+      "legend": "Choose how to unify",
+      "options": {
+        "CAD": "Convert all to CAD",
+        "CADHint": "Best for comparing with the Canadian datasets",
+        "COP": "Convert all to COP",
+        "COPHint": "Keeps the Colombian report in local currency",
+        "USD": "Convert all to USD",
+        "USDHint": "Neutral currency for international audiences",
+        "KEEP": "Keep originals and add amount_cad",
+        "KEEPHint": "Nothing is overwritten; one extra column"
+      },
+      "newColumn": "{currency} (new column)",
+      "impactLabel": "Impact on KPI · Total spend",
+      "impactBefore": "not comparable",
+      "impactNote": "FX table: rate on each contract's signed date · source cited in the dataset card",
+      "apply": "Apply decision",
+      "skip": "Skip for now",
+      "learnMore": "Learn more: why currency normalization comes before KPIs",
+      "recipeTitle": "Cleaning recipe · v1",
+      "recipeTabs": "Recipe format",
+      "codeLabel": "{format} code",
+      "export": "Export recipe as code",
+      "replayNote": "Saved recipes can be replayed on next month's file — from here or through the API."
+    },
+    "table": {
+      "caption": "Header mapping to the canonical schema",
+      "source": "Source header",
+      "type": "Detected type",
+      "canonical": "Canonical field",
+      "confidence": "Confidence",
+      "nulls": "Nulls",
+      "check": "check",
+      "overrideLabel": "Canonical field for {header}",
+      "types": {
+        "date": "date · mixed formats",
+        "number": "number · es locale",
+        "category": "category · {n} values",
+        "text": "text"
+      }
+    },
+    "tabs": {
+      "label": "Models",
+      "redFlags": "Red-flag detection",
+      "forecast": "Spend forecast",
+      "classifier": "Category classifier · later",
+      "segments": "Supplier segments · later",
+      "redFlagsBody": "Isolation Forest + 5 transparent rules rank contracts for human review.",
+      "forecastBody": "Seasonal-naive baseline vs. SARIMA, compared with MAPE."
+    },
+    "empty": {
+      "title": "No dataset yet",
+      "body": "Try one of the three sample datasets or upload your own CSV, XLSX or JSON file.",
+      "action": "Try with sample data"
+    },
+    "formatting": {
+      "caption": "The same values formatted for the current interface language",
+      "kind": "Kind",
+      "output": "Output",
+      "number": "Number",
+      "currency": "Currency (code always shown)",
+      "compact": "Compact amount",
+      "percent": "Percent",
+      "dateLong": "Date · long",
+      "dateShort": "Date · short"
+    }
   }
 }
