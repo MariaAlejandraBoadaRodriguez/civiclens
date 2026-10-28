@@ -1,13 +1,31 @@
+@import "../styles/tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-ground text-text font-sans;
-}
-
-/* Self-hosted fonts (@fontsource) — no runtime call to Google Fonts. */
-:root {
-  --font-sans: "IBM Plex Sans";
-  --font-mono: "IBM Plex Mono";
+@layer base {
+  body {
+    @apply bg-ground font-sans text-text antialiased;
+  }
+  a {
+    @apply text-primary hover:text-primary-dark;
+  }
+  /* One visible focus style everywhere (WCAG 2.4.7). Dark surfaces override with .focus-on-dark. */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .focus-on-dark :focus-visible,
+  .focus-on-dark:focus-visible {
+    outline-color: var(--color-ink-accent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

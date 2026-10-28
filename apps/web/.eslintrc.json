@@ -1,1 +1,20 @@
-{ "extends": "next/core-web-vitals" }
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "react/jsx-no-literals": [
+      "error",
+      {
+        "noStrings": true,
+        "ignoreProps": true,
+        "allowedStrings": ["·", "→", "—", "/", "|", "×", "%", "+", "−", ":", "(", ")"]
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "JSXAttribute[name.name=/^(aria-label|aria-description|alt|title|placeholder)$/] > Literal",
+        "message": "Hardcoded user-facing attribute text. Use t() from next-intl."
+      }
+    ]
+  }
+}

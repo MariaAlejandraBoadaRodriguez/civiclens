@@ -1,13 +1,212 @@
 {
   "common": {
     "brand": "CivicLens",
-    "language": "Idioma",
-    "skipToContent": "Ir al contenido"
+    "skipToContent": "Ir al contenido",
+    "apiDocs": "Documentación de la API",
+    "loading": "Cargando…",
+    "before": "Antes",
+    "after": "Después",
+    "afterWith": "Después · {label}",
+    "becomes": "pasa a",
+    "whatWeFound": "Lo que encontramos:",
+    "whyItMatters": "Por qué importa:",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "languageSwitcher": {
+      "label": "Idioma de la interfaz",
+      "names": {
+        "en": "English",
+        "es": "Español"
+      }
+    },
+    "wakingUp": {
+      "title": "Encendiendo el motor…",
+      "body": "El servidor gratuito se duerme cuando no se usa. La primera solicitud puede tardar hasta un minuto; después todo es rápido."
+    },
+    "metaDescription": "Motor de datos del sector público: ingesta, limpieza, modelado, predicción y reportes — en inglés y español."
+  },
+  "nav": {
+    "lifecycle": "Ciclo de vida",
+    "step": "Paso {n}:",
+    "ingest": "Ingesta",
+    "clean": "Limpieza",
+    "sql": "SQL",
+    "ml": "ML",
+    "dashboard": "Tablero"
   },
   "landing": {
     "eyebrow": "Motor de datos del sector público · datos en EN / FR / ES",
     "title": "De archivos públicos desordenados a decisiones que puedes defender.",
-    "subtitle": "Sube contratos, presupuestos o datos de programas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y genera el reporte ejecutivo.",
-    "status": "Estructura del día 1 — la experiencia completa está en construcción."
+    "subtitle": "Carga contratos, presupuestos o datos de programas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y genera el reporte ejecutivo.",
+    "status": "Versión temprana — la experiencia completa está en construcción.",
+    "designLink": "Ver el sistema de diseño"
+  },
+  "design": {
+    "metaTitle": "Sistema de diseño · CivicLens",
+    "eyebrow": "Sistema de diseño · v0",
+    "title": "Componentes y tokens",
+    "intro": "Cada pantalla se construye con estas piezas. Cambia el idioma en el encabezado: todos los textos, números y fechas cambian con él.",
+    "sampleNote": "Valores de ejemplo con fines ilustrativos",
+    "sections": {
+      "colors": "Tokens de color",
+      "typography": "Tipografía",
+      "buttons": "Botones",
+      "badges": "Etiquetas",
+      "cards": "Tarjetas y alertas",
+      "score": "Puntaje de calidad de datos",
+      "kpis": "Indicadores KPI",
+      "issue": "Tarjeta de problema",
+      "table": "Tabla de datos",
+      "tabs": "Pestañas",
+      "states": "Estados vacío, de carga y de arranque en frío",
+      "formatting": "Formato según el idioma"
+    },
+    "colors": {
+      "ground": "Fondo de página",
+      "surface": "Tarjetas y controles",
+      "ink": "Títulos, encabezado, paneles oscuros",
+      "text": "Texto principal",
+      "muted": "Texto secundario",
+      "line": "Bordes de tarjetas",
+      "primary": "Acciones principales, valores buenos",
+      "primaryTint": "Elementos seleccionados, etiquetas de idioma",
+      "flag": "Requiere atención",
+      "flagTint": "Fondos de advertencia",
+      "flagText": "Texto sobre fondos de advertencia",
+      "success": "Resuelto, mejora"
+    },
+    "type": {
+      "display": "Portada · 48 / 600",
+      "h1": "Título de página · 30 / 600",
+      "h2": "Título de sección · 18 / 600",
+      "body": "Cuerpo · 16 / 400 — Leemos el archivo tal como está. Todavía no se cambia nada.",
+      "small": "Pequeño · 13 / 400 — CSV, XLSX o JSON · hasta 50 MB · se elimina a las 24 h",
+      "mono": "Monoespaciada · 14 — signed_date · amount_cad"
+    },
+    "buttons": {
+      "primary": "Aplicar decisión",
+      "secondary": "Omitir por ahora",
+      "ghost": "Más información",
+      "attention": "Enmascarar ambas",
+      "link": "Continuar a la limpieza →",
+      "disabled": "Deshabilitado",
+      "stateNote": "Cada botón tiene estados de hover, foco de teclado (anillo azul) y deshabilitado."
+    },
+    "badges": {
+      "csv": "CSV",
+      "flag": "Contrato fraccionado",
+      "success": "Listo",
+      "info": "Ahora"
+    },
+    "card": {
+      "title": "Lo que produce una ejecución",
+      "rowScore": "Puntaje de calidad de datos",
+      "rowScoreValue": "antes → después",
+      "rowRecipe": "Receta de limpieza",
+      "rowRecipeValue": "JSON · pandas · SQL",
+      "rowSchema": "Esquema en estrella",
+      "rowSchemaValue": "1 hecho · 5 dimensiones"
+    },
+    "pii": {
+      "title": "Se detectaron datos personales",
+      "body": "2 columnas parecen contener información personal. Enmascáralas antes del análisis para que nunca lleguen a un gráfico, una exportación o una respuesta de la API.",
+      "colId": "número de identificación",
+      "colEmail": "correo electrónico",
+      "mask": "Enmascarar ambas",
+      "review": "Revisar"
+    },
+    "warning": "Las alertas son pistas para revisión humana, nunca acusaciones. Los resultados dependen de la calidad de los datos y de los umbrales definidos para cada jurisdicción.",
+    "score": {
+      "outOf": "/ 100",
+      "label": "Puntaje general de calidad de datos",
+      "completeness": "Completitud",
+      "uniqueness": "Unicidad",
+      "validity": "Validez",
+      "consistency": "Consistencia"
+    },
+    "kpi": {
+      "totalSpend": "Gasto total",
+      "totalSpendNote": "+6,8 % interanual",
+      "contracts": "Contratos",
+      "contractsNote": "sin duplicados",
+      "avgValue": "Valor promedio",
+      "avgValueNote": "mediana {median}",
+      "directAward": "Contratación directa",
+      "directAwardNote": "+3 pts",
+      "hhi": "Concentración (IHH)",
+      "hhiNote": "no concentrado",
+      "quality": "Calidad de datos",
+      "qualityNote": "antes {before}"
+    },
+    "issue": {
+      "eyebrow": "Problema 3 de 7 · Consistencia",
+      "title": "Los montos están en 3 monedas distintas",
+      "found": "{cop} filas en COP, {usd} en USD y {cad} en CAD dentro de amount_original.",
+      "why": "sumarlos hace que el gasto total no tenga sentido, y comparar Colombia con Canadá requiere una sola moneda.",
+      "legend": "Elige cómo unificar",
+      "options": {
+        "CAD": "Convertir todo a CAD",
+        "CADHint": "Lo mejor para comparar con los conjuntos de datos de Canadá",
+        "COP": "Convertir todo a COP",
+        "COPHint": "Mantiene el reporte de Colombia en moneda local",
+        "USD": "Convertir todo a USD",
+        "USDHint": "Moneda neutral para audiencias internacionales",
+        "KEEP": "Conservar los originales y agregar amount_cad",
+        "KEEPHint": "No se sobrescribe nada; una columna adicional"
+      },
+      "newColumn": "{currency} (columna nueva)",
+      "impactLabel": "Impacto en el KPI · Gasto total",
+      "impactBefore": "no comparable",
+      "impactNote": "Tabla de tasas de cambio: tasa en la fecha de firma de cada contrato · fuente citada en la ficha del conjunto de datos",
+      "apply": "Aplicar decisión",
+      "skip": "Omitir por ahora",
+      "learnMore": "Más información: por qué normalizar la moneda antes de calcular KPI",
+      "recipeTitle": "Receta de limpieza · v1",
+      "recipeTabs": "Formato de la receta",
+      "codeLabel": "Código {format}",
+      "export": "Exportar receta como código",
+      "replayNote": "Las recetas guardadas se pueden reaplicar al archivo del próximo mes, desde aquí o mediante la API."
+    },
+    "table": {
+      "caption": "Mapeo de encabezados al esquema canónico",
+      "source": "Encabezado original",
+      "type": "Tipo detectado",
+      "canonical": "Campo canónico",
+      "confidence": "Confianza",
+      "nulls": "Nulos",
+      "check": "revisar",
+      "overrideLabel": "Campo canónico para {header}",
+      "types": {
+        "date": "fecha · formatos mixtos",
+        "number": "número · formato es",
+        "category": "categoría · {n} valores",
+        "text": "texto"
+      }
+    },
+    "tabs": {
+      "label": "Modelos",
+      "redFlags": "Detección de alertas",
+      "forecast": "Pronóstico de gasto",
+      "classifier": "Clasificador de categorías · más adelante",
+      "segments": "Segmentos de proveedores · más adelante",
+      "redFlagsBody": "Isolation Forest + 5 reglas transparentes ordenan los contratos para revisión humana.",
+      "forecastBody": "Línea base estacional ingenua vs. SARIMA, comparadas con MAPE."
+    },
+    "empty": {
+      "title": "Aún no hay un conjunto de datos",
+      "body": "Prueba uno de los tres conjuntos de datos de ejemplo o carga tu propio archivo CSV, XLSX o JSON.",
+      "action": "Probar con datos de ejemplo"
+    },
+    "formatting": {
+      "caption": "Los mismos valores con el formato del idioma actual de la interfaz",
+      "kind": "Tipo",
+      "output": "Resultado",
+      "number": "Número",
+      "currency": "Moneda (siempre con su código)",
+      "compact": "Monto compacto",
+      "percent": "Porcentaje",
+      "dateLong": "Fecha · larga",
+      "dateShort": "Fecha · corta"
+    }
   }
 }

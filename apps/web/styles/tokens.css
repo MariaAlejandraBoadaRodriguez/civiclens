@@ -1,0 +1,68 @@
+/*
+ * CivicLens design tokens — taken from the approved mockups
+ * (https://claude.ai/artifact/1FACLDLoSx3hTmETMXnVr9, ROADMAP Phase 2 "Visual language").
+ * Tailwind reads these through tailwind.config.ts; components never use raw hex values.
+ * Rule: blue = good / primary, orange = needs attention. Never red vs green.
+ */
+:root {
+  /* Surfaces */
+  --color-ground: #f4f6f8;
+  --color-surface: #ffffff;
+  --color-subtle: #eef1f4; /* neutral badges, inline code, table row rules */
+  --color-track: #e5e9ee; /* empty part of score bars */
+
+  /* Text */
+  --color-ink: #0f1b2d; /* headings, header background */
+  --color-text: #1f2a37;
+  --color-muted: #4b5563;
+  --color-neutral-text: #374151; /* text on --color-subtle */
+
+  /* Lines */
+  --color-line: #d7dde4; /* card borders */
+  --color-line-strong: #c3cbd5; /* control borders */
+  --color-dropzone: #a9b6c6;
+
+  /* Primary (blue) */
+  --color-primary: #1d4ed8;
+  --color-primary-dark: #1e3a8a;
+  --color-primary-tint: #e8eefc;
+  --color-primary-soft: #f5f8ff;
+  --color-primary-border: #a9c0f0;
+
+  /* Attention (orange) */
+  --color-flag: #b45309;
+  --color-flag-tint: #fdf1e4;
+  --color-flag-text: #7c2d12;
+  --color-flag-border: #f0c99b;
+  --color-flag-border-strong: #c2793a;
+  --color-flag-hover: #5c210d;
+
+  /* Success */
+  --color-success: #15803d;
+  --color-success-tint: #e7f4ec;
+  --color-success-text: #166534; /* success text on the tint (6.4:1) */
+
+  /* Dark chrome: header, recipe panel, code */
+  --color-ink-raised: #1e3a5f;
+  --color-ink-text: #c9d3e0;
+  --color-ink-line: #3a4a60;
+  --color-ink-dim: #a9b6c6;
+  --color-ink-accent: #7fb2ff;
+  --color-code: #08111e;
+  --color-code-text: #e3e8ef;
+
+  /* Typography */
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Radius */
+  --radius-chip: 4px;
+  --radius-nav: 6px;
+  --radius-control: 8px;
+  --radius-panel: 10px;
+  --radius-card: 12px;
+
+  /* Layout */
+  --container-max: 1200px;
+  --touch-target: 44px;
+}
