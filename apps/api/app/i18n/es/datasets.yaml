@@ -1,0 +1,9 @@
+secop_co:
+  name: Colombia · Contratos públicos
+  description: Muestra de contratos de SECOP II. Montos en COP, encabezados en español.
+contracts_ca:
+  name: Canadá · Contratos federales
+  description: Divulgación proactiva de contratos. Encabezados bilingües, montos en CAD.
+contracts_qc:
+  name: Québec · Contratos públicos
+  description: Avisos de contratos en francés, JSON anidado, fechas en formatos mixtos.

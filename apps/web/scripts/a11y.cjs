@@ -1,13 +1,15 @@
 /**
  * axe-core audit of the design-system pages in both locales (Phase 3 DoD).
  * Usage: npm run build && npm start &  then  npm run test:a11y [baseUrl]
+ * Dataset pages need the API (API_URL) to render real data; without it they show the
+ * "Waking up the engine" state, which is audited too.
  * Requires the Playwright Chromium build (`npx playwright install chromium`; CI job "a11y").
  */
 const path = require("node:path");
 const { chromium } = require("playwright");
 
 const BASE = process.argv[2] || "http://localhost:3000";
-const PAGES = ["/en/design", "/es/design", "/en", "/es"];
+const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc"];
 const AXE = path.join(__dirname, "..", "node_modules", "axe-core", "axe.min.js");
 
 (async () => {

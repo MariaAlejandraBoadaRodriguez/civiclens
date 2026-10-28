@@ -1,0 +1,33 @@
+# Textos de los problemas RFC 7807, por código de error estable.
+ingest:
+  unsupported_format:
+    title: Tipo de archivo no admitido
+    detail: "Carga un archivo CSV, XLSX o JSON. No se aceptan archivos .xls antiguos ni libros con macros."
+  empty_file:
+    title: El archivo está vacío
+    detail: No encontramos filas en este archivo.
+  too_large:
+    title: Archivo demasiado grande
+    detail: "El límite es de {limit_mb} MB por archivo."
+  unreadable:
+    title: No pudimos leer este archivo
+    detail: El archivo parece dañado o no tiene el formato que indica su extensión.
+dataset:
+  not_found:
+    title: Conjunto de datos no encontrado
+    detail: "No existe un conjunto de datos con id {dataset_id}. Los archivos cargados se eliminan a las 24 horas."
+  not_ready:
+    title: El conjunto de datos todavía se está procesando
+    detail: Vuelve a intentarlo en unos segundos.
+job:
+  not_found:
+    title: Tarea no encontrada
+    detail: "No existe una tarea con id {job_id}."
+request:
+  invalid:
+    title: Solicitud no válida
+    detail: Uno o más campos no son válidos.
+server:
+  internal:
+    title: Algo salió mal de nuestro lado
+    detail: El error quedó registrado. Vuelve a intentarlo en un momento.

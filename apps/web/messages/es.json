@@ -39,7 +39,8 @@
     "title": "De archivos públicos desordenados a decisiones que puedes defender.",
     "subtitle": "Carga contratos, presupuestos o datos de programas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y genera el reporte ejecutivo.",
     "status": "Versión temprana — la experiencia completa está en construcción.",
-    "designLink": "Ver el sistema de diseño"
+    "designLink": "Ver el sistema de diseño",
+    "trySample": "Probar con datos de ejemplo"
   },
   "design": {
     "metaTitle": "Sistema de diseño · CivicLens",
@@ -207,6 +208,119 @@
       "percent": "Porcentaje",
       "dateLong": "Fecha · larga",
       "dateShort": "Fecha · corta"
+    }
+  },
+  "ingest": {
+    "metaTitle": "Ingesta y perfil · CivicLens",
+    "title": "Ingesta y perfil",
+    "subtitle": "Leemos el archivo tal como está. Todavía no se cambia nada: cada corrección es tu decisión en el siguiente paso.",
+    "datasetChip": "Conjunto de datos: {name}",
+    "notReady": "Todavía estamos leyendo y perfilando este archivo. Esta página se actualiza sola.",
+    "notFound": {
+      "title": "No encontramos este conjunto de datos",
+      "body": "Los archivos cargados se eliminan a las 24 horas. Prueba uno de los conjuntos de datos de ejemplo o vuelve a cargar el archivo.",
+      "action": "Abrir un conjunto de datos de ejemplo"
+    },
+    "samples": {
+      "label": "Conjuntos de datos de ejemplo:",
+      "secop_co": "Colombia · SECOP II",
+      "contracts_ca": "Canadá · Federal",
+      "contracts_qc": "Québec · SEAO"
+    },
+    "upload": {
+      "cta": "Arrastra un archivo o explora",
+      "hint": "CSV, XLSX o JSON · hasta {mb} MB · se elimina a las 24 h",
+      "uploading": "Cargando {name}…",
+      "processing": "Leyendo y perfilando {name}…",
+      "failedTitle": "No pudimos procesar este archivo",
+      "timeout": "Está tardando más de lo esperado. Actualiza la página en un minuto.",
+      "networkTitle": "No pudimos conectar con el motor",
+      "networkDetail": "Revisa tu conexión e inténtalo de nuevo; el servidor gratuito puede estar encendiéndose.",
+      "tooLargeTitle": "Archivo demasiado grande",
+      "tooLargeDetail": "El límite es de {mb} MB por archivo."
+    },
+    "source": {
+      "title": "Origen"
+    },
+    "meta": {
+      "format": "Formato",
+      "encoding": "Codificación",
+      "delimiter": "Delimitador",
+      "sheet": "Hoja",
+      "headerRow": "encabezado en la fila {n}",
+      "records": "Registros en",
+      "language": "Idioma de los datos",
+      "rowsColumns": "Filas × columnas",
+      "storedAs": "Guardado como",
+      "storedValue": "Parquet crudo + preparado",
+      "notApplicable": "no aplica"
+    },
+    "delimiters": {
+      "comma": "coma",
+      "semicolon": "punto y coma",
+      "tab": "tabulación",
+      "pipe": "barra vertical"
+    },
+    "languages": {
+      "en": "Inglés",
+      "fr": "Francés",
+      "es": "Español",
+      "mixed": "Mixto",
+      "unknown": "Sin texto para detectar"
+    },
+    "score": {
+      "title": "Puntaje de calidad de datos",
+      "outOf": "/ 100",
+      "srLabel": "Puntaje de calidad de datos: {score} de 100",
+      "completeness": "Completitud",
+      "uniqueness": "Unicidad",
+      "validity": "Validez",
+      "consistency": "Consistencia",
+      "explain": "Se mide en las columnas mapeadas al esquema canónico: celdas con valor, filas e ids de contrato duplicados, valores que se pueden interpretar y valores escritos en el formato dominante."
+    },
+    "pii": {
+      "title": "Se detectaron datos personales",
+      "body": "{count, plural, one {# columna parece contener} other {# columnas parecen contener}} información personal. Enmascáralas antes del análisis para que nunca lleguen a un gráfico, una exportación o una respuesta de la API.",
+      "mask": "Enmascarar todo",
+      "review": "Revisar",
+      "maskNote": "Enmascarar es un paso de limpieza: lo aplicas en el Estudio de limpieza.",
+      "noneTitle": "No se detectaron datos personales",
+      "noneBody": "Buscamos correos electrónicos, teléfonos, números de identificación y columnas con nombres de personas. No encontramos coincidencias."
+    },
+    "mapping": {
+      "title": "Mapeo de encabezados al esquema canónico",
+      "subtitle": "Los encabezados en español y francés se mapean a un único esquema en inglés. Corrige lo que no se vea bien.",
+      "caption": "Mapeo de encabezados de {count} columnas",
+      "source": "Encabezado original",
+      "type": "Tipo detectado",
+      "canonical": "Campo canónico",
+      "confidence": "Confianza",
+      "nulls": "Nulos",
+      "check": "revisar",
+      "none": "—",
+      "unmapped": "sin mapear (se conserva igual)",
+      "notMapped": "— sin mapear —",
+      "overrideLabel": "Campo canónico para {header}",
+      "codedAs": "codificados como {tokens}"
+    },
+    "types": {
+      "string": "texto",
+      "integer": "entero",
+      "number": "número",
+      "date": "fecha",
+      "datetime": "fecha y hora",
+      "boolean": "sí / no",
+      "category": "categoría"
+    },
+    "detail": {
+      "mixedNotation": "notaciones mixtas",
+      "commaDecimal": "coma decimal",
+      "mixedFormats": "formatos mixtos",
+      "values": "{n} valores"
+    },
+    "footer": {
+      "summary": "<strong>{count, plural, one {# columna requiere} other {# columnas requieren}} atención</strong> de {total}: listo para el estudio de limpieza.",
+      "continue": "Continuar a la limpieza →"
     }
   }
 }

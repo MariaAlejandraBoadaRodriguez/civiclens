@@ -10,6 +10,11 @@ dependencies = [
   "sqlalchemy>=2.0.36",
   "alembic>=1.14",
   "psycopg[binary]>=3.2",
+  "pandas>=2.2",
+  "pyarrow>=17",
+  "openpyxl>=3.1",
+  "python-multipart>=0.0.12",
+  "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -18,7 +23,6 @@ dev = [
   "pytest-cov>=5.0",
   "httpx>=0.27",
   "ruff>=0.6",
-  "pyyaml>=6.0",
 ]
 
 [build-system]
@@ -27,6 +31,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["app*"]
+
+[tool.setuptools.package-data]
+"app.i18n" = ["en/*.yaml", "es/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -39,3 +46,7 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S"]
 ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+# Deterministic demo-data generator: seeded PRNG on purpose, not for security.
+"app/core/seed/dirty.py" = ["S311"]

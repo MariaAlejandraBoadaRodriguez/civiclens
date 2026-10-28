@@ -88,6 +88,23 @@ Residual: Canada `vendor_name` and Québec `fournisseur_nom` may occasionally be
 
 ---
 
+## Demo ("dirty") versions — what "Try with sample data" loads
+
+The app does not show the seed Parquet directly. On first use the API runs
+`app/core/seed/dirty.py` (also available as `python scripts/make_dirty.py`, output in the
+git-ignored `data/demo/`) to write each seed in its jurisdiction's original format with
+**documented, deterministic** data-quality issues (fixed seed `20261028`; same input → byte-identical file).
+This is what the ingest screen profiles and what the Cleaning Studio fixes.
+
+| Seed | Demo file | Rows | Injected issues (counts are exact) |
+|---|---|---|---|
+| `secop_co` | `secop_co.csv` — `;` delimiter, Windows-1252 | 25,400 | 412 USD + 88 CAD amounts in a new `moneda` column · 15 outliers (×1000) · 3,000 amounts in EN notation (rest ES `1.234,56`) · `fecha_de_firma` as dd/mm/yyyy (7,500) and mm/dd/yyyy (1,500) · 2,250 coded nulls (`N/A`, `-`, `sin dato`, `No Definido`, empty) · 2,000 case/accent/spacing name variants · 300 exact + 100 near duplicates · fuzzy header `Modalidad de Contratación (SECOP)` · synthetic `email_contacto` / `telefono_contacto` (example.org, `+57 300 555 ….`) |
+| `contracts_ca` | `contracts_ca.xlsx` — title row, bilingual headers | 10,130 | 200 USD amounts (new `currency` column) · 1,500 amounts in FR notation `1 234,56` · 1,000 dates as mm/dd/yyyy · 400 coded nulls in `number_of_bids` · 300 vendor-name variants · 100 exact + 30 near duplicates · 4 bilingual headers (`Contract value / Valeur du contrat`, …) · 2 title rows above the header |
+| `contracts_qc` | `contracts_qc.json` — nested `acheteur.*` / `fournisseur.*` | 20,200 | 6,000 amounts as FR-formatted strings · 3,000 dates as dd/mm/yyyy, the rest ISO with time-zone offsets · 600 coded nulls (`non disponible`, `N/D`, `-`) · 800 buyer-name variants · 6 outliers · 200 exact duplicates |
+
+Canada and Québec demo files are deterministic subsets (10,000 / 20,000 seed rows) to keep XLSX
+reading fast; the seed Parquet files above are unchanged.
+
 ## If a download breaks later
 
 - **Canada full CSV** (`contracts.csv`, ~640 MB) is served from `opencanada.blob.core.windows.net`, which the Claude cloud sandbox cannot reach; the script uses the CKAN datastore API instead. To audit against the original file, download

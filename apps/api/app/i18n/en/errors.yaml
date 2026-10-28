@@ -1,0 +1,33 @@
+# RFC 7807 problem texts, keyed by the stable error code. {params} come from the problem.
+ingest:
+  unsupported_format:
+    title: Unsupported file type
+    detail: "Upload a CSV, XLSX or JSON file. Legacy .xls files and macro-enabled workbooks are not accepted."
+  empty_file:
+    title: The file is empty
+    detail: We could not find any rows in this file.
+  too_large:
+    title: File too large
+    detail: "The limit is {limit_mb} MB per file."
+  unreadable:
+    title: We could not read this file
+    detail: The file seems damaged or is not in the format its extension says.
+dataset:
+  not_found:
+    title: Dataset not found
+    detail: "No dataset with id {dataset_id}. Uploaded files are deleted after 24 hours."
+  not_ready:
+    title: The dataset is still being processed
+    detail: Try again in a few seconds.
+job:
+  not_found:
+    title: Job not found
+    detail: "No job with id {job_id}."
+request:
+  invalid:
+    title: Invalid request
+    detail: One or more fields are not valid.
+server:
+  internal:
+    title: Something went wrong on our side
+    detail: The error was logged. Try again in a moment.

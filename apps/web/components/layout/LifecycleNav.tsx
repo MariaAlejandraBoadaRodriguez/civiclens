@@ -1,10 +1,11 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
 import { cn } from "@/lib/cn";
 
-/** Default dataset for lifecycle links until a dataset is picked (screens land in Phase 6). */
+/** Dataset used by the lifecycle links when the current page is not about a dataset. */
 export const DEFAULT_DATASET = "secop_co";
 
 export const LIFECYCLE_STEPS = [
@@ -15,15 +16,17 @@ export const LIFECYCLE_STEPS = [
   { key: "dashboard", path: "/dashboard" },
 ] as const;
 
-export function LifecycleNav({ datasetId = DEFAULT_DATASET }: { datasetId?: string }) {
+export function LifecycleNav({ datasetId }: { datasetId?: string }) {
   const t = useTranslations("nav");
+  const params = useParams<{ id?: string }>();
+  const current = datasetId ?? params?.id ?? DEFAULT_DATASET;
   const pathname = usePathname();
 
   return (
     <nav aria-label={t("lifecycle")} className="focus-on-dark flex-auto">
       <ol className="m-0 flex list-none flex-wrap gap-1 p-0">
         {LIFECYCLE_STEPS.map((step, i) => {
-          const href = `/datasets/${datasetId}${step.path}`;
+          const href = `/datasets/${current}${step.path}`;
           const active = pathname === href;
           return (
             <li key={step.key}>
