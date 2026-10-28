@@ -4,10 +4,23 @@ updates:
     directory: /apps/web
     schedule: { interval: weekly }
     open-pull-requests-limit: 5
+    groups:
+      web-minor-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Major upgrades (React 19, Next 15, Tailwind 4, ESLint 9) are planned work, not bot PRs.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: pip
     directory: /apps/api
     schedule: { interval: weekly }
     open-pull-requests-limit: 5
+    groups:
+      api-minor-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
