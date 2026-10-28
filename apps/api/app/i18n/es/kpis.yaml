@@ -1,0 +1,9 @@
+total_spend: Gasto total
+contract_count: Contratos
+readable_dates: Fechas que una hoja de cálculo puede leer
+distinct_entity_name: Entidades distintas
+distinct_supplier_name: Proveedores distintos
+direct_award_share: Porcentaje de contratación directa
+not_comparable: no comparable
+not_standardized: aún no disponible
+scope_dominant: "Solo montos en {currency}"

@@ -31,3 +31,13 @@ server:
   internal:
     title: Algo salió mal de nuestro lado
     detail: El error quedó registrado. Vuelve a intentarlo en un momento.
+recipe:
+  invalid:
+    title: La receta no es válida
+    detail: "Paso {step}: {message}"
+  not_found:
+    title: Receta no encontrada
+    detail: "No existe una receta con id {recipe_id}."
+  failed:
+    title: No se pudo aplicar la receta
+    detail: Un paso falló en este archivo. El error quedó registrado.

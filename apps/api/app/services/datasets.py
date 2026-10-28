@@ -30,6 +30,7 @@ from app.db.models import (
 )
 from app.db.session import SessionLocal
 from app.services import storage
+from app.services.cleaning import build_issues
 from app.services.ingest import ingest_bytes
 
 log = logging.getLogger(__name__)
@@ -59,15 +60,24 @@ def _apply_profile(ds: Dataset, profile: dict[str, Any]) -> None:
 # --------------------------------------------------------------------------- seeds
 
 
+def _seed_ready(ds: Dataset) -> bool:
+    """Built and still on disk (Render's disk is ephemeral; a redeploy rebuilds seeds)."""
+    return (
+        ds.status in (DatasetStatus.PROFILED, DatasetStatus.CLEANED)
+        and storage.profile_path(ds.id).exists()
+        and storage.issues_path(ds.id).exists()
+    )
+
+
 def ensure_seed(session: Session, seed: Seed) -> Dataset:
     """Return the seed's dataset row, building its demo file + profile on first use."""
     ds = session.get(Dataset, seed.id)
-    if ds and ds.status == DatasetStatus.PROFILED and storage.profile_path(seed.id).exists():
+    if ds and _seed_ready(ds):
         return ds
     with _seed_locks[seed.slug]:
         session.expire_all()
         ds = session.get(Dataset, seed.id)
-        if ds and ds.status == DatasetStatus.PROFILED and storage.profile_path(seed.id).exists():
+        if ds and _seed_ready(ds):
             return ds
         if ds is None:
             ds = Dataset(
@@ -85,6 +95,7 @@ def ensure_seed(session: Session, seed: Seed) -> Dataset:
         profile["dirty_manifest"] = result.manifest
         storage.write_json(profile, storage.profile_path(seed.id))
         _apply_profile(ds, profile)
+        build_issues(ds)
         session.commit()
         log.info("seed %s ready: %s rows", seed.slug, ds.rows)
         return ds
@@ -182,6 +193,7 @@ def run_ingest_job(job_id: uuid.UUID) -> None:
             data = storage.original_path(ds.id, filename).read_bytes()
             profile = ingest_bytes(ds.id, data, filename)
             _apply_profile(ds, profile)
+            build_issues(ds)
             job.status = JobStatus.SUCCEEDED
             job.result_json = {
                 "dataset_id": str(ds.id),

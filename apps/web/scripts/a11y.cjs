@@ -9,7 +9,7 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const BASE = process.argv[2] || "http://localhost:3000";
-const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc"];
+const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc", "/en/datasets/contracts_ca/clean", "/es/datasets/secop_co/clean"];
 const AXE = path.join(__dirname, "..", "node_modules", "axe-core", "axe.min.js");
 
 (async () => {

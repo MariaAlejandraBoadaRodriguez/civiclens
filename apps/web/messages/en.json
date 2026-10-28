@@ -283,7 +283,7 @@
       "body": "{count, plural, one {# column looks} other {# columns look}} like personal information. Mask them before analysis so they never reach a chart, export or API response.",
       "mask": "Mask all",
       "review": "Review",
-      "maskNote": "Masking is a cleaning step: you apply it in the Cleaning Studio.",
+      "maskNote": "Masking is a recipe step: “Mask all” opens it in the Cleaning Studio.",
       "noneTitle": "No personal data detected",
       "noneBody": "We looked for emails, phone numbers, ID numbers and person-name columns. Nothing matched."
     },
@@ -321,6 +321,78 @@
     "footer": {
       "summary": "<strong>{count, plural, one {# column needs} other {# columns need}} attention</strong> out of {total} — ready for the cleaning studio.",
       "continue": "Continue to cleaning →"
+    }
+  },
+  "clean": {
+    "metaTitle": "Cleaning studio · CivicLens",
+    "title": "Cleaning studio",
+    "subtitle": "One issue at a time: what it is, why it matters, your options, and what each choice does to the numbers.",
+    "qualityChip": "Quality {before}",
+    "qualityChipAfter": "Quality {before} → {after}",
+    "assumption": "Previews and KPI impacts assume the issues above the current one use their recommended option.",
+    "notReady": "We are still analysing this dataset. This page refreshes on its own.",
+    "noIssues": "No issues found — this dataset is ready for the SQL lab.",
+    "notFound": {
+      "title": "We could not find this dataset",
+      "body": "Uploaded files are deleted after 24 hours. Try one of the sample datasets.",
+      "action": "Open the Colombian sample"
+    },
+    "list": {
+      "label": "Issues",
+      "resolved": "Issues · {done} of {total} resolved",
+      "done": "Done",
+      "skipped": "Skipped",
+      "now": "Now",
+      "todo": "To do"
+    },
+    "issue": {
+      "eyebrow": "Issue {n} of {total} · {category}",
+      "legend": "Choose what to do",
+      "recommended": "{label} (recommended)",
+      "apply": "Apply decision",
+      "skip": "Skip for now",
+      "learnMore": "Learn more"
+    },
+    "preview": {
+      "caption": "Examples from {columns} · {rows} rows affected",
+      "empty": "∅ empty",
+      "removed": "row removed"
+    },
+    "kpi": {
+      "label": "Impact on KPI · {kpi}",
+      "mixed_currencies": "not comparable",
+      "not_standardized": "not available yet",
+      "no_amount": "no amount column",
+      "unavailable": "not available",
+      "dominant": "Counted on {currency} amounts only, until currencies are unified.",
+      "assumption": "Computed on the whole dataset."
+    },
+    "recipe": {
+      "titleDraft": "Cleaning recipe · draft",
+      "titleVersion": "Cleaning recipe · v{version}",
+      "empty": "Apply a decision to add its first step.",
+      "pending": "Highlighted: the option you are looking at, not applied yet.",
+      "formats": "Recipe format",
+      "codeLabel": "{format} code",
+      "exportFormat": "File format",
+      "export": "Export recipe as code",
+      "replayNote": "Saved recipes can be replayed on next month's file — from here or through the API."
+    },
+    "run": {
+      "title": "Apply the recipe",
+      "summary": "{done} of {total} issues decided · {steps, plural, =0 {no steps yet} one {# step} other {# steps}} in the recipe.",
+      "apply": "Save and apply recipe",
+      "saving": "Saving the recipe…",
+      "applying": "Applying the recipe to every row…",
+      "failed": "The recipe could not be applied",
+      "networkTitle": "Could not reach the engine",
+      "networkDetail": "Check your connection and try again.",
+      "quality": "Data quality score",
+      "qualityValue": "{before} → {after}",
+      "rows": "Rows",
+      "rowsValue": "{before} → {after}",
+      "hash": "Output fingerprint (SHA-256) — the same recipe on the same file always gives this value",
+      "continue": "Continue to SQL lab →"
     }
   }
 }

@@ -1,0 +1,9 @@
+total_spend: Total spend
+contract_count: Contracts
+readable_dates: Dates a spreadsheet can read
+distinct_entity_name: Distinct entities
+distinct_supplier_name: Distinct suppliers
+direct_award_share: Direct award share
+not_comparable: not comparable
+not_standardized: not available yet
+scope_dominant: "{currency} amounts only"

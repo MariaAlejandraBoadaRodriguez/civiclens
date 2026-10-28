@@ -203,7 +203,9 @@ paths:
       tags: [cleaning]
       operationId: listDatasetIssues
       summary: Detected data issues
-      description: One entry per issue card with localized what / why / options texts.
+      description: |
+        One entry per issue card, in pipeline order, with localized what / why / options texts.
+        Previews and KPI impacts are computed assuming earlier issues use their recommended option.
       security: [{}, ApiKey: []]
       x-user-stories: [US-04, US-11, US-14]
       parameters:
@@ -219,14 +221,34 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [items]
+                required: [dataset, issues, columns]
                 properties:
-                  items:
+                  dataset:
+                    $ref: "#/components/schemas/Dataset"
+                  quality:
+                    $ref: "#/components/schemas/Quality"
+                  quality_after:
+                    oneOf:
+                      - type: "null"
+                      - $ref: "#/components/schemas/Quality"
+                  columns:
+                    type: array
+                    description: Staged column names (for the SQL export).
+                    items:
+                      type: string
+                  issues:
                     type: array
                     items:
                       $ref: "#/components/schemas/Issue"
+                  op_labels:
+                    type: object
+                    description: Localized names of recipe operations.
+                    additionalProperties:
+                      type: string
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
 
   /api/v1/datasets/{dataset_id}/recipes/apply:
     post:
@@ -294,6 +316,50 @@ paths:
                 $ref: "#/components/schemas/Recipe"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /api/v1/recipes/preview:
+    post:
+      tags: [cleaning]
+      operationId: previewRecipeCode
+      summary: Preview a recipe as code
+      description: pandas pipeline, DuckDB SQL and the JSON document for unsaved steps (live recipe panel). Code is never localized.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-12, US-13]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [steps]
+              properties:
+                steps:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/RecipeStep"
+                columns:
+                  type: array
+                  items:
+                    type: string
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Generated code.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pandas, sql, json]
+                properties:
+                  pandas:
+                    type: string
+                  sql:
+                    type: string
+                  json:
+                    type: string
         "422":
           $ref: "#/components/responses/Unprocessable"
 
@@ -1041,19 +1107,58 @@ components:
           items:
             $ref: "#/components/schemas/ColumnProfile"
 
+    Quality:
+      type: object
+      required: [score, completeness, uniqueness, validity, consistency]
+      properties:
+        score:
+          type: integer
+        completeness:
+          type: integer
+        uniqueness:
+          type: integer
+        validity:
+          type: integer
+        consistency:
+          type: integer
+
     IssueOption:
       type: object
-      required: [option_id, label]
+      required: [option_id, label, steps, recommended]
       properties:
         option_id:
           type: string
-          example: convert_to_cad
+          example: to_cad
         label:
           type: string
         hint:
           type: string
-        step:
-          $ref: "#/components/schemas/RecipeStep"
+        recommended:
+          type: boolean
+        steps:
+          type: array
+          description: Recipe steps this option adds (empty = keep as is).
+          items:
+            $ref: "#/components/schemas/RecipeStep"
+        params:
+          type: object
+          additionalProperties: true
+
+    KpiValue:
+      type: object
+      properties:
+        value:
+          type: [number, "null"]
+        currency:
+          type: [string, "null"]
+        unit:
+          type: string
+        reason:
+          type: string
+          enum: [mixed_currencies, not_standardized, no_amount]
+        scope:
+          type: string
+          enum: [dominant_currency]
 
     Issue:
       type: object
@@ -1061,19 +1166,29 @@ components:
       properties:
         issue_id:
           type: string
+          example: mixed_currency:currency
         issue_type:
           type: string
           enum:
-            [duplicates, missing_values, mixed_currency, number_locale, date_format, time_zone,
-             text_variants, outliers, type_casting, category_labels]
+            [header_mapping, pii, duplicates, missing_values, time_zone, date_format,
+             number_locale, mixed_currency, text_variants, category_labels, outliers, type_casting]
         category:
           type: string
           enum: [completeness, uniqueness, validity, consistency]
+        category_label:
+          type: string
         field:
           type: [string, "null"]
           description: Canonical field affected.
         affected_rows:
           type: integer
+        position:
+          type: integer
+        of:
+          type: integer
+        params:
+          type: object
+          additionalProperties: true
         title:
           type: string
         what:
@@ -1082,10 +1197,42 @@ components:
           type: string
         learn_more:
           type: string
+        fx_note:
+          type: string
         options:
           type: array
           items:
             $ref: "#/components/schemas/IssueOption"
+        preview_columns:
+          type: array
+          items:
+            type: string
+        preview_before:
+          type: array
+          description: Example rows as written in the file (data values, never translated).
+          items:
+            type: array
+            items: {}
+        preview_after:
+          type: object
+          description: Example rows after each option, keyed by option_id; a trailing "__removed__" marks a removed row.
+          additionalProperties:
+            type: array
+            items:
+              type: array
+              items: {}
+        kpi_id:
+          type: [string, "null"]
+        kpi_label:
+          type: [string, "null"]
+        kpi_before:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/KpiValue"
+        kpi_after:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/KpiValue"
 
     RecipeStep:
       type: object

@@ -36,9 +36,22 @@ def profile_path(dataset_id: uuid.UUID) -> Path:
     return dataset_dir(dataset_id) / "profile.json"
 
 
-def write_parquet(df: pd.DataFrame, path: Path) -> None:
-    """All columns as nullable strings: the raw/staged layers never coerce types."""
-    df.astype("string").to_parquet(path, index=False, compression="zstd")
+def issues_path(dataset_id: uuid.UUID) -> Path:
+    return dataset_dir(dataset_id) / "issues.json"
+
+
+def clean_path(dataset_id: uuid.UUID) -> Path:
+    return dataset_dir(dataset_id) / "clean.parquet"
+
+
+def clean_profile_path(dataset_id: uuid.UUID) -> Path:
+    return dataset_dir(dataset_id) / "profile_clean.json"
+
+
+def write_parquet(df: pd.DataFrame, path: Path, as_text: bool = True) -> None:
+    """Raw/staged layers are stored as nullable strings (never coerced); the clean layer
+    keeps the types the recipe produced (``as_text=False``)."""
+    (df.astype("string") if as_text else df).to_parquet(path, index=False, compression="zstd")
 
 
 def read_parquet(path: Path) -> pd.DataFrame:

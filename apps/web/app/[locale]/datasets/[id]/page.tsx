@@ -5,7 +5,7 @@ import { MappingSelect } from "@/components/ingest/MappingSelect";
 import { Alert } from "@/components/ui/Alert";
 import { AutoRefresh } from "@/components/ui/AutoRefresh";
 import { Badge } from "@/components/ui/Badge";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { DataTable } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -178,9 +178,13 @@ export default async function IngestPage({ params: { locale, id } }: Params) {
             className="flex-[1_1_300px]"
             actions={
               <>
-                <Button variant="attention" disabled aria-describedby="pii-mask-note">
+                <ButtonLink
+                  href={{ pathname: `/datasets/${ref}/clean`, query: { issue: "pii" } }}
+                  variant="attention"
+                  aria-describedby="pii-mask-note"
+                >
                   {t("pii.mask")}
-                </Button>
+                </ButtonLink>
                 <ButtonLink href={{ pathname: `/datasets/${ref}`, hash: "mapping" }} variant="attentionOutline">
                   {t("pii.review")}
                 </ButtonLink>
