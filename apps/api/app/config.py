@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     environment: str = "local"
     allowed_origins: list[str] = ["http://localhost:3000"]
     default_locale: str = "en"
+    database_url: str = "postgresql+psycopg://civiclens:civiclens@localhost:5432/civiclens"
 
 
 settings = Settings()

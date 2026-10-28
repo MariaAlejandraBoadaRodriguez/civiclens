@@ -1,0 +1,13 @@
+extends: ["spectral:oas"]
+rules:
+  operation-tag-defined: error
+  operation-operationId: error
+  operation-description: error
+  # Every operation must point at the user stories it serves (docs/requirements.md).
+  operation-user-stories:
+    description: Operations must list x-user-stories.
+    severity: error
+    given: "$.paths[*][get,post,put,patch,delete]"
+    then:
+      field: x-user-stories
+      function: truthy

@@ -1,0 +1,1206 @@
+openapi: 3.1.0
+info:
+  title: CivicLens API
+  version: 0.1.0
+  summary: Public-sector data analytics engine — ingest, profile, clean, model, predict and report.
+  description: |
+    Contract-first definition (v0, Phase 4). The FastAPI implementation (Phase 5) must match it;
+    Schemathesis checks that in CI from Phase 8.
+
+    **Languages.** Machine fields (`issue_type`, `kpi_id`, `field`, codes, numbers) are always English
+    and stable. Human-readable fields (`title`, `message`, `explanation`, `detail`) are localized with
+    `Accept-Language` (`en` default, `es` supported); the response carries `Content-Language`.
+    Data values are never translated. See ADR-0007.
+
+    **Errors** use RFC 7807 (`application/problem+json`) with a stable `code`.
+    `x-user-stories` on every operation links to `docs/requirements.md`.
+  contact:
+    name: CivicLens
+    url: https://github.com/MariaAlejandraBoadaRodriguez/civiclens
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: http://localhost:8000
+    description: Local (docker compose)
+security:
+  - ApiKey: []
+tags:
+  - name: ops
+    description: Liveness and readiness.
+  - name: datasets
+    description: Upload, list and profile datasets (M1, M2).
+  - name: cleaning
+    description: Issues and cleaning recipes (M3).
+  - name: sql
+    description: Read-only SQL over the star schema, guided queries and KPIs (M4).
+  - name: models
+    description: Red flags and forecasting (M6).
+  - name: jobs
+    description: Asynchronous work.
+  - name: reports
+    description: Executive report (M5).
+  - name: admin
+    description: API-key management (admin only).
+
+paths:
+  /health:
+    get:
+      tags: [ops]
+      operationId: getHealth
+      summary: Liveness probe
+      description: Used by the uptime monitor and deploy smoke tests. No authentication.
+      security: []
+      x-user-stories: [US-26]
+      responses:
+        "200":
+          description: Service is up.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+  /api/v1/datasets:
+    get:
+      tags: [datasets]
+      operationId: listDatasets
+      summary: List datasets
+      description: Seed datasets are always listed first; uploads appear until they expire (24 h).
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-06, US-27]
+      parameters:
+        - $ref: "#/components/parameters/AcceptLanguage"
+        - name: source
+          in: query
+          description: Filter by source.
+          schema:
+            $ref: "#/components/schemas/DatasetSource"
+      responses:
+        "200":
+          description: Datasets.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Dataset"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags: [datasets]
+      operationId: uploadDataset
+      summary: Upload a file
+      description: CSV, XLSX or JSON up to 50 MB. Ingest + profile run as a job; poll `GET /api/v1/jobs/{job_id}`.
+      x-user-stories: [US-07, US-25]
+      parameters:
+        - $ref: "#/components/parameters/AcceptLanguage"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  contentMediaType: application/octet-stream
+                  description: The file to ingest.
+                name:
+                  type: string
+                  maxLength: 255
+                  description: Display name; defaults to the file name.
+      responses:
+        "202":
+          description: Accepted; ingestion job created.
+          headers:
+            Location:
+              description: URL of the job.
+              schema:
+                type: string
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/v1/datasets/{dataset_id}:
+    get:
+      tags: [datasets]
+      operationId: getDataset
+      summary: Get one dataset
+      description: Metadata, status and detected data language.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-07]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+      responses:
+        "200":
+          description: The dataset.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataset"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/datasets/{dataset_id}/profile:
+    get:
+      tags: [datasets]
+      operationId: getDatasetProfile
+      summary: Data-quality profile
+      description: Per-column profile, header mapping to the canonical schema, quality score and PII findings.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-03, US-08, US-09, US-10]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+      responses:
+        "200":
+          description: The profile.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /api/v1/datasets/{dataset_id}/issues:
+    get:
+      tags: [cleaning]
+      operationId: listDatasetIssues
+      summary: Detected data issues
+      description: One entry per issue card with localized what / why / options texts.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-04, US-11, US-14]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+      responses:
+        "200":
+          description: Issues.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Issue"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/datasets/{dataset_id}/recipes/apply:
+    post:
+      tags: [cleaning]
+      operationId: applyRecipe
+      summary: Apply a cleaning recipe
+      description: Replays a saved recipe (by id) or an inline recipe on the dataset. Deterministic output (same input + recipe → same hash).
+      x-user-stories: [US-12, US-14, US-25]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyRecipeRequest"
+      responses:
+        "202":
+          description: Accepted; job created.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobRef"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/v1/recipes:
+    post:
+      tags: [cleaning]
+      operationId: createRecipe
+      summary: Save a recipe version
+      description: Saving with an existing name creates the next version.
+      x-user-stories: [US-12]
+      parameters:
+        - $ref: "#/components/parameters/AcceptLanguage"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecipeInput"
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recipe"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /api/v1/recipes/{recipe_id}:
+    get:
+      tags: [cleaning]
+      operationId: getRecipe
+      summary: Get a recipe
+      description: The recipe JSON with its steps.
+      x-user-stories: [US-12]
+      parameters:
+        - $ref: "#/components/parameters/RecipeId"
+      responses:
+        "200":
+          description: The recipe.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recipe"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/recipes/{recipe_id}/export:
+    get:
+      tags: [cleaning]
+      operationId: exportRecipe
+      summary: Export a recipe as code
+      description: Generated pandas script or equivalent SQL. Code is never localized.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-13]
+      parameters:
+        - $ref: "#/components/parameters/RecipeId"
+        - name: format
+          in: query
+          required: true
+          description: Target language of the generated code.
+          schema:
+            type: string
+            enum: [pandas, sql, json]
+      responses:
+        "200":
+          description: Generated code.
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recipe"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/query:
+    post:
+      tags: [sql]
+      operationId: runQuery
+      summary: Run read-only SQL
+      description: Single SELECT/WITH over the dataset's star schema. 10 s timeout, 10,000-row cap.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-15, US-16]
+      parameters:
+        - $ref: "#/components/parameters/AcceptLanguage"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueryRequest"
+      responses:
+        "200":
+          description: Result set.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueryResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "408":
+          $ref: "#/components/responses/Timeout"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/v1/guided-queries:
+    get:
+      tags: [sql]
+      operationId: listGuidedQueries
+      summary: Guided query library
+      description: The 12 guided business questions with SQL (identical in every language) and localized explanations.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-15]
+      parameters:
+        - $ref: "#/components/parameters/AcceptLanguage"
+      responses:
+        "200":
+          description: Guided queries.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GuidedQuery"
+
+  /api/v1/kpis/{dataset_id}:
+    get:
+      tags: [sql]
+      operationId: getKpis
+      summary: KPIs for a dataset
+      description: Values from the KPI catalog (stable `kpi_id`) with localized names and definitions.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-17, US-22, US-23, US-25]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+        - name: currency
+          in: query
+          description: Target currency for monetary KPIs.
+          schema:
+            $ref: "#/components/schemas/Currency"
+      responses:
+        "200":
+          description: KPIs.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [dataset_id, items]
+                properties:
+                  dataset_id:
+                    type: string
+                    format: uuid
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Kpi"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/models/{model_type}/run:
+    post:
+      tags: [models]
+      operationId: runModel
+      summary: Run a model
+      description: Trains/scores on the dataset's cleaned data. Fixed seed → reproducible output.
+      x-user-stories: [US-18, US-19, US-20, US-21, US-25]
+      parameters:
+        - name: model_type
+          in: path
+          required: true
+          description: Which model to run. `classifier` and `segments` are stretch goals.
+          schema:
+            type: string
+            enum: [red_flags, forecast, classifier, segments]
+        - $ref: "#/components/parameters/AcceptLanguage"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dataset_id]
+              properties:
+                dataset_id:
+                  type: string
+                  format: uuid
+                params:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "202":
+          description: Accepted; job created. The job result holds the model card and outputs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobRef"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/v1/jobs/{job_id}:
+    get:
+      tags: [jobs]
+      operationId: getJob
+      summary: Job status
+      description: Poll until `status` is `succeeded` or `failed`. Errors carry a stable `error_code` plus a localized message.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-25]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          description: Job id.
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/AcceptLanguage"
+      responses:
+        "200":
+          description: The job.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/reports/{dataset_id}:
+    get:
+      tags: [reports]
+      operationId: getReport
+      summary: Executive report
+      description: HTML (or PDF, stretch) report in the requested language. `lang` wins over `Accept-Language`.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-05]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+        - name: lang
+          in: query
+          description: Report language.
+          schema:
+            $ref: "#/components/schemas/UiLanguage"
+        - name: format
+          in: query
+          description: Output format.
+          schema:
+            type: string
+            enum: [html, pdf]
+            default: html
+      responses:
+        "200":
+          description: The report.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            text/html:
+              schema:
+                type: string
+            application/pdf:
+              schema:
+                type: string
+                contentMediaType: application/pdf
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/keys:
+    get:
+      tags: [admin]
+      operationId: listApiKeys
+      summary: List API keys
+      description: Never returns the secret, only the public prefix.
+      security:
+        - AdminBearer: []
+      x-user-stories: [US-24]
+      responses:
+        "200":
+          description: Keys.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApiKey"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags: [admin]
+      operationId: createApiKey
+      summary: Create an API key
+      description: The full key is returned once in this response; only its argon2 hash is stored.
+      security:
+        - AdminBearer: []
+      x-user-stories: [US-24]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, scopes]
+              properties:
+                name:
+                  type: string
+                  maxLength: 120
+                scopes:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Scope"
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKeyCreated"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/keys/{key_id}:
+    delete:
+      tags: [admin]
+      operationId: revokeApiKey
+      summary: Revoke an API key
+      description: Sets `revoked_at`; the key stops working immediately.
+      security:
+        - AdminBearer: []
+      x-user-stories: [US-24]
+      parameters:
+        - name: key_id
+          in: path
+          required: true
+          description: Key id.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Revoked.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Agency key (scoped, revocable). Read-only demo endpoints also work without a key, with a lower rate limit.
+    AdminBearer:
+      type: http
+      scheme: bearer
+      description: Session token for the single admin (GitHub OAuth via the web app).
+
+  parameters:
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      description: Language of human-readable fields. `en` (default) or `es`; anything else falls back to `en`.
+      schema:
+        type: string
+        example: es
+    DatasetId:
+      name: dataset_id
+      in: path
+      required: true
+      description: Dataset id.
+      schema:
+        type: string
+        format: uuid
+    RecipeId:
+      name: recipe_id
+      in: path
+      required: true
+      description: Recipe id.
+      schema:
+        type: string
+        format: uuid
+
+  headers:
+    ContentLanguage:
+      description: Language actually used for human-readable fields.
+      schema:
+        $ref: "#/components/schemas/UiLanguage"
+
+  responses:
+    BadRequest:
+      description: Invalid request (e.g. rejected SQL, malformed recipe).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Unauthorized:
+      description: Missing, invalid or revoked API key.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Forbidden:
+      description: The key lacks the required scope.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Resource not found or expired.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: Resource not ready (e.g. profile still running).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Timeout:
+      description: Query exceeded the 10 s limit.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    PayloadTooLarge:
+      description: File larger than 50 MB.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    UnsupportedMediaType:
+      description: Not a CSV, XLSX or JSON file.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Unprocessable:
+      description: Valid JSON that fails validation.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    TooManyRequests:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          description: Seconds to wait.
+          schema:
+            type: integer
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+  schemas:
+    UiLanguage:
+      type: string
+      enum: [en, es]
+    DataLanguage:
+      type: string
+      enum: [en, fr, es, mixed, unknown]
+    Currency:
+      type: string
+      enum: [COP, CAD, USD]
+    Scope:
+      type: string
+      enum: [datasets:write, recipes:write, models:run, reports:read]
+    DatasetSource:
+      type: string
+      enum: [seed, upload, api]
+    DatasetStatus:
+      type: string
+      enum: [uploaded, profiled, cleaned, modeled, failed, expired]
+    JobStatus:
+      type: string
+      enum: [queued, running, succeeded, failed]
+
+    Health:
+      type: object
+      required: [status, service, version]
+      properties:
+        status:
+          type: string
+          const: ok
+        service:
+          type: string
+        version:
+          type: string
+
+    Problem:
+      type: object
+      description: RFC 7807 problem details. `code` and `params` are stable; `title` and `detail` are localized.
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          example: https://civiclens.dev/problems/sql.forbidden_statement
+        title:
+          type: string
+          example: Only read-only queries are allowed
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          example: sql.forbidden_statement
+        params:
+          type: object
+          additionalProperties: true
+
+    Dataset:
+      type: object
+      required: [id, name, source, format, data_lang, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: [string, "null"]
+          example: secop_co
+        name:
+          type: string
+        source:
+          $ref: "#/components/schemas/DatasetSource"
+        format:
+          type: string
+          enum: [csv, xlsx, json, parquet]
+        data_lang:
+          $ref: "#/components/schemas/DataLanguage"
+        status:
+          $ref: "#/components/schemas/DatasetStatus"
+        rows:
+          type: [integer, "null"]
+        columns:
+          type: [integer, "null"]
+        quality_score:
+          type: [integer, "null"]
+          minimum: 0
+          maximum: 100
+        license:
+          type: [string, "null"]
+          description: Seed datasets only, e.g. "CC BY-SA 4.0".
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: [string, "null"]
+          format: date-time
+
+    DatasetAccepted:
+      type: object
+      required: [dataset, job]
+      properties:
+        dataset:
+          $ref: "#/components/schemas/Dataset"
+        job:
+          $ref: "#/components/schemas/JobRef"
+
+    ColumnProfile:
+      type: object
+      required: [source_header, inferred_type, null_ratio, distinct]
+      properties:
+        source_header:
+          type: string
+          description: Header exactly as in the file (data, never translated).
+          example: fecha_de_firma
+        canonical_field:
+          type: [string, "null"]
+          example: signed_date
+        label:
+          type: [string, "null"]
+          description: Localized label of the canonical field.
+        mapping_confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        inferred_type:
+          type: string
+          enum: [string, integer, number, date, datetime, boolean, category]
+        locale_guess:
+          type: [string, "null"]
+          example: es_CO
+        data_lang:
+          $ref: "#/components/schemas/DataLanguage"
+        null_ratio:
+          type: number
+        distinct:
+          type: integer
+        min:
+          description: Minimum value as a string (data).
+          type: [string, "null"]
+        max:
+          type: [string, "null"]
+        top_values:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+              count:
+                type: integer
+        pii_kind:
+          type: [string, "null"]
+          enum: [email, phone, national_id, person_name, null]
+
+    Profile:
+      type: object
+      required: [dataset_id, quality, columns]
+      properties:
+        dataset_id:
+          type: string
+          format: uuid
+        encoding:
+          type: string
+        delimiter:
+          type: [string, "null"]
+        sheet:
+          type: [string, "null"]
+        data_lang:
+          type: object
+          description: Share of each detected data language.
+          additionalProperties:
+            type: number
+        quality:
+          type: object
+          required: [score, completeness, uniqueness, validity, consistency]
+          properties:
+            score:
+              type: integer
+            completeness:
+              type: integer
+            uniqueness:
+              type: integer
+            validity:
+              type: integer
+            consistency:
+              type: integer
+        columns:
+          type: array
+          items:
+            $ref: "#/components/schemas/ColumnProfile"
+
+    IssueOption:
+      type: object
+      required: [option_id, label]
+      properties:
+        option_id:
+          type: string
+          example: convert_to_cad
+        label:
+          type: string
+        hint:
+          type: string
+        step:
+          $ref: "#/components/schemas/RecipeStep"
+
+    Issue:
+      type: object
+      required: [issue_id, issue_type, category, affected_rows, title, what, why, options]
+      properties:
+        issue_id:
+          type: string
+        issue_type:
+          type: string
+          enum:
+            [duplicates, missing_values, mixed_currency, number_locale, date_format, time_zone,
+             text_variants, outliers, type_casting, category_labels]
+        category:
+          type: string
+          enum: [completeness, uniqueness, validity, consistency]
+        field:
+          type: [string, "null"]
+          description: Canonical field affected.
+        affected_rows:
+          type: integer
+        title:
+          type: string
+        what:
+          type: string
+        why:
+          type: string
+        learn_more:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/IssueOption"
+
+    RecipeStep:
+      type: object
+      required: [op]
+      properties:
+        op:
+          type: string
+          example: convert_currency
+        args:
+          type: object
+          additionalProperties: true
+
+    RecipeInput:
+      type: object
+      required: [name, steps]
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        dataset_id:
+          type: [string, "null"]
+          format: uuid
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipeStep"
+
+    Recipe:
+      allOf:
+        - $ref: "#/components/schemas/RecipeInput"
+        - type: object
+          required: [id, version, created_at]
+          properties:
+            id:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              minimum: 1
+            created_at:
+              type: string
+              format: date-time
+
+    ApplyRecipeRequest:
+      type: object
+      description: Either `recipe_id` or an inline `recipe`.
+      oneOf:
+        - required: [recipe_id]
+          properties:
+            recipe_id:
+              type: string
+              format: uuid
+        - required: [recipe]
+          properties:
+            recipe:
+              $ref: "#/components/schemas/RecipeInput"
+
+    QueryRequest:
+      type: object
+      required: [dataset_id, sql]
+      properties:
+        dataset_id:
+          type: string
+          format: uuid
+        sql:
+          type: string
+          maxLength: 20000
+          example: SELECT supplier_id, SUM(amount_cad) AS spend FROM fact_contract GROUP BY 1 ORDER BY 2 DESC LIMIT 10
+
+    QueryResult:
+      type: object
+      required: [columns, rows, row_count, truncated, elapsed_ms]
+      properties:
+        columns:
+          type: array
+          items:
+            type: object
+            required: [name, type]
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+        rows:
+          type: array
+          items:
+            type: array
+            items: {}
+        row_count:
+          type: integer
+        truncated:
+          type: boolean
+          description: True when the 10,000-row cap applied.
+        elapsed_ms:
+          type: integer
+
+    GuidedQuery:
+      type: object
+      required: [query_id, title, question, sql, explanation]
+      properties:
+        query_id:
+          type: string
+          example: top_suppliers_by_spend
+        title:
+          type: string
+        question:
+          type: string
+        sql:
+          type: string
+        explanation:
+          type: string
+        concepts:
+          type: array
+          items:
+            type: string
+            enum: [join, cte, window_function, aggregation, subquery]
+
+    Kpi:
+      type: object
+      required: [kpi_id, value, name, definition]
+      properties:
+        kpi_id:
+          type: string
+          enum: [total_spend, contract_count, avg_value, direct_award_share, hhi, yoy_growth, quality_score]
+        value:
+          type: [number, "null"]
+        unit:
+          type: string
+          enum: [currency, count, ratio, score]
+        currency:
+          type: [string, "null"]
+        name:
+          type: string
+        definition:
+          type: string
+        formula_sql:
+          type: string
+
+    JobRef:
+      type: object
+      required: [id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/JobStatus"
+
+    Job:
+      type: object
+      required: [id, type, status, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ingest, profile, apply_recipe, build_schema, model_run, report]
+        status:
+          $ref: "#/components/schemas/JobStatus"
+        dataset_id:
+          type: [string, "null"]
+          format: uuid
+        result:
+          type: [object, "null"]
+          additionalProperties: true
+        error:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/Problem"
+        created_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: [string, "null"]
+          format: date-time
+
+    ApiKey:
+      type: object
+      required: [id, name, prefix, scopes, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prefix:
+          type: string
+          example: cl_live_ab12cd34
+        scopes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Scope"
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type: [string, "null"]
+          format: date-time
+        revoked_at:
+          type: [string, "null"]
+          format: date-time
+
+    ApiKeyCreated:
+      allOf:
+        - $ref: "#/components/schemas/ApiKey"
+        - type: object
+          required: [key]
+          properties:
+            key:
+              type: string
+              description: Full secret. Shown only in this response.
