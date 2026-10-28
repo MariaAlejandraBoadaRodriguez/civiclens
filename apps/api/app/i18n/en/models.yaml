@@ -1,0 +1,59 @@
+# ML Lab model cards (spec M6): business question, method, rules, features, warning, limits.
+red_flags:
+  name: Red-flag detection
+  question: Which contracts deserve a second look before the audit committee meets?
+  method: Isolation Forest + 5 transparent rules
+  method_detail: "An Isolation Forest ({trees} trees, fixed seed {seed}) scores how unusual each contract is compared with the rest; five rules check known risk patterns. Rank = 60 % anomaly percentile + 40 % rules matched (up to two)."
+  warning: Flags are leads for human review, never accusations. Results depend on data quality and on thresholds set per jurisdiction.
+  thresholds: "Award thresholds used ({currency}): {values}. They are approximate — confirm them for your jurisdiction."
+  flagged_rule: "A contract is flagged when it matches two rules, sits in the 1 % most unusual, or matches one rule and sits in the 10 % most unusual."
+  limitations:
+    l1: The model learns what is usual in this dataset only; a pattern common to everyone is not flagged.
+    l2: Missing bid counts or dates weaken the rules that use them; features without information are left out.
+    l3: Thresholds and rule windows are simplified; procurement law has exceptions the rules cannot see.
+  rules:
+    split_contract: Split contracts (same supplier, ≤ 7 days)
+    under_threshold: Amount just under an award threshold
+    single_bidder: Single bidder in a competitive process
+    fy_end_spike: End-of-fiscal-year spike
+    new_large_supplier: Supplier new and large
+  reasons:
+    split_contract: Split contract
+    under_threshold: Under threshold
+    single_bidder: Single bidder
+    fy_end_spike: FY-end spike
+    new_large_supplier: New & large supplier
+    unusual_pattern: Unusual pattern
+  features:
+    amount_cad: Contract value in CAD (log scale)
+    days_to_fy_end: Days left to the end of the fiscal year
+    n_bidders: Number of bids received
+    supplier_age_days: Days since the supplier's first contract
+    entity_share: Share of the entity's total spend
+    days_between_contracts: Days since the previous contract between the same entity and supplier
+    gap_to_threshold: Distance below the nearest award threshold (share of it)
+forecast:
+  name: Spend forecast
+  question: How much will be spent in the next six months, and can we trust the estimate?
+  method: Gradient boosting vs a seasonal-naive baseline
+  method_detail: "Gradient boosting (fixed seed {seed}) on lags of 1, 2, 3 and 12 months, a 3-month mean and the month of the year, trained on log spend. The baseline repeats the same month of last year. Both are tested on the last {test} months they did not see."
+  warning: A forecast is a range of plausible values, not a promise. Large one-off contracts make monthly spend hard to predict.
+  verdict_beats: "The model beats the baseline: MAPE {model} vs {baseline}."
+  verdict_loses: "The model does not beat the seasonal-naive baseline (MAPE {model} vs {baseline}). Use the baseline for planning."
+  insufficient: "Not enough history: {months} complete months; the forecast needs at least {min}."
+  dropped: "The last {n} months look not yet reported (spend far below the year before) and were left out."
+  limitations:
+    l1: MAPE ignores months with no spend and grows quickly when actual spend is small.
+    l2: The forecast assumes next year looks like the last six; policy or budget changes break that.
+    l3: Totals are in CAD with monthly exchange rates; currency moves change COP or USD amounts.
+  features:
+    lag_1: Spend one month earlier
+    lag_2: Spend two months earlier
+    lag_3: Spend three months earlier
+    lag_12: Spend in the same month last year
+    mean_3: Mean of the last three months
+    month_of_year: Month of the year (seasonality)
+classifier:
+  name: Category classifier
+segments:
+  name: Supplier segments

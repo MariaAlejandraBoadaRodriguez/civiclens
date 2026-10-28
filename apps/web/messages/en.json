@@ -458,5 +458,80 @@
       }
     },
     "continue": "Continue to ML lab →"
+  },
+  "ml": {
+    "metaTitle": "ML lab · CivicLens",
+    "title": "ML lab · decision support",
+    "subtitle": "Explainable models on your clean data. Every result says what it used, how well it performs, and where it can be wrong.",
+    "notReady": "We are still analysing this dataset. This page refreshes on its own.",
+    "notFound": {
+      "title": "We could not find this dataset",
+      "body": "Uploaded files are deleted after 24 hours. Try one of the sample datasets.",
+      "action": "Open the Colombian sample"
+    },
+    "tabs": {
+      "label": "Models",
+      "redFlags": "Red-flag detection",
+      "forecast": "Spend forecast",
+      "classifier": "Category classifier · later",
+      "segments": "Supplier segments · later"
+    },
+    "card": {
+      "title": "Model card",
+      "question": "Business question",
+      "method": "Method",
+      "rules": "Rules",
+      "features": "Features",
+      "limitations": "Limitations"
+    },
+    "rerun": "Re-run on current data",
+    "running": "Training…",
+    "unreachable": "The engine did not answer. Try again in a few seconds.",
+    "flags": {
+      "training": "Training the red-flag model on this dataset (fixed seed, a few seconds)…",
+      "title": "Ranked for review",
+      "count": "{flagged, number} of {contracts, number} contracts flagged",
+      "none": "No contract matched the rules or stood out. That is a result too.",
+      "score": "Score",
+      "contract": "Contract",
+      "why": "Why it was flagged",
+      "action": "Action",
+      "explain": "Why this score?",
+      "markReviewed": "Mark reviewed",
+      "reviewed": "Reviewed ✓",
+      "shap": {
+        "title": "Why contract #{rank} scored {score} · feature contributions",
+        "legend": "Orange pushes the anomaly score up, blue pulls it down. Starting point (average contract): {base}. Computed with exact SHAP values.",
+        "up": "(raises the score)",
+        "down": "(lowers the score)"
+      },
+      "showAll": "Show all {n} →",
+      "showFewer": "Show the top 10",
+      "tableRegion": "Contracts ranked for review (table)"
+    },
+    "forecast": {
+      "training": "Training the forecast and its baseline (fixed seed, a few seconds)…",
+      "title": "Monthly spend: model vs seasonal-naive baseline",
+      "mapeModel": "MAPE · model",
+      "mapeBaseline": "MAPE · baseline",
+      "window": "Test window",
+      "months": "{n} months",
+      "windowNote": "of {months} months of history",
+      "mapeHelp": "MAPE = average error as a share of actual spend on months the models did not see. Lower is better.",
+      "chart": {
+        "title": "Monthly spend in CAD: actual, model and baseline",
+        "caption": "Shaded area: next six months. Dotted line: start of the test window.",
+        "legend": {
+          "actual": "Actual",
+          "model": "Model",
+          "baseline": "Seasonal-naive baseline"
+        },
+        "test": "Test",
+        "future": "Forecast",
+        "table": "Show the numbers",
+        "month": "Month"
+      }
+    },
+    "continue": "Continue to dashboard →"
   }
 }

@@ -547,16 +547,13 @@ paths:
       tags: [models]
       operationId: runModel
       summary: Run a model
-      description: Trains/scores on the dataset's cleaned data. Fixed seed → reproducible output.
+      description: |
+        Trains and scores on the dataset's star schema (cleaned data). Fixed seed → reproducible
+        output. The job result holds a summary; the full result and model card come from
+        `GET /api/v1/models/{model_type}/latest`. `classifier` and `segments` answer 501 for now.
       x-user-stories: [US-18, US-19, US-20, US-21, US-25]
       parameters:
-        - name: model_type
-          in: path
-          required: true
-          description: Which model to run. `classifier` and `segments` are stretch goals.
-          schema:
-            type: string
-            enum: [red_flags, forecast, classifier, segments]
+        - $ref: "#/components/parameters/ModelType"
         - $ref: "#/components/parameters/AcceptLanguage"
       requestBody:
         required: true
@@ -568,13 +565,17 @@ paths:
               properties:
                 dataset_id:
                   type: string
-                  format: uuid
+                  description: Dataset UUID, or the slug of a seed dataset.
+                  example: contracts_ca
                 params:
                   type: object
-                  additionalProperties: true
+                  description: "`forecast` only: `entity_id` restricts the series to one entity."
+                  properties:
+                    entity_id:
+                      type: string
       responses:
         "202":
-          description: Accepted; job created. The job result holds the model card and outputs.
+          description: Accepted; poll the job in `Location`.
           content:
             application/json:
               schema:
@@ -583,8 +584,92 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+
+  /api/v1/models/{model_type}/latest:
+    get:
+      tags: [models]
+      operationId: getLatestModelResult
+      summary: Latest model result with its model card
+      description: |
+        Machine fields (ids, scores, metrics, reason ids, feature ids) are identical in every
+        language; the `card` (question, method, warning, limitations, verdict) and
+        `reason_labels` follow `Accept-Language`.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-18, US-19]
+      parameters:
+        - $ref: "#/components/parameters/ModelType"
+        - name: dataset_id
+          in: query
+          required: true
+          description: Dataset UUID, or the slug of a seed dataset.
+          schema:
+            type: string
+            example: contracts_qc
+        - $ref: "#/components/parameters/AcceptLanguage"
+      responses:
+        "200":
+          description: Result and model card.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/RedFlagResult"
+                  - $ref: "#/components/schemas/ForecastResult"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+
+  /api/v1/models/red_flags/reviews:
+    post:
+      tags: [models]
+      operationId: markReviewed
+      summary: Mark a flagged contract as reviewed
+      description: Human-in-the-loop status, kept with the dataset across re-runs. `reviewed=false` undoes it.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-18]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dataset_id, contract_id]
+              properties:
+                dataset_id:
+                  type: string
+                contract_id:
+                  type: string
+                reviewed:
+                  type: boolean
+                  default: true
+      responses:
+        "200":
+          description: Contracts marked as reviewed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [dataset_id, reviewed]
+                properties:
+                  dataset_id:
+                    type: string
+                    format: uuid
+                  reviewed:
+                    type: array
+                    items:
+                      type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /api/v1/jobs/{job_id}:
     get:
@@ -772,6 +857,14 @@ components:
       schema:
         type: string
         example: secop_co
+    ModelType:
+      name: model_type
+      in: path
+      required: true
+      description: Which model. `classifier` and `segments` are stretch goals (501 for now).
+      schema:
+        type: string
+        enum: [red_flags, forecast, classifier, segments]
     RecipeId:
       name: recipe_id
       in: path
@@ -820,6 +913,12 @@ components:
             $ref: "#/components/schemas/Problem"
     Timeout:
       description: Query exceeded the 10 s limit.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotImplemented:
+      description: Planned but not available yet (e.g. `classifier`, `segments`).
       content:
         application/problem+json:
           schema:
@@ -1466,6 +1565,192 @@ components:
                       type: string
                     type:
                       type: string
+
+    ModelCard:
+      type: object
+      required: [name, question, method, warning, limitations, features]
+      description: Localized with `Accept-Language`.
+      properties:
+        name:
+          type: string
+        question:
+          type: string
+        method:
+          type: string
+        method_detail:
+          type: string
+        warning:
+          type: string
+        limitations:
+          type: array
+          items:
+            type: string
+        features:
+          type: array
+          items:
+            type: object
+            required: [id, label]
+            properties:
+              id:
+                type: string
+              label:
+                type: string
+        rules:
+          type: array
+          items:
+            type: object
+            required: [id, label]
+            properties:
+              id:
+                $ref: "#/components/schemas/RedFlagRule"
+              label:
+                type: string
+        thresholds:
+          type: string
+        flagged_rule:
+          type: string
+        verdict:
+          type: string
+          description: Forecast only — says plainly whether the model beats the baseline.
+        dropped:
+          type: string
+
+    RedFlagRule:
+      type: string
+      enum: [split_contract, under_threshold, single_bidder, fy_end_spike, new_large_supplier]
+
+    RedFlagResult:
+      type: object
+      required: [model_type, seed, features, rules, contracts, flagged, items, card, reason_labels]
+      properties:
+        model_type:
+          type: string
+          const: red_flags
+        seed:
+          type: integer
+          example: 42
+        features:
+          type: array
+          items:
+            type: string
+        features_dropped:
+          type: array
+          items:
+            type: string
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/RedFlagRule"
+        contracts:
+          type: integer
+        flagged:
+          type: integer
+        rule_counts:
+          type: object
+          additionalProperties:
+            type: integer
+        reviewed:
+          type: array
+          items:
+            type: string
+        origin:
+          $ref: "#/components/schemas/StarOrigin"
+        items:
+          type: array
+          items:
+            type: object
+            required: [rank, contract_id, score, reasons, amount_cad]
+            properties:
+              rank:
+                type: integer
+              contract_id:
+                type: string
+              entity_name:
+                type: [string, "null"]
+              supplier_name:
+                type: [string, "null"]
+              signed_date:
+                type: string
+                format: date
+              amount_cad:
+                type: number
+              score:
+                type: number
+                description: 0–1 ranking score (60 % anomaly percentile + 40 % rules).
+              anomaly:
+                type: number
+              reasons:
+                type: array
+                items:
+                  type: string
+                  enum: [split_contract, under_threshold, single_bidder, fy_end_spike, new_large_supplier, unusual_pattern]
+              contributions:
+                type: array
+                description: SHAP values (exact, interventional) on the anomaly score, top 10 items only.
+                items:
+                  type: object
+                  required: [feature, value]
+                  properties:
+                    feature:
+                      type: string
+                    value:
+                      type: number
+              base_value:
+                type: number
+        reason_labels:
+          type: object
+          additionalProperties:
+            type: string
+        card:
+          $ref: "#/components/schemas/ModelCard"
+
+    ForecastResult:
+      type: object
+      required: [model_type, status, seed, months, metrics, series, card]
+      properties:
+        model_type:
+          type: string
+          const: forecast
+        status:
+          type: string
+          enum: [ok, insufficient_history]
+        seed:
+          type: integer
+        currency:
+          type: string
+          example: CAD
+        months:
+          type: integer
+        test_months:
+          type: integer
+        dropped_recent_months:
+          type: integer
+        metrics:
+          type: object
+          properties:
+            mape_model:
+              type: [number, "null"]
+            mape_baseline:
+              type: [number, "null"]
+            beats_baseline:
+              type: boolean
+        series:
+          type: array
+          items:
+            type: object
+            required: [month]
+            properties:
+              month:
+                type: string
+                example: 2025-03
+              actual:
+                type: [number, "null"]
+              model:
+                type: [number, "null"]
+              baseline:
+                type: [number, "null"]
+        card:
+          $ref: "#/components/schemas/ModelCard"
 
     JobRef:
       type: object

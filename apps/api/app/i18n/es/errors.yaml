@@ -66,3 +66,13 @@ sql:
   timeout:
     title: La consulta tardó demasiado
     detail: "Las consultas se detienen a los {seconds} segundos. Agrega filtros o agrega antes de unir tablas."
+model:
+  not_available:
+    title: Este modelo aún no está disponible
+    detail: "{model_type} está previsto para una versión posterior. Disponibles ahora: red_flags, forecast."
+  not_run:
+    title: Este modelo no se ha ejecutado sobre este conjunto de datos
+    detail: Ejecútalo primero con POST /api/v1/models/{model_type}/run.
+  failed:
+    title: La ejecución del modelo falló
+    detail: Algo salió mal al entrenar el modelo. Inténtalo de nuevo; si sigue fallando, revisa el conjunto de datos en el Estudio de limpieza.
