@@ -19,7 +19,9 @@ Approved UI mockups: https://claude.ai/artifact/1FACLDLoSx3hTmETMXnVr9 — build
 ## Commands
 ```bash
 # API
-cd apps/api && pip install -e ".[dev]" && ruff check . && ruff format --check . && pytest
+cd apps/api && pip install -e ".[dev]" && ruff check . && ruff format --check . && pytest   # TEST_DATABASE_URL=postgresql+psycopg://... also runs migrations on Postgres
+# Migrations (apps/api): alembic upgrade head
+# OpenAPI: npx @stoplight/spectral-cli@6.14.2 lint openapi.yaml
 # Web
 cd apps/web && npm ci && npm run lint && npm run typecheck && npm run build
 # i18n

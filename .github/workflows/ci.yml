@@ -13,6 +13,22 @@ jobs:
   api:
     name: API · lint + tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: civiclens
+          POSTGRES_PASSWORD: civiclens
+          POSTGRES_DB: civiclens_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U civiclens"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://civiclens:civiclens@localhost:5432/civiclens_test
     defaults:
       run:
         working-directory: apps/api
@@ -46,6 +62,16 @@ jobs:
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+
+  openapi:
+    name: OpenAPI · spectral lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npx --yes @stoplight/spectral-cli@6.14.2 lint openapi.yaml --fail-severity warn
 
   i18n:
     name: i18n · EN/ES catalogs match

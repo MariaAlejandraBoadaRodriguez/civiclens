@@ -1,4 +1,18 @@
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: civiclens
+      POSTGRES_PASSWORD: civiclens
+      POSTGRES_DB: civiclens
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "civiclens"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build: ./apps/api
     ports:
@@ -6,6 +20,10 @@ services:
     environment:
       ENVIRONMENT: local
       ALLOWED_ORIGINS: '["http://localhost:3000"]'
+      DATABASE_URL: postgresql+psycopg://civiclens:civiclens@db:5432/civiclens
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
