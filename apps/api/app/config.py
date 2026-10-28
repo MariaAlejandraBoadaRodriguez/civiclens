@@ -1,6 +1,10 @@
 """Runtime configuration read from environment variables."""
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
@@ -10,6 +14,14 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = ["http://localhost:3000"]
     default_locale: str = "en"
     database_url: str = "postgresql+psycopg://civiclens:civiclens@localhost:5432/civiclens"
+
+    # Files: committed seed Parquet (read-only) and a writable working directory.
+    seed_dir: Path = REPO_ROOT / "data" / "seed"
+    data_dir: Path = REPO_ROOT / "data" / "runtime"
+    upload_max_mb: int = 50
+    upload_ttl_hours: int = 24
+    # Build the three demo datasets in the background at startup (off in tests).
+    warm_seeds: bool = True
 
 
 settings = Settings()

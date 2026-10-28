@@ -81,6 +81,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - run: pip install pyyaml
       - run: python scripts/check_i18n.py
 
   security:
@@ -99,10 +100,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t civiclens-api apps/api
+      - run: docker build -f apps/api/Dockerfile -t civiclens-api .
 
   a11y:
-    name: Web · axe on design pages (EN + ES)
+    name: Web · axe on design + dataset pages (EN + ES)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -114,12 +115,30 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Start the API (SQLite) so dataset pages render real data
+        working-directory: apps/api
+        env:
+          DATABASE_URL: sqlite:////tmp/civiclens-a11y.db
+          DATA_DIR: /tmp/civiclens-a11y
+        run: |
+          pip install -e .
+          alembic upgrade head
+          nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/api.log 2>&1 &
+          # 127.0.0.1, not localhost: Node resolves localhost to ::1 first.
+          npx --yes wait-on@8.0.1 http-get://127.0.0.1:8000/health --timeout 120000 || (cat /tmp/api.log; exit 1)
+          curl -sf --max-time 300 http://127.0.0.1:8000/api/v1/datasets > /dev/null || (cat /tmp/api.log; exit 1)
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
       - name: Start server and run axe
+        env:
+          API_URL: http://127.0.0.1:8000
         run: |
           npx next start -p 3000 &
           npx --yes wait-on@8.0.1 http://localhost:3000/en --timeout 60000

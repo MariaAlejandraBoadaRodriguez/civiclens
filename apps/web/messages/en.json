@@ -39,7 +39,8 @@
     "title": "From messy public files to decisions you can defend.",
     "subtitle": "Upload contracts, budgets or program data. CivicLens profiles it, teaches you how to clean it, models it in SQL, flags what deserves a second look, and builds the executive report.",
     "status": "Early build — the full experience is under construction.",
-    "designLink": "See the design system"
+    "designLink": "See the design system",
+    "trySample": "Try with sample data"
   },
   "design": {
     "metaTitle": "Design system · CivicLens",
@@ -207,6 +208,119 @@
       "percent": "Percent",
       "dateLong": "Date · long",
       "dateShort": "Date · short"
+    }
+  },
+  "ingest": {
+    "metaTitle": "Ingest & profile · CivicLens",
+    "title": "Ingest & profile",
+    "subtitle": "We read the file as-is. Nothing is changed yet — every fix is your decision in the next step.",
+    "datasetChip": "Dataset: {name}",
+    "notReady": "We are still reading and profiling this file. This page refreshes on its own.",
+    "notFound": {
+      "title": "We could not find this dataset",
+      "body": "Uploaded files are deleted after 24 hours. Try one of the sample datasets or upload the file again.",
+      "action": "Open a sample dataset"
+    },
+    "samples": {
+      "label": "Sample datasets:",
+      "secop_co": "Colombia · SECOP II",
+      "contracts_ca": "Canada · Federal",
+      "contracts_qc": "Québec · SEAO"
+    },
+    "upload": {
+      "cta": "Drop a file or browse",
+      "hint": "CSV, XLSX or JSON · up to {mb} MB · deleted after 24 h",
+      "uploading": "Uploading {name}…",
+      "processing": "Reading and profiling {name}…",
+      "failedTitle": "We could not process this file",
+      "timeout": "It is taking longer than expected. Refresh the page in a minute.",
+      "networkTitle": "Could not reach the engine",
+      "networkDetail": "Check your connection and try again; the free server may be waking up.",
+      "tooLargeTitle": "File too large",
+      "tooLargeDetail": "The limit is {mb} MB per file."
+    },
+    "source": {
+      "title": "Source"
+    },
+    "meta": {
+      "format": "Format",
+      "encoding": "Encoding",
+      "delimiter": "Delimiter",
+      "sheet": "Sheet",
+      "headerRow": "header in row {n}",
+      "records": "Records at",
+      "language": "Data language",
+      "rowsColumns": "Rows × columns",
+      "storedAs": "Stored as",
+      "storedValue": "raw + staged Parquet",
+      "notApplicable": "not applicable"
+    },
+    "delimiters": {
+      "comma": "comma",
+      "semicolon": "semicolon",
+      "tab": "tab",
+      "pipe": "pipe"
+    },
+    "languages": {
+      "en": "English",
+      "fr": "French",
+      "es": "Spanish",
+      "mixed": "Mixed",
+      "unknown": "No text to detect"
+    },
+    "score": {
+      "title": "Data quality score",
+      "outOf": "/ 100",
+      "srLabel": "Data quality score: {score} out of 100",
+      "completeness": "Completeness",
+      "uniqueness": "Uniqueness",
+      "validity": "Validity",
+      "consistency": "Consistency",
+      "explain": "Measured on the columns mapped to the canonical schema: filled cells, duplicate rows and contract ids, values that parse, and values written in the dominant format."
+    },
+    "pii": {
+      "title": "Personal data detected",
+      "body": "{count, plural, one {# column looks} other {# columns look}} like personal information. Mask them before analysis so they never reach a chart, export or API response.",
+      "mask": "Mask all",
+      "review": "Review",
+      "maskNote": "Masking is a cleaning step: you apply it in the Cleaning Studio.",
+      "noneTitle": "No personal data detected",
+      "noneBody": "We looked for emails, phone numbers, ID numbers and person-name columns. Nothing matched."
+    },
+    "mapping": {
+      "title": "Header mapping to the canonical schema",
+      "subtitle": "Spanish and French headers are mapped to one English schema. Override anything that looks wrong.",
+      "caption": "Header mapping for {count} columns",
+      "source": "Source header",
+      "type": "Detected type",
+      "canonical": "Canonical field",
+      "confidence": "Confidence",
+      "nulls": "Nulls",
+      "check": "check",
+      "none": "—",
+      "unmapped": "not mapped (kept as is)",
+      "notMapped": "— not mapped —",
+      "overrideLabel": "Canonical field for {header}",
+      "codedAs": "coded as {tokens}"
+    },
+    "types": {
+      "string": "text",
+      "integer": "integer",
+      "number": "number",
+      "date": "date",
+      "datetime": "date and time",
+      "boolean": "yes / no",
+      "category": "category"
+    },
+    "detail": {
+      "mixedNotation": "mixed notations",
+      "commaDecimal": "decimal comma",
+      "mixedFormats": "mixed formats",
+      "values": "{n} values"
+    },
+    "footer": {
+      "summary": "<strong>{count, plural, one {# column needs} other {# columns need}} attention</strong> out of {total} — ready for the cleaning studio.",
+      "continue": "Continue to cleaning →"
     }
   }
 }

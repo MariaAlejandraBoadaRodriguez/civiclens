@@ -14,7 +14,9 @@ services:
       retries: 10
 
   api:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -41,6 +43,7 @@ services:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
+      API_URL: http://api:8000
     depends_on:
       api:
         condition: service_healthy

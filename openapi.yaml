@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: CivicLens API
-  version: 0.1.0
+  version: 0.2.0
   summary: Public-sector data analytics engine — ingest, profile, clean, model, predict and report.
   description: |
     Contract-first definition (v0, Phase 4). The FastAPI implementation (Phase 5) must match it;
@@ -97,7 +97,11 @@ paths:
       tags: [datasets]
       operationId: uploadDataset
       summary: Upload a file
-      description: CSV, XLSX or JSON up to 50 MB. Ingest + profile run as a job; poll `GET /api/v1/jobs/{job_id}`.
+      description: |
+        CSV, XLSX or JSON up to 50 MB, deleted after 24 h. Ingest + profile run as a job; poll
+        `GET /api/v1/jobs/{job_id}`. Anonymous uploads are allowed for the public demo (MVP);
+        agencies send `X-API-Key` (enforced with scopes in slice 5e).
+      security: [{}, ApiKey: []]
       x-user-stories: [US-07, US-25]
       parameters:
         - $ref: "#/components/parameters/AcceptLanguage"
@@ -668,10 +672,10 @@ components:
       name: dataset_id
       in: path
       required: true
-      description: Dataset id.
+      description: Dataset UUID, or the slug of a seed dataset (`secop_co`, `contracts_ca`, `contracts_qc`).
       schema:
         type: string
-        format: uuid
+        example: secop_co
     RecipeId:
       name: recipe_id
       in: path
@@ -843,9 +847,18 @@ components:
           type: [integer, "null"]
           minimum: 0
           maximum: 100
+        description:
+          type: [string, "null"]
+          description: Localized description (seed datasets only).
         license:
           type: [string, "null"]
           description: Seed datasets only, e.g. "CC BY-SA 4.0".
+        source_url:
+          type: [string, "null"]
+          format: uri
+        jurisdiction:
+          type: [string, "null"]
+          enum: [CO, CA, QC, null]
         created_at:
           type: string
           format: date-time
@@ -864,7 +877,7 @@ components:
 
     ColumnProfile:
       type: object
-      required: [source_header, inferred_type, null_ratio, distinct]
+      required: [source_header, inferred_type, null_ratio, distinct, validity, consistency]
       properties:
         source_header:
           type: string
@@ -873,6 +886,9 @@ components:
         canonical_field:
           type: [string, "null"]
           example: signed_date
+        canonical_type:
+          type: [string, "null"]
+          enum: [string, integer, number, date, category, currency, null]
         label:
           type: [string, "null"]
           description: Localized label of the canonical field.
@@ -880,20 +896,45 @@ components:
           type: number
           minimum: 0
           maximum: 1
+        needs_check:
+          type: boolean
+          description: True when the mapping confidence is below 0.8.
+        candidates:
+          type: array
+          description: Best canonical fields for the override select.
+          items:
+            type: string
+        candidate_labels:
+          type: object
+          additionalProperties:
+            type: string
         inferred_type:
           type: string
           enum: [string, integer, number, date, datetime, boolean, category]
-        locale_guess:
-          type: [string, "null"]
-          example: es_CO
-        data_lang:
-          $ref: "#/components/schemas/DataLanguage"
+        validity:
+          type: number
+          description: Share of non-null values that parse as the column type.
+        consistency:
+          type: number
+          description: Share of non-null values in the dominant notation / spelling.
+        notations:
+          type: object
+          description: Histogram of number notations (`point`, `comma`) or date formats (`iso`, `dmy`, `mdy`, `ambiguous`, ...).
+          additionalProperties:
+            type: integer
         null_ratio:
           type: number
+        null_tokens:
+          type: object
+          description: How missing values are written (e.g. `N/A`, `sin dato`) and how often.
+          additionalProperties:
+            type: integer
+        non_null:
+          type: integer
         distinct:
           type: integer
         min:
-          description: Minimum value as a string (data).
+          description: Minimum parsed value as a string (data).
           type: [string, "null"]
         max:
           type: [string, "null"]
@@ -906,28 +947,63 @@ components:
                 type: string
               count:
                 type: integer
+        data_lang:
+          type: object
+          description: Share of each data language among text cells.
+          additionalProperties:
+            type: number
         pii_kind:
           type: [string, "null"]
           enum: [email, phone, national_id, person_name, null]
+        pii_label:
+          type: [string, "null"]
 
     Profile:
       type: object
-      required: [dataset_id, quality, columns]
+      required: [dataset, read, rows, columns_count, quality, columns]
       properties:
-        dataset_id:
-          type: string
-          format: uuid
-        encoding:
-          type: string
-        delimiter:
-          type: [string, "null"]
-        sheet:
-          type: [string, "null"]
+        dataset:
+          $ref: "#/components/schemas/Dataset"
+        read:
+          type: object
+          description: What the reader detected.
+          properties:
+            format:
+              type: string
+              enum: [csv, xlsx, json, parquet]
+            encoding:
+              type: [string, "null"]
+            encoding_label:
+              type: [string, "null"]
+            delimiter:
+              type: [string, "null"]
+            sheet:
+              type: [string, "null"]
+            header_row:
+              type: integer
+            records_path:
+              type: [string, "null"]
+        size_bytes:
+          type: [integer, "null"]
+        rows:
+          type: integer
+        columns_count:
+          type: integer
+        duplicate_rows:
+          type: integer
+        duplicate_keys:
+          type: integer
+        invalid_rows:
+          type: integer
+        inconsistent_rows:
+          type: integer
         data_lang:
           type: object
           description: Share of each detected data language.
           additionalProperties:
             type: number
+        data_lang_label:
+          $ref: "#/components/schemas/DataLanguage"
         quality:
           type: object
           required: [score, completeness, uniqueness, validity, consistency]
@@ -942,6 +1018,24 @@ components:
               type: integer
             consistency:
               type: integer
+        pii:
+          type: array
+          items:
+            type: object
+            required: [field, kind, label]
+            properties:
+              field:
+                type: string
+              kind:
+                type: string
+              label:
+                type: string
+        storage:
+          type: object
+          additionalProperties:
+            type: string
+        is_seed:
+          type: boolean
         columns:
           type: array
           items:
