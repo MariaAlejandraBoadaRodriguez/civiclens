@@ -1,6 +1,6 @@
 # ADR-0007 · Internationalization
 
-- **Status:** Proposed · 2026-10-28 — **requires owner approval** (Phase 4 DoD)
+- **Status:** Accepted · 2026-10-28 — approved by Alejandra (owner)
 
 ## Context
 Two independent language concepts (ROADMAP §0):

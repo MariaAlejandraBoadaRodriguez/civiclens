@@ -10,4 +10,4 @@ Format: [Michael Nygard](https://cognitect.com/blog/2011/11/15/documenting-archi
 | [0004](0004-api-contract-first.md) | Contract-first REST API: `/api/v1`, RFC 7807, API keys, jobs in Postgres | Accepted |
 | [0005](0005-hosting-zero-cost.md) | $0 hosting: Vercel + Render + Neon | Accepted |
 | [0006](0006-canonical-schema-and-recipes.md) | Canonical schema, star schema and replayable cleaning recipes | Accepted |
-| [0007](0007-internationalization.md) | Internationalization: UI EN/ES, data EN/FR/ES, localized API text | Proposed — needs owner approval |
+| [0007](0007-internationalization.md) | Internationalization: UI EN/ES, data EN/FR/ES, localized API text | Accepted |
