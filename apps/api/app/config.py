@@ -4,7 +4,10 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+# Repository checkout: apps/api/app/config.py → repo root. In the Docker image the file is
+# /srv/app/config.py and data lives in /srv/data, so the root is /srv.
+_HERE = Path(__file__).resolve()
+REPO_ROOT = _HERE.parents[3] if len(_HERE.parents) > 3 else _HERE.parents[1]
 
 
 class Settings(BaseSettings):
