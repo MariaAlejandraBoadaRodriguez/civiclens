@@ -394,5 +394,69 @@
       "hash": "Huella del resultado (SHA-256): la misma receta sobre el mismo archivo siempre da este valor",
       "continue": "Continuar al laboratorio SQL →"
     }
+  },
+  "sql": {
+    "metaTitle": "Laboratorio SQL · CivicLens",
+    "title": "Laboratorio SQL",
+    "subtitle": "Tus datos limpios, modelados como un esquema estrella. Empieza con una pregunta guiada o escribe tu propia consulta.",
+    "engineChip": "DuckDB · solo lectura",
+    "notReady": "Todavía estamos analizando este conjunto de datos. Esta página se actualiza sola.",
+    "notFound": {
+      "title": "No encontramos este conjunto de datos",
+      "body": "Los archivos subidos se eliminan después de 24 horas. Prueba con uno de los conjuntos de ejemplo.",
+      "action": "Abrir el ejemplo colombiano"
+    },
+    "originRecommended": "Aún no se ha aplicado ninguna receta, así que este esquema usa las opciones de limpieza recomendadas. <link>Elige las tuyas en el Estudio de limpieza</link>.",
+    "schema": {
+      "title": "Esquema estrella",
+      "hint": "Una tabla de hechos de contratos, unida a cinco dimensiones por sus claves.",
+      "rows": "{count, plural, one {# fila} other {# filas}}",
+      "columnsCount": "{n} columnas"
+    },
+    "guided": {
+      "title": "Preguntas guiadas · {n}",
+      "showAll": "Ver las {n} →",
+      "showFewer": "Ver menos"
+    },
+    "editor": {
+      "title": "Consulta",
+      "label": "Consulta SQL",
+      "guardrails": "Solo lectura · límite de {seconds} s · máximo {rows, number} filas",
+      "run": "Ejecutar consulta",
+      "running": "Ejecutando…",
+      "hint": "Una sola sentencia SELECT o WITH. Pulsa Ctrl + Enter (⌘ + Enter en Mac) para ejecutar."
+    },
+    "results": {
+      "title": "Resultados · {count, plural, one {# fila} other {# filas}} · {ms} ms",
+      "caption": "Resultados de la consulta",
+      "running": "Ejecutando la consulta…",
+      "empty": "La consulta se ejecutó pero no devolvió filas.",
+      "truncated": "Se detuvo en {rows, number} filas",
+      "displayCap": "Se muestran las primeras {shown} de {count, number} filas.",
+      "unreachable": "El motor no respondió. Inténtalo de nuevo en unos segundos."
+    },
+    "teaches": "Qué enseña esta consulta:",
+    "edited": "Editaste la consulta: la explicación corresponde a la pregunta guiada original.",
+    "concepts": {
+      "label": "Conceptos de SQL",
+      "join": "JOIN",
+      "cte": "CTE",
+      "window_function": "Función de ventana",
+      "aggregation": "Agregación",
+      "subquery": "Subconsulta"
+    },
+    "kpis": {
+      "title": "Catálogo de KPI",
+      "subtitle": "Una sola definición compartida por KPI, calculada en SQL sobre este esquema estrella. Montos en CAD.",
+      "owner": "Responsable: {owner}",
+      "formula": "Ver el SQL",
+      "owners": {
+        "finance": "Finanzas",
+        "procurement": "Compras",
+        "data": "Equipo de datos",
+        "audit": "Auditoría"
+      }
+    },
+    "continue": "Continuar al laboratorio de ML →"
   }
 }

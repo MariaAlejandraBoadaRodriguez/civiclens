@@ -289,6 +289,31 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
 
+  /api/v1/datasets/{dataset_id}/schema:
+    get:
+      tags: [sql]
+      operationId: getStarSchema
+      summary: Star schema of a dataset
+      description: |
+        Tables (`fact_contract` + 5 dimensions), columns, types and row counts. Built on first use
+        from the cleaned layer; when no recipe was applied yet, from the staged layer with the
+        recommended recipe (`origin: recommended`).
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-15, US-16]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+      responses:
+        "200":
+          description: Star schema.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StarSchema"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
   /api/v1/recipes:
     post:
       tags: [cleaning]
@@ -442,6 +467,8 @@ paths:
                 $ref: "#/components/schemas/QueryResult"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "408":
           $ref: "#/components/responses/Timeout"
         "429":
@@ -473,23 +500,22 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/GuidedQuery"
+                  guardrails:
+                    $ref: "#/components/schemas/Guardrails"
 
   /api/v1/kpis/{dataset_id}:
     get:
       tags: [sql]
       operationId: getKpis
       summary: KPIs for a dataset
-      description: Values from the KPI catalog (stable `kpi_id`) with localized names and definitions.
+      description: |
+        Values from the KPI catalog (stable `kpi_id`) with localized names and definitions.
+        Monetary KPIs are in CAD (each amount converted with the rate of its signed month).
       security: [{}, ApiKey: []]
       x-user-stories: [US-17, US-22, US-23, US-25]
       parameters:
         - $ref: "#/components/parameters/DatasetId"
         - $ref: "#/components/parameters/AcceptLanguage"
-        - name: currency
-          in: query
-          description: Target currency for monetary KPIs.
-          schema:
-            $ref: "#/components/schemas/Currency"
       responses:
         "200":
           description: KPIs.
@@ -505,12 +531,16 @@ paths:
                   dataset_id:
                     type: string
                     format: uuid
+                  origin:
+                    $ref: "#/components/schemas/StarOrigin"
                   items:
                     type: array
                     items:
                       $ref: "#/components/schemas/Kpi"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
 
   /api/v1/models/{model_type}/run:
     post:
@@ -1296,10 +1326,15 @@ components:
       properties:
         dataset_id:
           type: string
-          format: uuid
+          description: Dataset UUID, or the slug of a seed dataset.
+          example: secop_co
         sql:
           type: string
           maxLength: 20000
+          description: |
+            Exactly one SELECT/WITH statement. Rejected (400, `sql.*` codes): writes and DDL,
+            ATTACH/COPY/PRAGMA/SET/INSTALL/LOAD, file/URL readers, settings functions, multiple
+            statements. Longer texts are rejected with `sql.too_long`.
           example: SELECT supplier_id, SUM(amount_cad) AS spend FROM fact_contract GROUP BY 1 ORDER BY 2 DESC LIMIT 10
 
     QueryResult:
@@ -1335,7 +1370,7 @@ components:
       properties:
         query_id:
           type: string
-          example: top_suppliers_by_spend
+          example: top_suppliers
         title:
           type: string
         question:
@@ -1356,20 +1391,81 @@ components:
       properties:
         kpi_id:
           type: string
-          enum: [total_spend, contract_count, avg_value, direct_award_share, hhi, yoy_growth, quality_score]
+          enum: [total_spend, contract_count, avg_value, median_value, direct_award_share, hhi, single_bidder_share, yoy_growth, quality_score]
         value:
           type: [number, "null"]
         unit:
           type: string
-          enum: [currency, count, ratio, score]
+          enum: [currency, count, ratio, index, score]
         currency:
-          type: [string, "null"]
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/Currency"
+        owner:
+          type: string
+          description: Team accountable for the definition.
+          enum: [finance, procurement, audit, data]
         name:
           type: string
         definition:
           type: string
         formula_sql:
+          type: [string, "null"]
+          description: SQL over the star schema (identical in every language); null for `quality_score`.
+
+    Guardrails:
+      type: object
+      required: [read_only, timeout_s, max_rows]
+      properties:
+        read_only:
+          type: boolean
+        timeout_s:
+          type: integer
+          example: 10
+        max_rows:
+          type: integer
+          example: 10000
+
+    StarOrigin:
+      type: string
+      description: "`clean`: built from the applied recipe; `recommended`: recommended recipe applied on the fly."
+      enum: [clean, recommended]
+
+    StarSchema:
+      type: object
+      required: [dataset_id, origin, tables, guardrails]
+      properties:
+        dataset_id:
           type: string
+          format: uuid
+        origin:
+          $ref: "#/components/schemas/StarOrigin"
+        guardrails:
+          $ref: "#/components/schemas/Guardrails"
+        tables:
+          type: array
+          items:
+            type: object
+            required: [name, role, rows, columns]
+            properties:
+              name:
+                type: string
+                enum: [fact_contract, dim_entity, dim_supplier, dim_date, dim_category, dim_currency]
+              role:
+                type: string
+                enum: [fact, dimension]
+              rows:
+                type: integer
+              columns:
+                type: array
+                items:
+                  type: object
+                  required: [name, type]
+                  properties:
+                    name:
+                      type: string
+                    type:
+                      type: string
 
     JobRef:
       type: object

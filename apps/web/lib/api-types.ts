@@ -158,3 +158,57 @@ export type ApplyResult = {
   quality_before: Quality;
   quality_after: Quality;
 };
+
+export type Guardrails = { read_only: boolean; timeout_s: number; max_rows: number };
+
+export type StarOrigin = "clean" | "recommended";
+
+export type StarTable = {
+  name: string;
+  role: "fact" | "dimension";
+  rows: number;
+  columns: { name: string; type: string }[];
+};
+
+export type StarSchemaResponse = {
+  dataset_id: string;
+  origin: StarOrigin;
+  tables: StarTable[];
+  guardrails: Guardrails;
+};
+
+export type SqlConcept = "join" | "cte" | "window_function" | "aggregation" | "subquery";
+
+export type GuidedQuery = {
+  query_id: string;
+  title: string;
+  question: string;
+  sql: string;
+  explanation: string;
+  concepts: SqlConcept[];
+};
+
+export type GuidedQueriesResponse = { items: GuidedQuery[]; guardrails: Guardrails };
+
+export type QueryCell = string | number | boolean | null;
+
+export type QueryResult = {
+  columns: { name: string; type: string }[];
+  rows: QueryCell[][];
+  row_count: number;
+  truncated: boolean;
+  elapsed_ms: number;
+};
+
+export type Kpi = {
+  kpi_id: string;
+  value: number | null;
+  unit: "currency" | "count" | "ratio" | "index" | "score";
+  currency: string | null;
+  owner: string;
+  formula_sql: string | null;
+  name: string;
+  definition: string;
+};
+
+export type KpisResponse = { dataset_id: string; origin: StarOrigin; items: Kpi[] };

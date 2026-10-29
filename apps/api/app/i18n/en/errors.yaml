@@ -41,3 +41,28 @@ recipe:
   failed:
     title: The recipe could not be applied
     detail: A step failed on this file. The error was logged.
+sql:
+  empty:
+    title: Write a query first
+    detail: The editor is empty.
+  too_long:
+    title: The query is too long
+    detail: "Queries are limited to {limit} characters."
+  multiple_statements:
+    title: Only one statement at a time
+    detail: Remove the extra statements after the first semicolon.
+  forbidden_statement:
+    title: Only read-only queries are allowed
+    detail: "The SQL Lab runs SELECT and WITH queries only ({keyword} is not allowed)."
+  forbidden_function:
+    title: This function is not available
+    detail: "{function} could read files, the network or system settings, so it is blocked."
+  syntax_error:
+    title: The query has a syntax error
+    detail: "DuckDB says: {message}"
+  runtime_error:
+    title: The query failed
+    detail: "DuckDB says: {message}"
+  timeout:
+    title: The query took too long
+    detail: "Queries stop after {seconds} seconds. Add filters or aggregate before joining."

@@ -44,6 +44,10 @@ def clean_path(dataset_id: uuid.UUID) -> Path:
     return dataset_dir(dataset_id) / "clean.parquet"
 
 
+def star_path(dataset_id: uuid.UUID) -> Path:
+    return dataset_dir(dataset_id) / "star.duckdb"
+
+
 def clean_profile_path(dataset_id: uuid.UUID) -> Path:
     return dataset_dir(dataset_id) / "profile_clean.json"
 

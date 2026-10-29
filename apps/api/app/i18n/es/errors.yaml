@@ -41,3 +41,28 @@ recipe:
   failed:
     title: No se pudo aplicar la receta
     detail: Un paso falló en este archivo. El error quedó registrado.
+sql:
+  empty:
+    title: Escribe primero una consulta
+    detail: El editor está vacío.
+  too_long:
+    title: La consulta es demasiado larga
+    detail: "Las consultas tienen un límite de {limit} caracteres."
+  multiple_statements:
+    title: Solo una sentencia a la vez
+    detail: Elimina las sentencias adicionales después del primer punto y coma.
+  forbidden_statement:
+    title: Solo se permiten consultas de lectura
+    detail: "El laboratorio SQL ejecuta solo consultas SELECT y WITH ({keyword} no está permitido)."
+  forbidden_function:
+    title: Esta función no está disponible
+    detail: "{function} podría leer archivos, la red o la configuración del sistema, por eso está bloqueada."
+  syntax_error:
+    title: La consulta tiene un error de sintaxis
+    detail: "DuckDB dice: {message}"
+  runtime_error:
+    title: La consulta falló
+    detail: "DuckDB dice: {message}"
+  timeout:
+    title: La consulta tardó demasiado
+    detail: "Las consultas se detienen a los {seconds} segundos. Agrega filtros o agrega antes de unir tablas."

@@ -9,7 +9,7 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const BASE = process.argv[2] || "http://localhost:3000";
-const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc", "/en/datasets/contracts_ca/clean", "/es/datasets/secop_co/clean"];
+const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc", "/en/datasets/contracts_ca/clean", "/es/datasets/secop_co/clean", "/en/datasets/secop_co/sql", "/es/datasets/contracts_ca/sql"];
 const AXE = path.join(__dirname, "..", "node_modules", "axe-core", "axe.min.js");
 
 (async () => {
@@ -19,6 +19,8 @@ const AXE = path.join(__dirname, "..", "node_modules", "axe-core", "axe.min.js")
     const page = await browser.newPage({ viewport: { width, height: 900 } });
     for (const route of PAGES) {
       await page.goto(BASE + route, { waitUntil: "load" });
+      // The SQL lab runs its first guided query in the browser: audit the page with results.
+      if (route.endsWith("/sql")) await page.waitForSelector("#query-results h3, #query-results [role=note]");
       await page.addScriptTag({ path: AXE });
       const result = await page.evaluate(() =>
         // eslint-disable-next-line no-undef
