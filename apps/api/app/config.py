@@ -12,6 +12,8 @@ class Settings(BaseSettings):
 
     environment: str = "local"
     allowed_origins: list[str] = ["http://localhost:3000"]
+    # Extra origins by pattern, e.g. Vercel preview deployments of the web app.
+    allowed_origin_regex: str | None = None
     default_locale: str = "en"
     database_url: str = "postgresql+psycopg://civiclens:civiclens@localhost:5432/civiclens"
 

@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DatasetPicker, SAMPLE_SLUGS } from "@/components/ingest/DatasetPicker";
 import { MlLab } from "@/components/ml/MlLab";
 import { AutoRefresh } from "@/components/ui/AutoRefresh";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonGroup } from "@/components/ui/Skeleton";
@@ -45,10 +45,7 @@ export default async function MlPage({ params: { locale, id } }: Params) {
         {heading}
         <DatasetPicker current={id} path="/ml" />
         {!dataset.ok && dataset.kind === "unreachable" && (
-          <>
-            <WakingUp />
-            <AutoRefresh />
-          </>
+          <WakingUp />
         )}
         {notReady && (
           <Card as="div">
@@ -79,7 +76,8 @@ export default async function MlPage({ params: { locale, id } }: Params) {
         forecast={forecast.ok ? forecast.data : null}
       />
       <div className="flex justify-end">
-        <ButtonLink href={`/datasets/${datasetRef}/dashboard`}>{t("continue")}</ButtonLink>
+        {/* The dashboard arrives in Phase 6: no link to a missing page until then. */}
+        <Button disabled>{t("continueSoon")}</Button>
       </div>
     </main>
   );

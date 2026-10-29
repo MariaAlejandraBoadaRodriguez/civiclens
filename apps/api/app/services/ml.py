@@ -10,6 +10,7 @@ from typing import Any
 
 import pandas as pd
 
+from app.core import memory
 from app.core.ml import forecast, red_flags
 from app.core.sql import engine
 from app.db.models import Dataset, Job, JobStatus
@@ -102,6 +103,7 @@ def run_model_job(job_id: uuid.UUID) -> None:
             job.status, job.error_code = JobStatus.FAILED, "model.failed"
         job.finished_at = now()
         session.commit()
+    memory.release()
 
 
 def summary(result: dict[str, Any]) -> dict[str, Any]:

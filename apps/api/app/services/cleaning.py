@@ -12,6 +12,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.core import memory
 from app.core.cleaning.codegen import pandas_preview, pandas_script, sql_preview, sql_script
 from app.core.cleaning.detectors import detect_issues
 from app.core.cleaning.ops import Context, FxTable
@@ -231,3 +232,4 @@ def run_apply_job(job_id: uuid.UUID) -> None:
             job.status, job.error_code = JobStatus.FAILED, "recipe.failed"
         job.finished_at = now()
         session.commit()
+    memory.release()

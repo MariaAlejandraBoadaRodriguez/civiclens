@@ -21,7 +21,10 @@
     },
     "wakingUp": {
       "title": "Waking up the engine…",
-      "body": "The free server sleeps when idle. The first request can take up to a minute; everything after is fast."
+      "body": "The free server sleeps when idle. The first request can take up to a minute; everything after is fast.",
+      "failedTitle": "The engine did not wake up",
+      "failedBody": "We waited {seconds} seconds without an answer from the API. It may be starting, or it may be down.",
+      "retry": "Retry"
     },
     "metaDescription": "Public-sector data engine: ingest, clean, model, predict and report — in English and Spanish."
   },
@@ -32,7 +35,8 @@
     "clean": "Clean",
     "sql": "SQL",
     "ml": "ML",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "comingSoon": "Coming soon"
   },
   "landing": {
     "eyebrow": "Public-sector data engine · EN / FR / ES data",
@@ -532,6 +536,7 @@
         "month": "Month"
       }
     },
-    "continue": "Continue to dashboard →"
+    "continue": "Continue to dashboard →",
+    "continueSoon": "Dashboard — coming soon"
   }
 }

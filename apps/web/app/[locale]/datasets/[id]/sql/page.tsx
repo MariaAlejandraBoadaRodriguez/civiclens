@@ -54,10 +54,7 @@ export default async function SqlPage({ params: { locale, id } }: Params) {
         {heading}
         <DatasetPicker current={id} path="/sql" />
         {failed?.kind === "unreachable" && (
-          <>
-            <WakingUp />
-            <AutoRefresh />
-          </>
+          <WakingUp />
         )}
         {notReady && (
           <Card as="div">

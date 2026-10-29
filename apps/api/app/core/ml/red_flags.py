@@ -13,7 +13,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import IsolationForest
 
 from app.core.cleaning.ops import FxTable
 from app.core.ml import SEED
@@ -173,6 +172,8 @@ def run(df: pd.DataFrame, params: RedFlagParams, fx: FxTable) -> dict[str, Any]:
     # A feature with no information in this dataset (e.g. no bid counts) is left out.
     used = [n for n in FEATURES if pd.to_numeric(f[n], errors="coerce").nunique(dropna=True) > 1]
     x = _matrix(f, used)
+    from sklearn.ensemble import IsolationForest  # lazy: ~85 MB, only when a model runs
+
     model = IsolationForest(
         n_estimators=N_TREES, contamination=params.contamination, random_state=SEED, n_jobs=1
     ).fit(x)
