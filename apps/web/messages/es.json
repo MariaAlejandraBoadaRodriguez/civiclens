@@ -458,5 +458,80 @@
       }
     },
     "continue": "Continuar al laboratorio de ML →"
+  },
+  "ml": {
+    "metaTitle": "Laboratorio de ML · CivicLens",
+    "title": "Laboratorio de ML · apoyo a la decisión",
+    "subtitle": "Modelos explicables sobre tus datos limpios. Cada resultado dice qué usó, qué tan bien funciona y dónde puede equivocarse.",
+    "notReady": "Todavía estamos analizando este conjunto de datos. Esta página se actualiza sola.",
+    "notFound": {
+      "title": "No encontramos este conjunto de datos",
+      "body": "Los archivos subidos se eliminan después de 24 horas. Prueba con uno de los conjuntos de ejemplo.",
+      "action": "Abrir el ejemplo colombiano"
+    },
+    "tabs": {
+      "label": "Modelos",
+      "redFlags": "Detección de alertas",
+      "forecast": "Pronóstico de gasto",
+      "classifier": "Clasificador de categorías · después",
+      "segments": "Segmentos de proveedores · después"
+    },
+    "card": {
+      "title": "Ficha del modelo",
+      "question": "Pregunta de negocio",
+      "method": "Método",
+      "rules": "Reglas",
+      "features": "Variables",
+      "limitations": "Limitaciones"
+    },
+    "rerun": "Volver a ejecutar con los datos actuales",
+    "running": "Entrenando…",
+    "unreachable": "El motor no respondió. Inténtalo de nuevo en unos segundos.",
+    "flags": {
+      "training": "Entrenando el modelo de alertas con este conjunto de datos (semilla fija, unos segundos)…",
+      "title": "Priorizados para revisión",
+      "count": "{flagged, number} de {contracts, number} contratos marcados",
+      "none": "Ningún contrato cumplió las reglas ni se salió de lo habitual. Eso también es un resultado.",
+      "score": "Puntaje",
+      "contract": "Contrato",
+      "why": "Por qué se marcó",
+      "action": "Acción",
+      "explain": "¿Por qué este puntaje?",
+      "markReviewed": "Marcar como revisado",
+      "reviewed": "Revisado ✓",
+      "shap": {
+        "title": "Por qué el contrato #{rank} obtuvo {score} · contribución de cada variable",
+        "legend": "El naranja sube el puntaje de anomalía y el azul lo baja. Punto de partida (contrato promedio): {base}. Calculado con valores SHAP exactos.",
+        "up": "(sube el puntaje)",
+        "down": "(baja el puntaje)"
+      },
+      "showAll": "Ver los {n} →",
+      "showFewer": "Ver solo los 10 primeros",
+      "tableRegion": "Contratos priorizados para revisión (tabla)"
+    },
+    "forecast": {
+      "training": "Entrenando el pronóstico y su línea base (semilla fija, unos segundos)…",
+      "title": "Gasto mensual: modelo frente a línea base estacional ingenua",
+      "mapeModel": "MAPE · modelo",
+      "mapeBaseline": "MAPE · línea base",
+      "window": "Ventana de prueba",
+      "months": "{n} meses",
+      "windowNote": "de {months} meses de historia",
+      "mapeHelp": "MAPE = error promedio como proporción del gasto real en meses que los modelos no vieron. Menor es mejor.",
+      "chart": {
+        "title": "Gasto mensual en CAD: real, modelo y línea base",
+        "caption": "Área sombreada: próximos seis meses. Línea punteada: inicio de la ventana de prueba.",
+        "legend": {
+          "actual": "Real",
+          "model": "Modelo",
+          "baseline": "Línea base estacional ingenua"
+        },
+        "test": "Prueba",
+        "future": "Pronóstico",
+        "table": "Ver los números",
+        "month": "Mes"
+      }
+    },
+    "continue": "Continuar al tablero →"
   }
 }

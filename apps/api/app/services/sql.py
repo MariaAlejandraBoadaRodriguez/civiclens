@@ -27,7 +27,7 @@ def _group_labels() -> dict[str, dict[str, str]]:
     return {g: {"en": en(f"categories.{g}"), "es": es(f"categories.{g}")} for g in GROUPS}
 
 
-def _jurisdiction(ds: Dataset) -> str:
+def jurisdiction(ds: Dataset) -> str:
     seed = SEEDS.get(ds.slug or "")
     return seed.jurisdiction if seed else "CA"
 
@@ -55,7 +55,7 @@ def ensure_star(ds: Dataset) -> Path:
             return path
         frame, origin = source_frame(ds)
         star = build_star(
-            frame, _jurisdiction(ds), context().fx, _group_labels(), default_currency(ds)
+            frame, jurisdiction(ds), context().fx, _group_labels(), default_currency(ds)
         )
         write_duckdb(star, path)
         storage.write_json({"origin": origin}, path.with_suffix(".json"))

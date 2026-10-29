@@ -212,3 +212,64 @@ export type Kpi = {
 };
 
 export type KpisResponse = { dataset_id: string; origin: StarOrigin; items: Kpi[] };
+
+export type ModelCard = {
+  name: string;
+  question: string;
+  method: string;
+  method_detail?: string;
+  warning: string;
+  limitations: string[];
+  features: { id: string; label: string }[];
+  rules?: { id: string; label: string }[];
+  thresholds?: string;
+  flagged_rule?: string;
+  verdict?: string;
+  dropped?: string;
+};
+
+export type RedFlagItem = {
+  rank: number;
+  contract_id: string;
+  entity_name: string | null;
+  supplier_name: string | null;
+  signed_date: string;
+  amount_cad: number;
+  score: number;
+  anomaly: number;
+  reasons: string[];
+  contributions?: { feature: string; value: number }[];
+  base_value?: number;
+};
+
+export type RedFlagResult = {
+  model_type: "red_flags";
+  seed: number;
+  features: string[];
+  features_dropped: string[];
+  rules: string[];
+  contracts: number;
+  flagged: number;
+  reviewed: string[];
+  origin: StarOrigin;
+  items: RedFlagItem[];
+  reason_labels: Record<string, string>;
+  card: ModelCard;
+};
+
+export type ForecastPoint = { month: string; actual: number | null; model?: number | null; baseline?: number | null };
+
+export type ForecastResult = {
+  model_type: "forecast";
+  status: "ok" | "insufficient_history";
+  seed: number;
+  months: number;
+  min_months: number;
+  test_months?: number;
+  test_start?: string;
+  dropped_recent_months?: number;
+  metrics: { mape_model?: number | null; mape_baseline?: number | null; beats_baseline?: boolean };
+  series: ForecastPoint[];
+  origin: StarOrigin;
+  card: ModelCard;
+};

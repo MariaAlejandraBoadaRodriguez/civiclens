@@ -29,7 +29,7 @@ class QueryRequest(BaseModel):
     sql: str = Field(description=f"One SELECT/WITH statement, at most {MAX_SQL_CHARS} characters")
 
 
-def _dataset(session: Session, ref: str) -> Dataset:
+def ready_dataset(session: Session, ref: str) -> Dataset:
     ds = datasets_svc.resolve(session, ref)
     if ds is None:
         raise ProblemError(404, "dataset.not_found", dataset_id=ref)
@@ -46,7 +46,7 @@ def _guardrails() -> dict[str, Any]:
 def get_schema(dataset_id: str, session: SessionDep) -> dict[str, Any]:
     """Star schema tables, columns and row counts. Built on first use from the cleaned data
     (or from the recommended recipe when none was applied yet)."""
-    ds = _dataset(session, dataset_id)
+    ds = ready_dataset(session, dataset_id)
     tables = engine.describe(svc.ensure_star(ds))
     for table in tables:
         table["role"] = "fact" if table["name"].startswith("fact_") else "dimension"
@@ -60,7 +60,7 @@ def get_schema(dataset_id: str, session: SessionDep) -> dict[str, Any]:
 
 @router.post("/query")
 def run_query(body: QueryRequest, session: SessionDep) -> dict[str, Any]:
-    ds = _dataset(session, body.dataset_id)
+    ds = ready_dataset(session, body.dataset_id)
     try:
         result = svc.run_query(ds, body.sql)
     except QueryRejected as exc:
@@ -95,6 +95,6 @@ def list_guided(t: TDep) -> dict[str, Any]:
 
 @router.get("/kpis/{dataset_id}")
 def get_kpis(dataset_id: str, session: SessionDep, t: TDep) -> dict[str, Any]:
-    ds = _dataset(session, dataset_id)
+    ds = ready_dataset(session, dataset_id)
     items = svc.kpis(ds, t)  # builds the star schema first, so the origin below is known
     return {"dataset_id": str(ds.id), "origin": svc.star_origin(ds), "items": items}

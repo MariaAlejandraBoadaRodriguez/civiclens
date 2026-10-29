@@ -66,3 +66,13 @@ sql:
   timeout:
     title: The query took too long
     detail: "Queries stop after {seconds} seconds. Add filters or aggregate before joining."
+model:
+  not_available:
+    title: This model is not available yet
+    detail: "{model_type} is planned for a later release. Available now: red_flags, forecast."
+  not_run:
+    title: This model has not been run on this dataset
+    detail: Run it first with POST /api/v1/models/{model_type}/run.
+  failed:
+    title: The model run failed
+    detail: Something went wrong while training the model. Try again; if it keeps failing, check the dataset in the Cleaning studio.
