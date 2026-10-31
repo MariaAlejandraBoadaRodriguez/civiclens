@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.core import memory
 from app.core.ingest.detect import UnsupportedFormatError
 from app.core.ingest.language import dominant
 from app.core.ingest.reader import EmptyFileError
@@ -98,7 +99,8 @@ def ensure_seed(session: Session, seed: Seed) -> Dataset:
         build_issues(ds)
         session.commit()
         log.info("seed %s ready: %s rows", seed.slug, ds.rows)
-        return ds
+    memory.release()
+    return ds
 
 
 def warm_seeds() -> None:
@@ -211,6 +213,7 @@ def run_ingest_job(job_id: uuid.UUID) -> None:
             )
         job.finished_at = now()
         session.commit()
+    memory.release()
 
 
 def purge_expired(session: Session) -> int:

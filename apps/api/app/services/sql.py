@@ -8,6 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from app.core import memory
 from app.core.cleaning.ops import apply_steps
 from app.core.seed.registry import SEEDS
 from app.core.sql import engine
@@ -60,6 +61,7 @@ def ensure_star(ds: Dataset) -> Path:
         write_duckdb(star, path)
         storage.write_json({"origin": origin}, path.with_suffix(".json"))
         log.info("star schema for %s built from %s data", ds.id, origin)
+    memory.release()
     return path
 
 

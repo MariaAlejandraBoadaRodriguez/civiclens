@@ -1,0 +1,34 @@
+# Render Blueprint — CivicLens API (free plan). Render → New → Blueprint → this repository.
+# The web app stays on Vercel; set NEXT_PUBLIC_API_URL there to this service's URL.
+services:
+  - type: web
+    name: civiclens-api
+    runtime: docker
+    plan: free
+    region: virginia  # closest to Vercel's default region (iad1)
+    # The image needs data/seed and data/fx_rates.csv, so it builds from the repository root.
+    dockerContext: .
+    dockerfilePath: ./apps/api/Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - apps/api/**
+        - data/seed/**
+        - data/fx_rates.csv
+        - render.yaml
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      # No managed database yet: SQLite on the container disk. The free plan's disk is
+      # ephemeral, so datasets and jobs reset on each deploy or restart; the three seed
+      # datasets are rebuilt at startup from the image (WARM_SEEDS).
+      - key: DATABASE_URL
+        value: sqlite:////srv/var/civiclens.db
+      - key: WARM_SEEDS
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: '["https://civiclens-eosin.vercel.app","http://localhost:3000"]'
+      # Vercel preview deployments of this project (civiclens-git-<branch>-…, civiclens-<hash>-…).
+      - key: ALLOWED_ORIGIN_REGEX
+        value: ^https://civiclens(-[a-z0-9-]+)?\.vercel\.app$

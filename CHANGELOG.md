@@ -3,6 +3,9 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- Deploy: Render Blueprint (`render.yaml`) for the API (Docker, free plan, `/health`, seed datasets and their star schemas built into the image, CORS for the production and preview web URLs) and memory limits for the 512 MB free instance; the "Waking up the engine" state stops after 90 s with a translated error and a Retry button; favicon; the Dashboard step is shown disabled ("Coming soon") until Phase 6.
+
 ### Added
 - Phase 0: monorepo scaffold (Next.js 14 + next-intl EN/ES, FastAPI), Docker Compose, CI, repo templates.
 - Phase 1: `docs/requirements.md` (27 user stories, MoSCoW, traceability), `docs/glossary.md` (74 EN↔ES terms), seed datasets (`data/seed/*.parquet`) with dataset cards and `scripts/fetch_seed.py`.

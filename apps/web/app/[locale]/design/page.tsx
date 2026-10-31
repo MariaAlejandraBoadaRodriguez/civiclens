@@ -335,7 +335,7 @@ export default function DesignPage({ params: { locale } }: { params: { locale: s
             <Skeleton className="h-8 w-1/2" />
             <SkeletonGroup lines={4} />
           </Card>
-          <WakingUp />
+          <WakingUp live={false} />
         </div>
       </Section>
 

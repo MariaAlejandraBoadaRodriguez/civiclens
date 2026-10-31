@@ -12,7 +12,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import GradientBoostingRegressor
 
 from app.core.ml import SEED
 
@@ -74,7 +73,9 @@ def _row(history: list[float], month: int) -> list[float]:
     ]
 
 
-def _fit(values: list[float], months: list[int]) -> GradientBoostingRegressor:
+def _fit(values: list[float], months: list[int]):
+    from sklearn.ensemble import GradientBoostingRegressor  # lazy: ~85 MB, only when used
+
     x, y = [], []
     for t in range(max(LAGS), len(values)):
         x.append(_row(values[:t], months[t]))

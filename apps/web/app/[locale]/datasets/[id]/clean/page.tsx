@@ -40,10 +40,7 @@ export default async function CleanPage({ params: { locale, id } }: Params) {
         {heading}
         <DatasetPicker current={id} path="/clean" />
         {result.kind === "unreachable" && (
-          <>
-            <WakingUp />
-            <AutoRefresh />
-          </>
+          <WakingUp />
         )}
         {notReady && (
           <Card as="div">

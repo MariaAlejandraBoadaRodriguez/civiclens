@@ -68,10 +68,7 @@ function Unavailable({ kind, t, id }: { kind: "unreachable" | "notReady" | "notF
       <h1 className="m-0 text-[30px] font-semibold text-ink">{t("title")}</h1>
       <DatasetPicker current={id} />
       {kind === "unreachable" && (
-        <>
-          <WakingUp />
-          <AutoRefresh />
-        </>
+        <WakingUp />
       )}
       {kind === "notReady" && (
         <Card as="div">

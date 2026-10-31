@@ -21,7 +21,10 @@
     },
     "wakingUp": {
       "title": "Encendiendo el motor…",
-      "body": "El servidor gratuito se duerme cuando no se usa. La primera solicitud puede tardar hasta un minuto; después todo es rápido."
+      "body": "El servidor gratuito se duerme cuando no se usa. La primera solicitud puede tardar hasta un minuto; después todo es rápido.",
+      "failedTitle": "El motor no despertó",
+      "failedBody": "Esperamos {seconds} segundos sin respuesta de la API. Puede que siga arrancando o que esté caída.",
+      "retry": "Reintentar"
     },
     "metaDescription": "Motor de datos del sector público: ingesta, limpieza, modelado, predicción y reportes — en inglés y español."
   },
@@ -32,7 +35,8 @@
     "clean": "Limpieza",
     "sql": "SQL",
     "ml": "ML",
-    "dashboard": "Tablero"
+    "dashboard": "Tablero",
+    "comingSoon": "Próximamente"
   },
   "landing": {
     "eyebrow": "Motor de datos del sector público · datos en EN / FR / ES",
@@ -532,6 +536,7 @@
         "month": "Mes"
       }
     },
-    "continue": "Continuar al tablero →"
+    "continue": "Continuar al tablero →",
+    "continueSoon": "Tablero: próximamente"
   }
 }
