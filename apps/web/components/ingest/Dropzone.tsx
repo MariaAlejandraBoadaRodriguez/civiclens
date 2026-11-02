@@ -3,14 +3,15 @@
 import { useId, useRef, useState, type DragEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
-import { PUBLIC_API_URL } from "@/lib/api";
-import type { Job, Problem } from "@/lib/api-types";
+import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
+import type { Dataset, Job } from "@/lib/api-types";
+import { apiRequest, waitForJob, type ApiFailure } from "@/lib/apiClient";
 import { cn } from "@/lib/cn";
 
 type State =
   | { step: "idle" }
   | { step: "uploading" | "processing"; name: string }
-  | { step: "error"; problem: Pick<Problem, "title" | "detail"> };
+  | { step: "error"; error: ApiFailure; file?: File };
 
 const MAX_MB = 50;
 
@@ -28,38 +29,32 @@ export function Dropzone() {
 
   async function send(file: File) {
     if (file.size > MAX_MB * 1024 * 1024) {
-      setState({ step: "error", problem: { title: t("tooLargeTitle"), detail: t("tooLargeDetail", { mb: MAX_MB }) } });
+      const problem = {
+        type: "",
+        status: 413,
+        code: "ingest.too_large",
+        title: t("tooLargeTitle"),
+        detail: t("tooLargeDetail", { mb: MAX_MB }),
+      };
+      setState({ step: "error", error: { kind: "problem", problem } });
       return;
     }
     setState({ step: "uploading", name: file.name });
-    const headers = { "Accept-Language": locale };
-    try {
-      const body = new FormData();
-      body.append("file", file);
-      const res = await fetch(`${PUBLIC_API_URL}/api/v1/datasets`, { method: "POST", body, headers });
-      const json = await res.json();
-      if (!res.ok) {
-        setState({ step: "error", problem: json as Problem });
-        return;
-      }
-      setState({ step: "processing", name: file.name });
-      const jobUrl = `${PUBLIC_API_URL}/api/v1/jobs/${json.job.id}`;
-      for (let i = 0; i < 120; i += 1) {
-        const job = (await (await fetch(jobUrl, { headers })).json()) as Job;
-        if (job.status === "succeeded") {
-          router.push(`/datasets/${json.dataset.id}`);
-          return;
-        }
-        if (job.status === "failed") {
-          setState({ step: "error", problem: job.error ?? { title: t("failedTitle"), detail: "" } });
-          return;
-        }
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-      setState({ step: "error", problem: { title: t("failedTitle"), detail: t("timeout") } });
-    } catch {
-      setState({ step: "error", problem: { title: t("networkTitle"), detail: t("networkDetail") } });
+    const body = new FormData();
+    body.append("file", file);
+    const accepted = await apiRequest<{ dataset: Dataset; job: Pick<Job, "id" | "status"> }>("/api/v1/datasets", { locale, form: body });
+    if (!accepted.ok) {
+      setState({ step: "error", error: accepted.error, file });
+      return;
     }
+    setState({ step: "processing", name: file.name });
+    const job = await waitForJob(accepted.data.job.id, locale);
+    if (!job.ok) {
+      // A file the engine could not read is final; a lost connection can be retried.
+      setState({ step: "error", error: job.error, file: job.error.kind === "unavailable" ? file : undefined });
+      return;
+    }
+    router.push(`/datasets/${accepted.data.dataset.id}`);
   }
 
   function onDrop(e: DragEvent<HTMLLabelElement>) {
@@ -108,13 +103,10 @@ export function Dropzone() {
       <div id={statusId} role="status" aria-live="polite" className="min-h-5 text-[13px]">
         {state.step === "uploading" && <span className="text-muted">{t("uploading", { name: state.name })}</span>}
         {state.step === "processing" && <span className="text-muted">{t("processing", { name: state.name })}</span>}
-        {state.step === "error" && (
-          <span className="flex flex-col text-flag-text">
-            <strong className="font-semibold">{state.problem.title}</strong>
-            {state.problem.detail && <span>{state.problem.detail}</span>}
-          </span>
-        )}
       </div>
+      {state.step === "error" && (
+        <ApiErrorNotice error={state.error} onRetry={state.file ? () => void send(state.file as File) : undefined} />
+      )}
     </div>
   );
 }

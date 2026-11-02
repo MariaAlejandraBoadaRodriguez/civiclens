@@ -1,55 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Contributions } from "@/components/ml/Contributions";
 import { ForecastChart } from "@/components/ml/ForecastChart";
 import { ModelCard } from "@/components/ml/ModelCard";
 import { Alert } from "@/components/ui/Alert";
+import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
 import { Button } from "@/components/ui/Button";
 import { KpiTile } from "@/components/ui/KpiTile";
 import { SkeletonGroup } from "@/components/ui/Skeleton";
 import { Tabs } from "@/components/ui/Tabs";
-import { PUBLIC_API_URL } from "@/lib/api";
-import type { ForecastResult, Job, Problem, RedFlagItem, RedFlagResult } from "@/lib/api-types";
+import type { ForecastResult, Job, RedFlagItem, RedFlagResult } from "@/lib/api-types";
+import { apiRequest, waitForJob, type ApiFailure } from "@/lib/apiClient";
 import { cn } from "@/lib/cn";
 import { formatCurrency, formatDate, formatNumber, formatPercent } from "@/lib/format";
 
 type ModelType = "red_flags" | "forecast";
-type Status = { state: "idle" | "running" } | { state: "error"; problem: Problem | null };
+type Status = { state: "idle" | "running" } | { state: "error"; error: ApiFailure };
 
 /** Run a model as a job, poll it, then load the localized latest result. */
 function useModel<T>(model: ModelType, datasetRef: string, initial: T | null) {
   const locale = useLocale();
   const [result, setResult] = useState<T | null>(initial);
   const [status, setStatus] = useState<Status>({ state: "idle" });
-  const headers = useMemo(() => ({ "Accept-Language": locale, "Content-Type": "application/json" }), [locale]);
-
   const run = useCallback(async () => {
     setStatus({ state: "running" });
-    try {
-      const res = await fetch(`${PUBLIC_API_URL}/api/v1/models/${model}/run`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ dataset_id: datasetRef }),
-      });
-      const body = await res.json();
-      if (!res.ok) return setStatus({ state: "error", problem: body as Problem });
-      const job = body as Job;
-      for (let n = 0; n < 120; n += 1) {
-        await new Promise((r) => setTimeout(r, 1000));
-        const state = (await (await fetch(`${PUBLIC_API_URL}/api/v1/jobs/${job.id}`, { headers })).json()) as Job;
-        if (state.status === "failed") return setStatus({ state: "error", problem: state.error ?? null });
-        if (state.status === "succeeded") break;
-      }
-      const latest = await fetch(`${PUBLIC_API_URL}/api/v1/models/${model}/latest?dataset_id=${datasetRef}`, { headers });
-      if (!latest.ok) return setStatus({ state: "error", problem: (await latest.json()) as Problem });
-      setResult((await latest.json()) as T);
-      setStatus({ state: "idle" });
-    } catch {
-      setStatus({ state: "error", problem: null });
-    }
-  }, [model, datasetRef, headers]);
+    const accepted = await apiRequest<Job>(`/api/v1/models/${model}/run`, { locale, json: { dataset_id: datasetRef } });
+    const job = accepted.ok ? await waitForJob(accepted.data.id, locale) : accepted;
+    const latest = job.ok
+      ? await apiRequest<T>(`/api/v1/models/${model}/latest?dataset_id=${encodeURIComponent(datasetRef)}`, { locale })
+      : job;
+    if (!latest.ok) return setStatus({ state: "error", error: latest.error });
+    setResult(latest.data as T);
+    setStatus({ state: "idle" });
+  }, [model, datasetRef, locale]);
 
   useEffect(() => {
     if (initial === null) void run();
@@ -67,14 +52,9 @@ function RunButton({ status, onRun }: { status: Status; onRun: () => void }) {
   );
 }
 
-function StatusMessage({ status }: { status: Status }) {
-  const t = useTranslations("ml");
+function StatusMessage({ status, onRetry }: { status: Status; onRetry: () => void }) {
   if (status.state !== "error") return null;
-  return (
-    <Alert variant="warning" title={status.problem?.title ?? t("unreachable")} titleId="model-error">
-      {status.problem?.detail && <p className="m-0">{status.problem.detail}</p>}
-    </Alert>
-  );
+  return <ApiErrorNotice error={status.error} onRetry={onRetry} />;
 }
 
 function RedFlags({ datasetRef, initial }: { datasetRef: string; initial: RedFlagResult | null }) {
@@ -84,17 +64,22 @@ function RedFlags({ datasetRef, initial }: { datasetRef: string; initial: RedFla
   const [selected, setSelected] = useState(1);
   const [showAll, setShowAll] = useState(false);
   const [reviewed, setReviewed] = useState<Set<string>>(new Set(initial?.reviewed ?? []));
+  const [reviewError, setReviewError] = useState<{ error: ApiFailure; item: RedFlagItem } | null>(null);
 
   useEffect(() => setReviewed(new Set(result?.reviewed ?? [])), [result]);
 
   async function toggle(item: RedFlagItem) {
     const next = !reviewed.has(item.contract_id);
-    const res = await fetch(`${PUBLIC_API_URL}/api/v1/models/red_flags/reviews`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept-Language": locale },
-      body: JSON.stringify({ dataset_id: datasetRef, contract_id: item.contract_id, reviewed: next }),
-    }).catch(() => null);
-    if (res?.ok) setReviewed(new Set(((await res.json()) as { reviewed: string[] }).reviewed));
+    const res = await apiRequest<{ reviewed: string[] }>("/api/v1/models/red_flags/reviews", {
+      locale,
+      json: { dataset_id: datasetRef, contract_id: item.contract_id, reviewed: next },
+    });
+    if (res.ok) {
+      setReviewed(new Set(res.data.reviewed));
+      setReviewError(null);
+    } else {
+      setReviewError({ error: res.error, item });
+    }
   }
 
   if (!result) {
@@ -103,7 +88,7 @@ function RedFlags({ datasetRef, initial }: { datasetRef: string; initial: RedFla
         <p className="m-0 text-[15px]" aria-live="polite">
           {t("training")}
         </p>
-        <StatusMessage status={status} />
+        <StatusMessage status={status} onRetry={() => void run()} />
         <SkeletonGroup lines={6} />
       </div>
     );
@@ -118,7 +103,7 @@ function RedFlags({ datasetRef, initial }: { datasetRef: string; initial: RedFla
         actions={
           <div className="flex flex-col gap-2">
             <RunButton status={status} onRun={run} />
-            <StatusMessage status={status} />
+            <StatusMessage status={status} onRetry={() => void run()} />
           </div>
         }
       />
@@ -133,6 +118,9 @@ function RedFlags({ datasetRef, initial }: { datasetRef: string; initial: RedFla
             </span>
           </div>
           <p className="m-0 text-[13px] text-muted">{result.card.flagged_rule}</p>
+          {reviewError && (
+            <ApiErrorNotice error={reviewError.error} onRetry={() => void toggle(reviewError.item)} />
+          )}
           {result.items.length === 0 ? (
             <p className="m-0 text-sm">{t("none")}</p>
           ) : (
@@ -232,7 +220,7 @@ function Forecast({ datasetRef, initial }: { datasetRef: string; initial: Foreca
         <p className="m-0 text-[15px]" aria-live="polite">
           {t("training")}
         </p>
-        <StatusMessage status={status} />
+        <StatusMessage status={status} onRetry={() => void run()} />
         <SkeletonGroup lines={6} />
       </div>
     );
@@ -247,7 +235,7 @@ function Forecast({ datasetRef, initial }: { datasetRef: string; initial: Foreca
         actions={
           <div className="flex flex-col gap-2">
             <RunButton status={status} onRun={run} />
-            <StatusMessage status={status} />
+            <StatusMessage status={status} onRetry={() => void run()} />
           </div>
         }
       />

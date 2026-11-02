@@ -26,7 +26,12 @@
       "failedBody": "Esperamos {seconds} segundos sin respuesta de la API. Puede que siga arrancando o que esté caída.",
       "retry": "Reintentar"
     },
-    "metaDescription": "Motor de datos del sector público: ingesta, limpieza, modelado, predicción y reportes — en inglés y español."
+    "metaDescription": "Motor de datos del sector público: ingesta, limpieza, modelado, predicción y reportes — en inglés y español.",
+    "apiError": {
+      "unavailableTitle": "El motor no respondió",
+      "unavailableBody": "Puede que se esté reiniciando o despertando. No perdiste tu trabajo: inténtalo de nuevo en unos segundos.",
+      "retry": "Reintentar"
+    }
   },
   "nav": {
     "lifecycle": "Ciclo de vida",
@@ -236,10 +241,6 @@
       "hint": "CSV, XLSX o JSON · hasta {mb} MB · se elimina a las 24 h",
       "uploading": "Cargando {name}…",
       "processing": "Leyendo y perfilando {name}…",
-      "failedTitle": "No pudimos procesar este archivo",
-      "timeout": "Está tardando más de lo esperado. Actualiza la página en un minuto.",
-      "networkTitle": "No pudimos conectar con el motor",
-      "networkDetail": "Revisa tu conexión e inténtalo de nuevo; el servidor gratuito puede estar encendiéndose.",
       "tooLargeTitle": "Archivo demasiado grande",
       "tooLargeDetail": "El límite es de {mb} MB por archivo."
     },
@@ -388,9 +389,6 @@
       "apply": "Guardar y aplicar la receta",
       "saving": "Guardando la receta…",
       "applying": "Aplicando la receta a todas las filas…",
-      "failed": "No se pudo aplicar la receta",
-      "networkTitle": "No pudimos conectar con el motor",
-      "networkDetail": "Revisa tu conexión e inténtalo de nuevo.",
       "quality": "Puntaje de calidad de datos",
       "qualityValue": "{before} → {after}",
       "rows": "Filas",
@@ -436,8 +434,7 @@
       "running": "Ejecutando la consulta…",
       "empty": "La consulta se ejecutó pero no devolvió filas.",
       "truncated": "Se detuvo en {rows, number} filas",
-      "displayCap": "Se muestran las primeras {shown} de {count, number} filas.",
-      "unreachable": "El motor no respondió. Inténtalo de nuevo en unos segundos."
+      "displayCap": "Se muestran las primeras {shown} de {count, number} filas."
     },
     "teaches": "Qué enseña esta consulta:",
     "edited": "Editaste la consulta: la explicación corresponde a la pregunta guiada original.",
@@ -490,7 +487,6 @@
     },
     "rerun": "Volver a ejecutar con los datos actuales",
     "running": "Entrenando…",
-    "unreachable": "El motor no respondió. Inténtalo de nuevo en unos segundos.",
     "flags": {
       "training": "Entrenando el modelo de alertas con este conjunto de datos (semilla fija, unos segundos)…",
       "title": "Priorizados para revisión",
