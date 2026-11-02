@@ -1,6 +1,7 @@
 """/api/v1/datasets + /api/v1/jobs end to end (SQLite + temp data dir, see conftest)."""
 
 import io
+import uuid
 
 import pandas as pd
 import pytest
@@ -125,6 +126,13 @@ def test_upload_runs_ingest_job(name: str, data: bytes, fmt: str) -> None:
     profile = client.get(f"/api/v1/datasets/{body['dataset']['id']}/profile").json()
     assert profile["read"]["format"] == fmt
     assert profile["dataset"]["status"] == "profiled"
+    # The job built the issues and the star schema: no SQL Lab request has to.
+    from app.config import settings
+    from app.services import storage
+
+    dataset_id = uuid.UUID(body["dataset"]["id"])
+    assert storage.issues_path(dataset_id).exists() and storage.star_path(dataset_id).exists()
+    assert not list((settings.data_dir / "uploads").glob("*.part"))  # streamed upload cleaned up
 
 
 def test_upload_rejects_unsupported_type_in_spanish() -> None:
