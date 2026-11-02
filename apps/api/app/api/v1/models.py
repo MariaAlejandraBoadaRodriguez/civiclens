@@ -59,7 +59,7 @@ def run_model(
     )
     session.add(job)
     session.commit()
-    background.add_task(jobs.run, "app.services.ml:run_model_job", job.id)
+    background.add_task(jobs.run, jobs.MODEL_RUN, job.id)
     return JSONResponse(
         {"id": str(job.id), "status": job.status.value},
         status_code=202,

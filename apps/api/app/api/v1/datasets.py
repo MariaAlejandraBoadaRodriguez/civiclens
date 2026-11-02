@@ -21,7 +21,7 @@ from app.core.seed.registry import SEEDS
 from app.db.models import Dataset, DatasetSource, DatasetStatus, Job, JobStatus, JobType, Recipe
 from app.db.session import get_session
 from app.i18n.loader import Translator
-from app.services import cleaning
+from app.services import cleaning, storage
 from app.services import datasets as svc
 
 router = APIRouter(prefix="/api/v1/datasets", tags=["datasets"])
@@ -73,24 +73,32 @@ async def upload_dataset(
     file: Annotated[UploadFile, File()],
     name: Annotated[str | None, Form(max_length=255)] = None,
 ) -> JSONResponse:
+    # Streamed to disk chunk by chunk: a 50 MB upload never sits in the API's memory.
     limit = settings.upload_max_mb * 1024 * 1024
-    chunks, size = [], 0
-    while chunk := await file.read(CHUNK):
-        size += len(chunk)
-        if size > limit:
-            raise ProblemError(413, "ingest.too_large", limit_mb=settings.upload_max_mb)
-        chunks.append(chunk)
-    data = b"".join(chunks)
-    if not data.strip():
-        raise ProblemError(400, "ingest.empty_file")
-    filename = file.filename or "upload"
+    tmp = storage.upload_tmp_path()
+    head, size, has_content = b"", 0, False
     try:
-        fmt = detect_format(filename, data[:8192])
-    except UnsupportedFormatError as exc:
-        raise ProblemError(415, "ingest.unsupported_format") from exc
-    svc.purge_expired(session)
-    ds, job = svc.create_upload(session, filename, data, fmt.value, name)
-    background.add_task(jobs.run, "app.services.datasets:run_ingest_job", job.id)
+        with tmp.open("wb") as out:
+            while chunk := await file.read(CHUNK):
+                size += len(chunk)
+                if size > limit:
+                    raise ProblemError(413, "ingest.too_large", limit_mb=settings.upload_max_mb)
+                if len(head) < 8192:
+                    head += chunk[: 8192 - len(head)]
+                has_content = has_content or bool(chunk.strip())
+                out.write(chunk)
+        if not has_content:
+            raise ProblemError(400, "ingest.empty_file")
+        filename = file.filename or "upload"
+        try:
+            fmt = detect_format(filename, head)
+        except UnsupportedFormatError as exc:
+            raise ProblemError(415, "ingest.unsupported_format") from exc
+        svc.purge_expired(session)
+        ds, job = svc.create_upload(session, filename, tmp, fmt.value, name)
+    finally:
+        tmp.unlink(missing_ok=True)
+    background.add_task(jobs.run, jobs.INGEST, job.id)
     return JSONResponse(
         {"dataset": dataset_out(ds, t), "job": job_ref(job)},
         status_code=202,
@@ -194,7 +202,7 @@ def apply_recipe(
     )
     session.add(job)
     session.commit()
-    background.add_task(jobs.run, "app.services.cleaning:run_apply_job", job.id)
+    background.add_task(jobs.run, jobs.APPLY_RECIPE, job.id)
     return JSONResponse(
         {"id": str(job.id), "status": job.status.value},
         status_code=202,

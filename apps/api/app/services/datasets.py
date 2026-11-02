@@ -6,6 +6,7 @@ import logging
 import threading
 import uuid
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -156,7 +157,7 @@ def load_profile(ds: Dataset) -> dict[str, Any] | None:
 
 
 def create_upload(
-    session: Session, filename: str, data: bytes, fmt: str, name: str | None
+    session: Session, filename: str, source: Path, fmt: str, name: str | None
 ) -> tuple[Dataset, Job]:
     ds = Dataset(
         name=(name or filename)[:255],
@@ -168,7 +169,7 @@ def create_upload(
     session.add(ds)
     session.flush()
     path = storage.original_path(ds.id, filename)
-    path.write_bytes(data)
+    source.replace(path)  # the streamed upload becomes the dataset's original file
     ds.raw_path = str(path)
     job = Job(
         type=JobType.INGEST,
@@ -195,12 +196,8 @@ def run_ingest_job(job_id: uuid.UUID) -> None:
             data = storage.original_path(ds.id, filename).read_bytes()
             profile = ingest_bytes(ds.id, data, filename)
             _apply_profile(ds, profile)
-            build_issues(ds)
-            session.commit()
-            from app.services.sql import ensure_star  # here, not in the first SQL Lab request
-
-            ensure_star(ds)
-            job.status = JobStatus.SUCCEEDED
+            ds.status = DatasetStatus.UPLOADED  # usable once the issues and star schema exist
+            # Still RUNNING: run_issues_phase and app.services.sql.run_star_phase finish it.
             job.result_json = {
                 "dataset_id": str(ds.id),
                 "rows": ds.rows,
@@ -215,9 +212,17 @@ def run_ingest_job(job_id: uuid.UUID) -> None:
                 "ingest.unreadable",
                 DatasetStatus.FAILED,
             )
-        job.finished_at = now()
+        if job.status == JobStatus.FAILED:
+            job.finished_at = now()
         session.commit()
     memory.release()
+
+
+def run_issues_phase(job_id: uuid.UUID) -> None:
+    """Second phase of an ingest job (own process in production): detect the data issues."""
+    from app.core.jobs import run_phase
+
+    run_phase(job_id, "ingest.unreadable", lambda session, job, ds: build_issues(ds))
 
 
 def purge_expired(session: Session) -> int:

@@ -211,11 +211,7 @@ def run_apply_job(job_id: uuid.UUID) -> None:
                 "quality_before": before,
                 "quality_after": after["quality"],
             }
-            session.commit()
-            from app.services.sql import ensure_star  # rebuilt here, not in a SQL Lab request
-
-            ensure_star(ds)
-            job.status = JobStatus.SUCCEEDED
+            # Still RUNNING: the star-schema phase (app.services.sql.run_star_phase) finishes it.
             session.add(
                 AuditLog(
                     actor="anonymous",
@@ -234,6 +230,7 @@ def run_apply_job(job_id: uuid.UUID) -> None:
         except Exception:  # noqa: BLE001 — stable code; details in the server log
             log.exception("apply job %s failed", job_id)
             job.status, job.error_code = JobStatus.FAILED, "recipe.failed"
-        job.finished_at = now()
+        if job.status == JobStatus.FAILED:
+            job.finished_at = now()
         session.commit()
     memory.release()

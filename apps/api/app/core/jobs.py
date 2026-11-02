@@ -16,6 +16,7 @@ thread, as before.
 
 from __future__ import annotations
 
+import gc
 import importlib
 import logging
 import os
@@ -55,6 +56,7 @@ def _zygote_loop(sock: socket.socket) -> None:
     stream = sock.makefile("rwb", buffering=0)
     for line in stream:  # one request per line: "<module:function> <job uuid>"
         target, job_id = line.decode().split()
+        gc.freeze()
         pid = os.fork()
         if pid == 0:
             stream.close()
@@ -74,6 +76,7 @@ class _ForkRunner:
     def start(self) -> None:
         """Call once, before the API starts threads (forking a threaded process is unsafe)."""
         ours, theirs = socket.socketpair()
+        gc.freeze()  # keep the GC from touching (and so copying) pages shared with the zygote
         pid = os.fork()
         if pid == 0:
             ours.close()
@@ -116,6 +119,40 @@ class _ForkRunner:
             mark_failed(job_id, "job.crashed")
 
 
+def run_phase(
+    job_id: uuid.UUID,
+    error_code: str,
+    work: Callable[[Any, Any, Any], None],
+    *,
+    finish: bool = False,
+) -> None:
+    """One phase of a multi-phase job: skipped when an earlier phase failed; a crash is
+    recorded as ``error_code``; ``finish`` marks the job succeeded after the work."""
+    from app.core import memory
+    from app.db.models import Dataset, DatasetStatus, Job, JobStatus, JobType
+    from app.db.session import SessionLocal
+    from app.services.datasets import now
+
+    with SessionLocal() as session:
+        job = session.get(Job, job_id)
+        if job is None or job.status != JobStatus.RUNNING or job.dataset_id is None:
+            return
+        ds = session.get(Dataset, job.dataset_id)
+        try:
+            work(session, job, ds)
+            if finish:
+                job.status, job.finished_at = JobStatus.SUCCEEDED, now()
+        except Exception:  # noqa: BLE001 — stable code for the client; details in the log
+            log.exception("job %s phase failed", job_id)
+            session.rollback()
+            job = session.get(Job, job_id)
+            job.status, job.error_code, job.finished_at = JobStatus.FAILED, error_code, now()
+            if job.type == JobType.INGEST:
+                session.get(Dataset, job.dataset_id).status = DatasetStatus.FAILED
+        session.commit()
+    memory.release()
+
+
 def mark_failed(job_id: uuid.UUID, code: str) -> None:
     """Record a failure the job could not record itself (it was killed)."""
     from app.db.models import Dataset, DatasetStatus, Job, JobStatus, JobType
@@ -150,9 +187,20 @@ def stop() -> None:
         _fork_runner.stop()
 
 
-def run(target: str, job_id: uuid.UUID) -> None:
-    """Run ``target`` ("package.module:function", taking the job id) for ``job_id``."""
-    if _mode == "fork":
-        _fork_runner.run(target, job_id)
-    else:
-        _resolve(target)(job_id)
+INGEST = (
+    "app.services.datasets:run_ingest_job",
+    "app.services.datasets:run_issues_phase",
+    "app.services.sql:run_star_phase",
+)
+APPLY_RECIPE = ("app.services.cleaning:run_apply_job", "app.services.sql:run_star_phase")
+MODEL_RUN = ("app.services.ml:run_model_job",)
+
+
+def run(phases: tuple[str, ...], job_id: uuid.UUID) -> None:
+    """Run each phase ("package.module:function", taking the job id) for ``job_id``, in order;
+    with the fork runner each phase gets its own process, so their memory never adds up."""
+    for target in phases:
+        if _mode == "fork":
+            _fork_runner.run(target, job_id)
+        else:
+            _resolve(target)(job_id)

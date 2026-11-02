@@ -59,6 +59,9 @@ def _unique_headers(raw: list[object]) -> list[str]:
 
 
 def _as_strings(df: pd.DataFrame) -> pd.DataFrame:
+    """Every cell as text (``None`` for missing). Equal values share one string object per
+    column, which roughly halves the frame's memory on real files (repeated names, codes)."""
+
     def cell(v: object) -> str | None:
         if v is None or (isinstance(v, float) and v != v):
             return None
@@ -66,8 +69,14 @@ def _as_strings(df: pd.DataFrame) -> pd.DataFrame:
             return json.dumps(v, ensure_ascii=False, sort_keys=True)
         return str(v)
 
-    out = pd.DataFrame({c: [cell(v) for v in df[c].tolist()] for c in df.columns}, dtype=object)
-    return out.reset_index(drop=True)
+    columns = []
+    for i in range(df.shape[1]):
+        interned: dict[str, str] = {}
+        values = [cell(v) for v in df.iloc[:, i].tolist()]
+        columns.append([None if v is None else interned.setdefault(v, v) for v in values])
+    out = pd.DataFrame(dict(enumerate(columns)), dtype=object)
+    out.columns = list(df.columns)
+    return out
 
 
 def _from_rows(rows: list[list[object]]) -> tuple[pd.DataFrame, int]:
@@ -78,12 +87,33 @@ def _from_rows(rows: list[list[object]]) -> tuple[pd.DataFrame, int]:
     return pd.DataFrame(body, columns=header, dtype=object), header_idx
 
 
+HEADER_SCAN = 40  # detect_header_row looks at the first 30 rows
+
+
+def _from_frame(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """``_from_rows`` for a rectangular frame (CSV, XLSX) without turning every row into a
+    Python list first: the header is found in the first rows, the body stays a frame."""
+    if len(frame) <= HEADER_SCAN:
+        rows = frame.astype(object).where(frame.notna(), None).values.tolist()
+        return _from_rows(rows)
+    head = frame.iloc[:HEADER_SCAN].astype(object)
+    head = head.where(head.notna(), None).values.tolist()
+    header_idx = detect_header_row([[("" if c is None else str(c)) for c in r] for r in head])
+    body = frame.iloc[header_idx + 1 :].astype(object)
+    body = body.where(body.notna(), None)
+    body.columns = _unique_headers(head[header_idx])
+    filled = body.apply(lambda col: col.map(lambda c: c is not None and c != "")).any(axis=1)
+    return body[filled.to_numpy()].reset_index(drop=True), header_idx
+
+
 def read_csv_bytes(data: bytes) -> tuple[pd.DataFrame, ReadInfo]:
     encoding = detect_encoding(data)
-    text = data.decode(encoding)
-    delimiter = detect_delimiter(text[:200_000])
+    # Only a prefix is decoded to find the delimiter; pandas decodes the rest while parsing,
+    # so the whole file never exists twice (bytes + text) in memory.
+    delimiter = detect_delimiter(data[:400_000].decode(encoding, errors="ignore")[:200_000])
     frame = pd.read_csv(
-        io.StringIO(text),
+        io.BytesIO(data),
+        encoding=encoding,
         sep=delimiter,
         header=None,
         dtype=str,
@@ -92,8 +122,8 @@ def read_csv_bytes(data: bytes) -> tuple[pd.DataFrame, ReadInfo]:
         skip_blank_lines=True,
         engine="python" if len(delimiter) > 1 else "c",
     )
-    rows = frame.astype(object).values.tolist()
-    df, header_row = _from_rows(rows)
+    df, header_row = _from_frame(frame)
+    del frame
     info = ReadInfo(FileFormat.CSV, encoding=encoding, delimiter=delimiter, header_row=header_row)
     return _as_strings(df), info
 
@@ -105,16 +135,18 @@ def read_xlsx_bytes(data: bytes) -> tuple[pd.DataFrame, ReadInfo]:
     if not sheets:
         raise EmptyFileError("xlsx")
     name, frame = max(sheets.items(), key=lambda kv: kv[1].dropna(how="all").shape[0])
-    rows = frame.astype(object).where(frame.notna(), None).values.tolist()
-    if not any(any(c is not None for c in r) for r in rows):
+    if frame.dropna(how="all").empty:
         raise EmptyFileError("xlsx")
-    df, header_row = _from_rows(rows)
+    df, header_row = _from_frame(frame)
     return _as_strings(df), ReadInfo(FileFormat.XLSX, sheet=str(name), header_row=header_row)
 
 
 def read_json_bytes(data: bytes) -> tuple[pd.DataFrame, ReadInfo]:
     encoding = detect_encoding(data)
-    payload = json.loads(data.decode(encoding))
+    # json.loads reads UTF-8 bytes directly; other encodings are decoded first.
+    payload = json.loads(
+        data if encoding.replace("_", "-").lower() == "utf-8" else data.decode(encoding)
+    )
     path = json_records_path(payload)
     if path is None:
         raise UnsupportedFormatError("json")
@@ -122,6 +154,7 @@ def read_json_bytes(data: bytes) -> tuple[pd.DataFrame, ReadInfo]:
     if not records:
         raise EmptyFileError("json")
     df = pd.json_normalize(records, sep=".", max_level=3)
+    del payload, records  # the parsed document is no longer needed while converting
     return _as_strings(df), ReadInfo(FileFormat.JSON, encoding=encoding, records_path=path or None)
 
 
