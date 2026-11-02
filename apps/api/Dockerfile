@@ -2,8 +2,9 @@
 #   docker build -f apps/api/Dockerfile .
 FROM python:3.11-slim
 
-# MALLOC_ARENA_MAX / ARROW_DEFAULT_MEMORY_POOL keep the API inside 512 MB (Render free):
-# fewer glibc heap arenas across worker threads, and Arrow frees memory instead of pooling it.
+# MALLOC_ARENA_MAX / ARROW_DEFAULT_MEMORY_POOL / JOB_RUNNER keep the API inside 512 MB (Render
+# free): fewer glibc heap arenas, Arrow frees memory instead of pooling it, and every background
+# job runs in its own short-lived process (app/core/jobs.py).
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -12,7 +13,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DATA_DIR=/srv/var \
     DATABASE_URL=sqlite:////srv/var/civiclens.db \
     MALLOC_ARENA_MAX=2 \
-    ARROW_DEFAULT_MEMORY_POOL=system
+    ARROW_DEFAULT_MEMORY_POOL=system \
+    JOB_RUNNER=fork
 
 WORKDIR /srv
 

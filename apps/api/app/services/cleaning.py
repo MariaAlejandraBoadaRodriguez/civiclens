@@ -195,7 +195,7 @@ def run_apply_job(job_id: uuid.UUID) -> None:
             staged = storage.read_parquet(storage.staged_path(ds.id))
             clean, stats, digest = replay(staged, steps, context())
             storage.write_parquet(clean, storage.clean_path(ds.id), as_text=False)
-            storage.star_path(ds.id).unlink(missing_ok=True)  # the SQL Lab rebuilds from it
+            storage.star_path(ds.id).unlink(missing_ok=True)
             after = profile_frame(clean)
             storage.write_json(after, storage.clean_profile_path(ds.id))
             before = (storage.read_json(storage.profile_path(ds.id)) or {}).get("quality", {})
@@ -211,6 +211,10 @@ def run_apply_job(job_id: uuid.UUID) -> None:
                 "quality_before": before,
                 "quality_after": after["quality"],
             }
+            session.commit()
+            from app.services.sql import ensure_star  # rebuilt here, not in a SQL Lab request
+
+            ensure_star(ds)
             job.status = JobStatus.SUCCEEDED
             session.add(
                 AuditLog(

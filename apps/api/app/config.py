@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     upload_ttl_hours: int = 24
     # Build the three demo datasets in the background at startup (off in tests).
     warm_seeds: bool = True
+    # Background jobs: "inline" (tests, local) or "fork" (Docker: each job in its own process,
+    # see app/core/jobs.py).
+    job_runner: str = "inline"
 
 
 settings = Settings()

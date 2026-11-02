@@ -25,6 +25,7 @@ from app.core.cleaning.ops import (
     _outlier_bounds,
     _strings,
     apply_steps,
+    duplicated_rows,
     is_text,
 )
 from app.core.ingest.locale_parse import (
@@ -232,7 +233,7 @@ def detect_pii(base: pd.DataFrame, dc: DetectContext) -> list[Issue]:
 
 def detect_duplicates(base: pd.DataFrame, dc: DetectContext) -> list[Issue]:
     data = [c for c in base.columns if c != ROW_ID]
-    n_exact = int(base[data].astype(str).duplicated().sum())
+    n_exact = int(duplicated_rows(base, data, near=False, keep="first").sum())
     flagged = apply_steps(base, [_step("drop_duplicates", mode="near", keep="flag")], dc.ctx)
     mask = flagged["is_duplicate"].tolist()
     total = sum(mask)
@@ -645,7 +646,7 @@ def detect_issues(
     """Run every detector in pipeline order, applying each recommended option before the
     next detector looks at the data."""
     dc = DetectContext(ctx, profile, default_currency)
-    base = staged.copy()
+    base = staged.copy(deep=False)  # copy-on-write
     base[ROW_ID] = range(len(base))
     found: list[Issue] = []
     for detector in PIPELINE:

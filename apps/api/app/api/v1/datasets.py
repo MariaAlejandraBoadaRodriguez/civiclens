@@ -14,6 +14,7 @@ from app.api.deps import get_translator
 from app.api.problems import ProblemError
 from app.api.v1.recipes import RecipeInput, validated
 from app.config import settings
+from app.core import jobs
 from app.core.cleaning.ops import OPERATIONS
 from app.core.ingest.detect import UnsupportedFormatError, detect_format
 from app.core.seed.registry import SEEDS
@@ -89,7 +90,7 @@ async def upload_dataset(
         raise ProblemError(415, "ingest.unsupported_format") from exc
     svc.purge_expired(session)
     ds, job = svc.create_upload(session, filename, data, fmt.value, name)
-    background.add_task(svc.run_ingest_job, job.id)
+    background.add_task(jobs.run, "app.services.datasets:run_ingest_job", job.id)
     return JSONResponse(
         {"dataset": dataset_out(ds, t), "job": job_ref(job)},
         status_code=202,
@@ -193,7 +194,7 @@ def apply_recipe(
     )
     session.add(job)
     session.commit()
-    background.add_task(cleaning.run_apply_job, job.id)
+    background.add_task(jobs.run, "app.services.cleaning:run_apply_job", job.id)
     return JSONResponse(
         {"id": str(job.id), "status": job.status.value},
         status_code=202,

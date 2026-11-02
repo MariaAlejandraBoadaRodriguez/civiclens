@@ -196,6 +196,10 @@ def run_ingest_job(job_id: uuid.UUID) -> None:
             profile = ingest_bytes(ds.id, data, filename)
             _apply_profile(ds, profile)
             build_issues(ds)
+            session.commit()
+            from app.services.sql import ensure_star  # here, not in the first SQL Lab request
+
+            ensure_star(ds)
             job.status = JobStatus.SUCCEEDED
             job.result_json = {
                 "dataset_id": str(ds.id),

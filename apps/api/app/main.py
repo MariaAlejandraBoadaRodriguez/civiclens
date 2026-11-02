@@ -11,16 +11,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.problems import ProblemError, problem_handler, validation_handler
 from app.api.v1 import datasets, jobs, models, recipes, sql
 from app.config import settings
+from app.core import jobs as job_runner
 from app.i18n.loader import Translator, negotiate
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    job_runner.start(settings.job_runner)  # before any thread exists: the job runner forks
     if settings.warm_seeds:
         from app.services.datasets import warm_seeds
 
         threading.Thread(target=warm_seeds, name="warm-seeds", daemon=True).start()
     yield
+    job_runner.stop()
 
 
 app = FastAPI(

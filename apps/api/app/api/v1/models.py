@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_translator
 from app.api.problems import ProblemError
 from app.api.v1.sql import ready_dataset
+from app.core import jobs
 from app.db.models import Job, JobStatus, JobType
 from app.db.session import get_session
 from app.i18n.loader import Translator
@@ -58,7 +59,7 @@ def run_model(
     )
     session.add(job)
     session.commit()
-    background.add_task(svc.run_model_job, job.id)
+    background.add_task(jobs.run, "app.services.ml:run_model_job", job.id)
     return JSONResponse(
         {"id": str(job.id), "status": job.status.value},
         status_code=202,
