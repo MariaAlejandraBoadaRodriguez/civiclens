@@ -22,6 +22,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from app.core.ingest.locale_parse import (
@@ -140,14 +141,43 @@ def _float_column(values: list[float | None]) -> pd.Series:
     return pd.Series([math.nan if v is None else v for v in values], dtype="float64")
 
 
-def _key_frame(df: pd.DataFrame, columns: list[str]) -> list[tuple]:
-    """Row keys ignoring case, accents and spacing (each unique value normalized once)."""
-    keyed = []
-    for c in columns:
-        values = df[c].astype(str).tolist()
-        cache = {v: normalize_token(v) for v in set(values)}
-        keyed.append([cache[v] for v in values])
-    return list(zip(*keyed, strict=True))
+def _row_codes(df: pd.DataFrame, columns: list[str], near: bool) -> np.ndarray:
+    """One integer code per distinct cell value, column by column: two rows are equal iff their
+    codes are. ``near`` compares values ignoring case, accents and spacing. Same result as
+    comparing ``astype(str)`` rows, without building a text copy of the whole frame."""
+    codes = np.empty((len(df), len(columns)), dtype=np.int64)
+    for j, c in enumerate(columns):
+        values = df[c].astype(str)
+        if near:
+            cache = {v: normalize_token(v) for v in set(values)}  # each value normalized once
+            values = values.map(cache)
+        codes[:, j] = pd.factorize(values)[0]
+    return codes
+
+
+def duplicated_rows(
+    df: pd.DataFrame, columns: list[str], near: bool, keep: str | bool
+) -> np.ndarray:
+    """Like ``DataFrame.duplicated(keep=...)`` on the text of ``columns``; ``keep`` is
+    ``first``, ``last`` or ``False`` (mark every copy)."""
+    n = len(df)
+    if not columns or n == 0:
+        return np.zeros(n, dtype=bool)
+    _, first, inverse, counts = np.unique(
+        _row_codes(df, columns, near),
+        axis=0,
+        return_index=True,
+        return_inverse=True,
+        return_counts=True,
+    )
+    inverse = inverse.reshape(-1)
+    if keep is False:
+        return counts[inverse] > 1
+    if keep == "last":
+        last = np.full(len(first), -1)
+        np.maximum.at(last, inverse, np.arange(n))
+        return np.arange(n) != last[inverse]
+    return np.arange(n) != first[inverse]
 
 
 # --------------------------------------------------------------------------- operations
@@ -166,7 +196,7 @@ def mask_columns(
     df: pd.DataFrame, ctx: Context, columns: list[str], salt: str = "civiclens"
 ) -> pd.DataFrame:
     """Replace personal data with a stable, irreversible pseudonym (same value → same mask)."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     for col in columns:
         if col in out.columns:
             _set_text(
@@ -186,7 +216,7 @@ def standardize_nulls(
     df: pd.DataFrame, ctx: Context, columns: list[str] | None = None
 ) -> pd.DataFrame:
     """Turn coded missing values (``N/A``, ``-``, ``sin dato``, ``non disponible``…) into nulls."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     for col in columns or list(out.columns):
         if col in out.columns and is_text(out[col]):
             _set_text(out, col, [None if is_null_token(v) else v for v in out[col].tolist()])
@@ -199,15 +229,9 @@ def drop_duplicates(
     """``mode``: ``exact`` (identical rows) or ``near`` (identical ignoring case, accents and
     spaces). ``keep``: ``first``, ``last`` or ``flag`` (keep all, add ``is_duplicate``)."""
     columns = [c for c in df.columns if not str(c).startswith("__")]  # "__row": preview bookkeeping
-    if mode == "near":
-        keys = _key_frame(df, columns)
-        dup = pd.Series(keys).duplicated(keep="first" if keep == "flag" else keep).to_numpy()
-    else:
-        dup = (
-            df[columns].astype(str).duplicated(keep="first" if keep == "flag" else keep).to_numpy()
-        )
+    dup = duplicated_rows(df, columns, mode == "near", "first" if keep == "flag" else keep)
     if keep == "flag":
-        out = df.copy()
+        out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
         out["is_duplicate"] = dup
         return out
     return df.loc[~dup].reset_index(drop=True)
@@ -218,7 +242,7 @@ def parse_numbers(
 ) -> pd.DataFrame:
     """Parse a text column into numbers. Each value is read in its own notation; ambiguous
     ones (``1.234``) follow ``notation`` — ``auto`` = the column's dominant notation."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     out[column] = _float_column(_as_numbers(out[column], notation))
     return out
 
@@ -228,7 +252,7 @@ def parse_dates(
 ) -> pd.DataFrame:
     """Parse mixed date formats. Ambiguous ``05/06/2024`` follows ``dayfirst``.
     ``timezone``: ``utc`` converts offsets to UTC; ``drop`` keeps the local wall time."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     values = []
     for d in _as_dates(out[column], dayfirst):
         if d is not None and d.tzinfo is not None:
@@ -246,7 +270,7 @@ def normalize_timezones(
 ) -> pd.DataFrame:
     """Remove time-zone offsets from date strings. ``utc`` converts to UTC first
     (``2026-05-01T00:00:00-04:00`` → ``2026-05-01T04:00:00``); ``local`` keeps the wall time."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     result = []
     for v in _strings(out[column]):
         d = parse_date(v) if isinstance(v, str) else None
@@ -273,7 +297,7 @@ def convert_currency(
     """Convert amounts to one currency with the rate of each row's month (FX table).
     ``mode``: ``replace`` overwrites amount + currency; ``add_column`` keeps originals and
     adds ``amount_<to>``."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     amounts = _as_numbers(out[amount])
     if currency in out.columns:
         codes = [None if _missing(c) else str(c).strip().upper() for c in out[currency].tolist()]
@@ -312,7 +336,7 @@ def normalize_text(
     trim: bool = True,
 ) -> pd.DataFrame:
     """Trim / collapse spaces, change case and optionally remove accents."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
 
     def fix(v: object) -> object:
         if _missing(v):
@@ -328,7 +352,7 @@ def normalize_text(
 
 def unify_variants(df: pd.DataFrame, ctx: Context, column: str) -> pd.DataFrame:
     """Replace spelling variants (case, accents, spaces) with the most frequent spelling."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     values = _strings(out[column])
     counts = Counter(v for v in values if v is not None)
     groups: dict[str, list[tuple[int, str]]] = defaultdict(list)
@@ -344,7 +368,7 @@ def handle_missing(
 ) -> pd.DataFrame:
     """``drop_rows`` removes rows without a value, ``fill`` writes ``value``, ``flag`` adds
     ``<column>_missing``, ``keep`` does nothing (documented decision)."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     missing = [_missing(v) or is_null_token(v) for v in out[column].tolist()]
     if action == "drop_rows":
         return out.loc[[not m for m in missing]].reset_index(drop=True)
@@ -373,7 +397,7 @@ def handle_outliers(
 ) -> pd.DataFrame:
     """IQR on log10 amounts (spend is heavy-tailed). ``flag`` adds ``<column>_outlier``,
     ``cap`` clips to the fence, ``keep`` changes nothing."""
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     numbers = _as_numbers(out[column])
     bounds = _outlier_bounds([n for n in numbers if n is not None], k)
     if bounds is None or action == "keep":
@@ -389,7 +413,7 @@ def handle_outliers(
 
 
 def cast_type(df: pd.DataFrame, ctx: Context, column: str, to: str = "integer") -> pd.DataFrame:
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     if to == "string":
         _set_text(out, column, [None if _missing(v) else str(v) for v in out[column].tolist()])
         return out
@@ -447,7 +471,7 @@ def standardize_categories(
         if isinstance(mapping, str)
         else {normalize_token(k): v for k, v in mapping.items()}
     )
-    out = df.copy()
+    out = df.copy(deep=False)  # copy-on-write: a step copies only the columns it changes
     values = _strings(out[column])
     _set_text(out, f"{column}_source", values)
     _set_text(
@@ -482,7 +506,17 @@ def apply_steps(df: pd.DataFrame, steps: list[dict[str, Any]], ctx: Context) -> 
     return df
 
 
-def output_hash(df: pd.DataFrame) -> str:
-    """Content hash used to prove replay determinism (CSV is engine-version independent)."""
-    text = df.to_csv(index=False, lineterminator="\n", date_format="%Y-%m-%dT%H:%M:%S", na_rep="")
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+def output_hash(df: pd.DataFrame, chunk_rows: int = 2000) -> str:
+    """Content hash used to prove replay determinism (CSV is engine-version independent).
+    Hashed in row chunks: same bytes as one CSV of the whole frame, a fraction of the memory."""
+    digest = hashlib.sha256()
+    for start in range(0, max(len(df), 1), chunk_rows):
+        text = df.iloc[start : start + chunk_rows].to_csv(
+            index=False,
+            header=start == 0,
+            lineterminator="\n",
+            date_format="%Y-%m-%dT%H:%M:%S",
+            na_rep="",
+        )
+        digest.update(text.encode("utf-8"))
+    return digest.hexdigest()

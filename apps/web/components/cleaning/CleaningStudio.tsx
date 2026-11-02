@@ -11,8 +11,10 @@ import { IssueCard } from "@/components/ui/IssueCard";
 import { OptionRadio } from "@/components/ui/OptionRadio";
 import { SkeletonGroup } from "@/components/ui/Skeleton";
 import { Tabs } from "@/components/ui/Tabs";
+import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
 import { PUBLIC_API_URL } from "@/lib/api";
-import type { ApplyResult, Issue, IssuesResponse, Job, Problem, RecipeStep } from "@/lib/api-types";
+import type { ApplyResult, Issue, IssuesResponse, RecipeStep } from "@/lib/api-types";
+import { apiRequest, waitForJob, type ApiFailure } from "@/lib/apiClient";
 import { cn } from "@/lib/cn";
 import { formatNumber } from "@/lib/format";
 import { cellText, kpiText } from "./format";
@@ -23,7 +25,7 @@ type Run =
   | { state: "idle" }
   | { state: "saving" | "applying" }
   | { state: "done"; result: ApplyResult; version: number }
-  | { state: "error"; problem: Pick<Problem, "title" | "detail"> };
+  | { state: "error"; error: ApiFailure; retry: () => void };
 
 const FORMATS = ["pandas", "sql", "json"] as const;
 const joinDot = (parts: string[]) => parts.join(" · ");
@@ -41,7 +43,6 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
   const params = useSearchParams();
   const router = useRouter();
   const issues = data.issues;
-  const headers = useMemo(() => ({ "Accept-Language": locale, "Content-Type": "application/json" }), [locale]);
 
   const initial = Math.max(0, issues.findIndex((i) => i.issue_type === params.get("issue")));
   const [current, setCurrent] = useState(initial);
@@ -51,6 +52,8 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
   const [status, setStatus] = useState<Record<string, Status>>({});
   const [learnMore, setLearnMore] = useState(false);
   const [code, setCode] = useState<Code | null>(null);
+  const [previewError, setPreviewError] = useState<ApiFailure | null>(null);
+  const [previewAttempt, setPreviewAttempt] = useState(0);
   const [run, setRun] = useState<Run>({ state: "idle" });
 
   const issue: Issue | undefined = issues[current];
@@ -79,22 +82,26 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`${PUBLIC_API_URL}/api/v1/recipes/preview`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ steps, columns: data.columns, name: data.dataset.slug ?? "recipe" }),
+        const res = await apiRequest<Code>("/api/v1/recipes/preview", {
+          locale,
+          json: { steps, columns: data.columns, name: data.dataset.slug ?? "recipe" },
           signal: controller.signal,
         });
-        if (res.ok) setCode((await res.json()) as Code);
+        if (res.ok) {
+          setCode(res.data);
+          setPreviewError(null);
+        } else {
+          setPreviewError(res.error); // shown with Retry; the previous code stays visible
+        }
       } catch {
-        /* the panel keeps the previous code; the API may be waking up */
+        /* aborted: a newer preview request replaced this one */
       }
     }, 250);
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [steps, headers, data.columns, data.dataset.slug]);
+  }, [steps, locale, data.columns, data.dataset.slug, previewAttempt]);
 
   function decide(next: Status) {
     if (!issue) return;
@@ -106,53 +113,40 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
     setCurrent(after >= 0 ? after : before >= 0 ? before : current);
   }
 
-  async function saveRecipe(): Promise<{ id: string; version: number } | null> {
+  async function saveRecipe(retry: () => void): Promise<{ id: string; version: number } | null> {
     const name = `${data.dataset.slug ?? data.dataset.id} cleaning`;
-    const res = await fetch(`${PUBLIC_API_URL}/api/v1/recipes`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ name, steps: decided, dataset_id: data.dataset.id }),
+    const res = await apiRequest<{ id: string; version: number }>("/api/v1/recipes", {
+      locale,
+      json: { name, steps: decided, dataset_id: data.dataset.id },
     });
-    const body = await res.json();
     if (!res.ok) {
-      setRun({ state: "error", problem: body as Problem });
+      setRun({ state: "error", error: res.error, retry });
       return null;
     }
-    return body as { id: string; version: number };
+    return res.data;
   }
 
   async function saveAndApply() {
+    const retry = () => void saveAndApply();
     setRun({ state: "saving" });
-    try {
-      const recipe = await saveRecipe();
-      if (!recipe) return;
-      setRun({ state: "applying" });
-      const res = await fetch(`${PUBLIC_API_URL}/api/v1/datasets/${datasetRef}/recipes/apply`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ recipe_id: recipe.id }),
-      });
-      const job = (await res.json()) as { id: string };
-      for (let n = 0; n < 180; n += 1) {
-        const state = (await (await fetch(`${PUBLIC_API_URL}/api/v1/jobs/${job.id}`, { headers })).json()) as Job;
-        if (state.status === "succeeded") {
-          setRun({ state: "done", result: state.result as unknown as ApplyResult, version: recipe.version });
-          router.refresh(); // header chip: "Quality before → after"
-          return;
-        }
-        if (state.status === "failed") {
-          setRun({ state: "error", problem: state.error ?? { title: t("run.failed"), detail: "" } });
-          return;
-        }
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-    } catch {
-      setRun({ state: "error", problem: { title: t("run.networkTitle"), detail: t("run.networkDetail") } });
+    const recipe = await saveRecipe(retry);
+    if (!recipe) return;
+    setRun({ state: "applying" });
+    const accepted = await apiRequest<{ id: string }>(`/api/v1/datasets/${datasetRef}/recipes/apply`, {
+      locale,
+      json: { recipe_id: recipe.id },
+    });
+    const job = accepted.ok ? await waitForJob(accepted.data.id, locale) : accepted;
+    if (!job.ok) {
+      setRun({ state: "error", error: job.error, retry });
+      return;
     }
+    setRun({ state: "done", result: job.data.result as unknown as ApplyResult, version: recipe.version });
+    router.refresh(); // header chip: "Quality before → after"
   }
 
   async function exportCode(format: (typeof FORMATS)[number]) {
-    const recipe = await saveRecipe();
+    const recipe = await saveRecipe(() => void exportCode(format));
     if (!recipe) return;
     const a = document.createElement("a");
     a.href = `${PUBLIC_API_URL}/api/v1/recipes/${recipe.id}/export?format=${format}`;
@@ -302,10 +296,17 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
             items={FORMATS.map((f) => ({
               value: f,
               label: f === "pandas" ? "pandas" : f.toUpperCase(),
-              content: code ? (
-                <CodeBlock code={code[f]} label={t("recipe.codeLabel", { format: f })} className="max-h-80 overflow-y-auto" />
-              ) : (
-                <SkeletonGroup lines={4} />
+              content: (
+                <div className="flex flex-col gap-3">
+                  {previewError && (
+                    <ApiErrorNotice error={previewError} onRetry={() => setPreviewAttempt((n) => n + 1)} />
+                  )}
+                  {code ? (
+                    <CodeBlock code={code[f]} label={t("recipe.codeLabel", { format: f })} className="max-h-80 overflow-y-auto" />
+                  ) : (
+                    !previewError && <SkeletonGroup lines={4} />
+                  )}
+                </div>
               ),
             }))}
           />
@@ -342,12 +343,7 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
         </p>
         <div role="status" aria-live="polite" className="flex flex-col gap-2 text-[15px]">
           {(run.state === "saving" || run.state === "applying") && <span className="text-muted">{t(`run.${run.state}`)}</span>}
-          {run.state === "error" && (
-            <span className="flex flex-col text-flag-text">
-              <strong>{run.problem.title}</strong>
-              {run.problem.detail && <span>{run.problem.detail}</span>}
-            </span>
-          )}
+          {run.state === "error" && <ApiErrorNotice error={run.error} onRetry={run.retry} />}
           {run.state === "done" && (
             <dl className="m-0 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
               <div className="flex flex-col">

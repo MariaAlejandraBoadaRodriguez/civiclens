@@ -23,6 +23,12 @@ job:
   not_found:
     title: Job not found
     detail: "No job with id {job_id}."
+  out_of_memory:
+    title: The job ran out of memory
+    detail: The file is too large for the free server's 512 MB. Try a smaller file or fewer rows; the rest of the app keeps working.
+  crashed:
+    title: The job stopped unexpectedly
+    detail: The error was logged. Try again; if it happens again, the file may be in a format the engine cannot read.
 request:
   invalid:
     title: Invalid request

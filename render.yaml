@@ -10,7 +10,8 @@ services:
     dockerContext: .
     dockerfilePath: ./apps/api/Dockerfile
     healthCheckPath: /health
-    autoDeploy: true
+    # Deploy a main commit only after all its GitHub checks pass (CI incl. the 512 MB stack job).
+    autoDeployTrigger: checksPass
     buildFilter:
       paths:
         - apps/api/**

@@ -9,6 +9,22 @@ Approved UI mockups: https://claude.ai/artifact/1FACLDLoSx3hTmETMXnVr9 — build
 - PR description: what changed, how to verify (in `/en` and `/es`), DoD checklist from the roadmap.
 - Talk to the owner (Alejandra) in **Spanish**; everything committed is in **English** (except `messages/es.json`, Spanish YAML catalogs and `*.es.md` docs).
 
+### Quality gates (owner's rule)
+- **Every change has tests.** A fix comes with the test that would have caught it; a feature with
+  unit tests and, when it touches a journey, an E2E step in `/en` and `/es`.
+- **A PR is ready only when every CI job is green**, including
+  `Stack · API in 512 MB — full flow + E2E (EN/ES)` (Docker image with `--memory=512m`, the full
+  flow on the three seeds, Playwright journeys failing on any console error, no OOM kill) and
+  `Web · lint + typecheck + build` (with the Vitest unit tests).
+- **Never ask the owner to merge a red PR**, and never mark it ready for review while red: fix it,
+  or say exactly what blocks it. Never skip, disable or loosen a test to get green.
+- Run the checks locally before pushing (see Commands). Changes to memory-heavy code (ingest,
+  cleaning, models) are measured with `scripts/flow_check.py` against the Docker image.
+- **Deploys are gated:** Render deploys `main` only after its checks pass
+  (`autoDeployTrigger: checksPass`); Vercel promotes to production only after the
+  "Vercel - civiclens: ci-passed" Deployment Check; `.github/workflows/post-deploy.yml` smoke-tests
+  production and opens an issue with rollback steps if it fails.
+
 ## Conventions
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`).
 - **i18n:** no hardcoded UI text. Every string goes through `t()` and is added to BOTH `apps/web/messages/en.json` and `es.json`. Run `python scripts/check_i18n.py`.
@@ -23,7 +39,10 @@ cd apps/api && pip install -e ".[dev]" && ruff check . && ruff format --check . 
 # Migrations (apps/api): alembic upgrade head
 # OpenAPI: npx @stoplight/spectral-cli@6.14.2 lint openapi.yaml
 # Web
-cd apps/web && npm ci && npm run lint && npm run typecheck && npm run build
+cd apps/web && npm ci && npm run lint && npm run typecheck && npm test && npm run build
+# E2E (stack running: API on :8000, `next start` on :3000): cd apps/web && npm run test:e2e
+# Full flow against an API (any 5xx/OOM fails): python scripts/make_dirty.py --out /tmp/demo &&
+#   python scripts/flow_check.py --base http://127.0.0.1:8000 --mode full --files /tmp/demo
 # i18n
 python scripts/check_i18n.py
 ```

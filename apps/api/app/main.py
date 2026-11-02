@@ -1,5 +1,6 @@
 """CivicLens API entry point."""
 
+import os
 import threading
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -11,16 +12,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.problems import ProblemError, problem_handler, validation_handler
 from app.api.v1 import datasets, jobs, models, recipes, sql
 from app.config import settings
+from app.core import jobs as job_runner
 from app.i18n.loader import Translator, negotiate
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    job_runner.start(settings.job_runner)  # before any thread exists: the job runner forks
     if settings.warm_seeds:
         from app.services.datasets import warm_seeds
 
         threading.Thread(target=warm_seeds, name="warm-seeds", daemon=True).start()
     yield
+    job_runner.stop()
 
 
 app = FastAPI(
@@ -59,6 +63,12 @@ app.include_router(models.router)
 
 
 @app.get("/health", tags=["ops"])
-def health() -> dict[str, str]:
-    """Liveness probe used by the uptime monitor and deploy smoke tests."""
-    return {"status": "ok", "service": "civiclens-api", "version": app.version}
+def health() -> dict[str, str | None]:
+    """Liveness probe used by the uptime monitor and deploy smoke tests. ``commit`` is the Git
+    commit Render deployed, so the post-deploy smoke test knows the new version is live."""
+    return {
+        "status": "ok",
+        "service": "civiclens-api",
+        "version": app.version,
+        "commit": os.environ.get("RENDER_GIT_COMMIT"),
+    }

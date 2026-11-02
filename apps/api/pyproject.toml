@@ -10,7 +10,7 @@ dependencies = [
   "sqlalchemy>=2.0.36",
   "alembic>=1.14",
   "psycopg[binary]>=3.2",
-  "pandas>=2.2",
+  "pandas>=3.0",  # copy-on-write is always on: the cleaning ops rely on it
   "pyarrow>=17",
   "openpyxl>=3.1",
   "python-multipart>=0.0.12",
@@ -59,4 +59,4 @@ ignore = ["S101"]
 "app/core/sql/guided.py" = ["E501"]
 "app/core/sql/kpi_catalog.py" = ["E501"]
 # Tests run the exported script / SQL on temp files they create themselves.
-"tests/**" = ["S603", "S608"]
+"tests/**" = ["S603", "S608", "S311"]  # S311: seeded random test data

@@ -23,6 +23,12 @@ job:
   not_found:
     title: Tarea no encontrada
     detail: "No existe una tarea con id {job_id}."
+  out_of_memory:
+    title: La tarea se quedó sin memoria
+    detail: El archivo es demasiado grande para los 512 MB del servidor gratuito. Prueba con un archivo más pequeño o con menos filas; el resto de la aplicación sigue funcionando.
+  crashed:
+    title: La tarea se detuvo inesperadamente
+    detail: El error quedó registrado. Inténtalo de nuevo; si vuelve a pasar, puede que el archivo tenga un formato que el motor no sabe leer.
 request:
   invalid:
     title: Solicitud no válida

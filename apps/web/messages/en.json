@@ -26,7 +26,12 @@
       "failedBody": "We waited {seconds} seconds without an answer from the API. It may be starting, or it may be down.",
       "retry": "Retry"
     },
-    "metaDescription": "Public-sector data engine: ingest, clean, model, predict and report — in English and Spanish."
+    "metaDescription": "Public-sector data engine: ingest, clean, model, predict and report — in English and Spanish.",
+    "apiError": {
+      "unavailableTitle": "The engine did not answer",
+      "unavailableBody": "It may be restarting or waking up. Your work is not lost — try again in a few seconds.",
+      "retry": "Retry"
+    }
   },
   "nav": {
     "lifecycle": "Lifecycle",
@@ -236,10 +241,6 @@
       "hint": "CSV, XLSX or JSON · up to {mb} MB · deleted after 24 h",
       "uploading": "Uploading {name}…",
       "processing": "Reading and profiling {name}…",
-      "failedTitle": "We could not process this file",
-      "timeout": "It is taking longer than expected. Refresh the page in a minute.",
-      "networkTitle": "Could not reach the engine",
-      "networkDetail": "Check your connection and try again; the free server may be waking up.",
       "tooLargeTitle": "File too large",
       "tooLargeDetail": "The limit is {mb} MB per file."
     },
@@ -388,9 +389,6 @@
       "apply": "Save and apply recipe",
       "saving": "Saving the recipe…",
       "applying": "Applying the recipe to every row…",
-      "failed": "The recipe could not be applied",
-      "networkTitle": "Could not reach the engine",
-      "networkDetail": "Check your connection and try again.",
       "quality": "Data quality score",
       "qualityValue": "{before} → {after}",
       "rows": "Rows",
@@ -436,8 +434,7 @@
       "running": "Running the query…",
       "empty": "The query ran but returned no rows.",
       "truncated": "Stopped at {rows, number} rows",
-      "displayCap": "Showing the first {shown} of {count, number} rows.",
-      "unreachable": "The engine did not answer. Try again in a few seconds."
+      "displayCap": "Showing the first {shown} of {count, number} rows."
     },
     "teaches": "What this query teaches:",
     "edited": "You edited the query — the explanation is for the original guided question.",
@@ -490,7 +487,6 @@
     },
     "rerun": "Re-run on current data",
     "running": "Training…",
-    "unreachable": "The engine did not answer. Try again in a few seconds.",
     "flags": {
       "training": "Training the red-flag model on this dataset (fixed seed, a few seconds)…",
       "title": "Ranked for review",

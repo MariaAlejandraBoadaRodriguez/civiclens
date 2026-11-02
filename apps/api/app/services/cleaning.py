@@ -195,7 +195,7 @@ def run_apply_job(job_id: uuid.UUID) -> None:
             staged = storage.read_parquet(storage.staged_path(ds.id))
             clean, stats, digest = replay(staged, steps, context())
             storage.write_parquet(clean, storage.clean_path(ds.id), as_text=False)
-            storage.star_path(ds.id).unlink(missing_ok=True)  # the SQL Lab rebuilds from it
+            storage.star_path(ds.id).unlink(missing_ok=True)
             after = profile_frame(clean)
             storage.write_json(after, storage.clean_profile_path(ds.id))
             before = (storage.read_json(storage.profile_path(ds.id)) or {}).get("quality", {})
@@ -211,7 +211,7 @@ def run_apply_job(job_id: uuid.UUID) -> None:
                 "quality_before": before,
                 "quality_after": after["quality"],
             }
-            job.status = JobStatus.SUCCEEDED
+            # Still RUNNING: the star-schema phase (app.services.sql.run_star_phase) finishes it.
             session.add(
                 AuditLog(
                     actor="anonymous",
@@ -230,6 +230,7 @@ def run_apply_job(job_id: uuid.UUID) -> None:
         except Exception:  # noqa: BLE001 — stable code; details in the server log
             log.exception("apply job %s failed", job_id)
             job.status, job.error_code = JobStatus.FAILED, "recipe.failed"
-        job.finished_at = now()
+        if job.status == JobStatus.FAILED:
+            job.finished_at = now()
         session.commit()
     memory.release()

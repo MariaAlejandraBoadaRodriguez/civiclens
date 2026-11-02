@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Alert } from "@/components/ui/Alert";
+import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type Column } from "@/components/ui/DataTable";
-import { PUBLIC_API_URL } from "@/lib/api";
-import type { GuidedQuery, Guardrails, Problem, QueryCell, QueryResult } from "@/lib/api-types";
+import type { GuidedQuery, Guardrails, QueryCell, QueryResult } from "@/lib/api-types";
+import { apiRequest, type ApiFailure } from "@/lib/apiClient";
 import { cn } from "@/lib/cn";
 import { formatNumber, formatPercent } from "@/lib/format";
 
@@ -22,7 +22,7 @@ type Run =
   | { state: "idle" }
   | { state: "running" }
   | { state: "done"; result: QueryResult }
-  | { state: "error"; problem: Problem | null };
+  | { state: "error"; error: ApiFailure; sql: string };
 
 function cell(locale: string, value: QueryCell, column: string, numeric: boolean): string {
   if (value === null) return "—";
@@ -61,18 +61,15 @@ export function SqlLab({
       controller.current = current;
       setRun({ state: "running" });
       try {
-        const res = await fetch(`${PUBLIC_API_URL}/api/v1/query`, {
-          method: "POST",
-          headers: { "Accept-Language": locale, "Content-Type": "application/json" },
-          body: JSON.stringify({ dataset_id: datasetRef, sql: text }),
+        const res = await apiRequest<QueryResult>("/api/v1/query", {
+          locale,
+          json: { dataset_id: datasetRef, sql: text },
           signal: current.signal,
         });
-        const body = await res.json().catch(() => null);
         if (current.signal.aborted) return;
-        if (res.ok) setRun({ state: "done", result: body as QueryResult });
-        else setRun({ state: "error", problem: body && "code" in body ? (body as Problem) : null });
+        setRun(res.ok ? { state: "done", result: res.data } : { state: "error", error: res.error, sql: text });
       } catch {
-        if (!current.signal.aborted) setRun({ state: "error", problem: null });
+        /* aborted: a newer query replaced this one */
       }
     },
     [datasetRef, locale],
@@ -196,9 +193,11 @@ export function SqlLab({
           className="flex flex-col gap-3 rounded-card border border-line bg-surface p-[18px]"
         >
           {run.state === "error" && (
-            <Alert variant="warning" title={run.problem?.title ?? t("results.unreachable")} titleId="query-error">
-              {run.problem?.detail && <p className="m-0">{run.problem.detail}</p>}
-            </Alert>
+            <ApiErrorNotice
+              error={run.error}
+              // A rejected query (400) must be edited, not retried; an engine that did not answer can be.
+              onRetry={run.error.kind === "unavailable" ? () => void execute(run.sql) : undefined}
+            />
           )}
           {run.state === "running" && <p className="m-0 text-sm text-muted">{t("results.running")}</p>}
           {result && (

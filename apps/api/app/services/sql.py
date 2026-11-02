@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import uuid
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -14,7 +15,7 @@ from app.core.seed.registry import SEEDS
 from app.core.sql import engine
 from app.core.sql.kpi_catalog import CATALOG
 from app.core.sql.star_schema import GROUPS, build_star, write_duckdb
-from app.db.models import Dataset
+from app.db.models import Dataset, DatasetStatus, Job
 from app.i18n.loader import Translator
 from app.services import storage
 from app.services.cleaning import context, default_currency, load_issues
@@ -106,3 +107,17 @@ def kpis(ds: Dataset, t: Translator) -> list[dict[str, Any]]:
         }
     )
     return out
+
+
+def run_star_phase(job_id: uuid.UUID) -> None:
+    """Last phase of ingest and apply jobs (own process in production): build the star schema
+    here, so no SQL Lab request ever has to, then mark the dataset usable and the job done."""
+    from app.core.jobs import run_phase
+
+    def work(session: Any, job: Job, ds: Dataset) -> None:
+        storage.star_path(ds.id).unlink(missing_ok=True)
+        ensure_star(ds)
+        if ds.status == DatasetStatus.UPLOADED:
+            ds.status = DatasetStatus.PROFILED
+
+    run_phase(job_id, "job.crashed", work, finish=True)

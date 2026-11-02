@@ -11,6 +11,7 @@ def test_health_returns_ok() -> None:
     body = response.json()
     assert body["status"] == "ok"
     assert body["service"] == "civiclens-api"
+    assert "commit" in body  # the post-deploy smoke test waits for the new commit
 
 
 def test_openapi_is_published() -> None:
@@ -31,6 +32,7 @@ def test_render_blueprint_matches_the_app() -> None:
     assert (root / service["dockerfilePath"]).is_file()
     assert service["healthCheckPath"] == "/health"
     assert service["plan"] == "free"
+    assert service["autoDeployTrigger"] == "checksPass"  # never deploy a commit with red CI
     env = {v["key"]: v["value"] for v in service["envVars"]}
     assert "https://civiclens-eosin.vercel.app" in env["ALLOWED_ORIGINS"]
     pattern = re.compile(env["ALLOWED_ORIGIN_REGEX"])
