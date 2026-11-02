@@ -987,6 +987,9 @@ components:
           type: string
         version:
           type: string
+        commit:
+          type: [string, "null"]
+          description: Git commit of the running deploy (Render's RENDER_GIT_COMMIT); null locally.
 
     Problem:
       type: object

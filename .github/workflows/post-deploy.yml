@@ -1,0 +1,83 @@
+name: Post-deploy smoke test
+
+# After a main commit passes CI, Render deploys it (autoDeployTrigger: checksPass) and Vercel
+# promotes it (Deployment Checks). This waits until production runs that commit, then runs the
+# smoke flow against production. On failure it opens (or updates) an issue with rollback steps.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  repository_dispatch:
+    types: [vercel.deployment.promoted]
+  schedule:
+    - cron: "17 13 * * *" # daily, also catches a broken production nobody deployed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: post-deploy
+  cancel-in-progress: false
+
+env:
+  API_URL: ${{ vars.PRODUCTION_API_URL || 'https://civiclens-api.onrender.com' }}
+  WEB_URL: ${{ vars.PRODUCTION_WEB_URL || 'https://civiclens-eosin.vercel.app' }}
+
+jobs:
+  smoke:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait until the API runs this commit (Render deploy)
+        if: github.event_name == 'workflow_run'
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          for i in $(seq 1 80); do
+            live=$(curl -s --max-time 90 "$API_URL/health" | python3 -c "import json,sys; print(json.load(sys.stdin).get('commit') or '')" 2>/dev/null || true)
+            echo "live commit: ${live:-unknown}"
+            test "$live" = "$SHA" && exit 0
+            sleep 30
+          done
+          echo "::error::Render did not deploy $SHA within 40 minutes (see the Render dashboard → Events)"; exit 1
+      - name: API smoke — /health and one recipe preview per seed, with CORS for the web
+        run: python3 scripts/flow_check.py --base "$API_URL" --mode smoke --origin "$WEB_URL" --wait 180
+      - name: Web answers in /en and /es
+        run: |
+          for path in /en /es /en/datasets/secop_co /es/datasets/secop_co/clean; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "$WEB_URL$path")
+            echo "$path → $code"; test "$code" = "200"
+          done
+      - name: Open or update the production incident issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Production smoke test failed"
+          body=$(cat <<MD
+          The post-deploy smoke test failed: $RUN_URL
+
+          - API: $API_URL
+          - Web: $WEB_URL
+          - Trigger: ${{ github.event_name }} (${{ github.event.workflow_run.head_sha || github.sha }})
+
+          ## How to roll back
+          **API (Render):** Dashboard → service **civiclens-api** → **Events** → the last deploy that worked → **Rollback** (confirm with **Rollback to this deploy**).
+
+          **Web (Vercel):** Project **civiclens** → **Deployments** → the last working Production deployment → **⋯** → **Promote** / **Instant Rollback**.
+
+          Then fix the cause on a branch; a new commit reaches production only after CI is green.
+          MD
+          )
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+          fi

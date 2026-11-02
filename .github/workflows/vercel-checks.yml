@@ -1,0 +1,53 @@
+name: Vercel deployment check
+
+# Vercel "Deployment Checks": Vercel sends a repository_dispatch for each deployment and waits
+# for the check below before giving a production deployment the production domain. The check
+# passes only when CI is green on that exact commit and the deployment answers in /en and /es.
+# (This file must be on the default branch for repository_dispatch to trigger it.)
+on:
+  repository_dispatch:
+    types: [vercel.deployment.success]
+
+permissions:
+  contents: read
+  actions: read
+  statuses: write
+
+jobs:
+  ci-passed:
+    name: CI green on this commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Wait for CI on the deployed commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.client_payload.git.sha }}
+        run: |
+          echo "Deployment ${{ github.event.client_payload.url }} for commit $SHA"
+          for i in $(seq 1 110); do
+            runs=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$SHA" \
+              --json status,conclusion --jq '[.[] | select(.status=="completed")] | map(.conclusion)')
+            echo "CI runs completed: $runs"
+            if echo "$runs" | grep -q '"success"'; then exit 0; fi
+            if echo "$runs" | grep -Eq '"(failure|cancelled|timed_out)"'; then
+              echo "::error::CI failed on $SHA — this deployment must not reach production"; exit 1
+            fi
+            sleep 30
+          done
+          echo "::error::CI did not finish on $SHA in time"; exit 1
+      - name: The deployment answers in both languages
+        env:
+          URL: ${{ github.event.client_payload.url }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          case "$URL" in http*) ;; *) URL="https://$URL" ;; esac
+          for path in /en /es; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -H "x-vercel-protection-bypass: $BYPASS" "$URL$path")
+            echo "$path → $code"; test "$code" = "200"
+          done
+      - name: Report the check to Vercel
+        if: always()
+        uses: vercel/repository-dispatch/actions/status@v1
+        with:
+          name: "Vercel - civiclens: ci-passed"
