@@ -23,6 +23,9 @@ const AXE = path.join(__dirname, "..", "node_modules", "axe-core", "axe.min.js")
       if (route.endsWith("/sql")) await page.waitForSelector("#query-results h3, #query-results [role=note]");
       // The ML lab trains the model on first visit: audit it with results.
       if (route.endsWith("/ml")) await page.waitForSelector("#flags", { timeout: 120_000 });
+      // The dashboard streams a loading state first (the API may build a star schema): audit the
+      // dashboard itself (the loading state has its own h1; see tests/unit/errorPage.test.tsx).
+      if (route.includes("/dashboard")) await page.waitForSelector("#kpis-heading", { state: "attached", timeout: 120_000 });
       await page.addScriptTag({ path: AXE });
       const result = await page.evaluate(() =>
         // eslint-disable-next-line no-undef

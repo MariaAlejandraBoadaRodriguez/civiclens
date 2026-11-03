@@ -15,3 +15,11 @@ describe("error page", () => {
     expect(reset).toHaveBeenCalledOnce();
   });
 });
+
+describe("loading state", () => {
+  it("has a level-one heading in each language", async () => {
+    const { default: Loading } = await import("@/app/[locale]/datasets/[id]/loading");
+    renderIn("es", <Loading />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Cargando…");
+  });
+});

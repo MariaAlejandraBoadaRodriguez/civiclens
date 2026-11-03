@@ -8,9 +8,10 @@ export default function Loading() {
   const t = useTranslations("common");
   return (
     <main id="main" className="mx-auto flex max-w-container flex-col gap-6 px-6 pb-12 pt-8" aria-busy="true">
-      <p className="m-0 text-[15px] text-muted" role="status">
-        {t("loading")}
-      </p>
+      {/* Every page state keeps a level-one heading (axe "page-has-heading-one"). */}
+      <div role="status">
+        <h1 className="m-0 text-[15px] font-normal text-muted">{t("loading")}</h1>
+      </div>
       <SkeletonGroup lines={8} />
     </main>
   );
