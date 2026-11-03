@@ -3,6 +3,21 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.0.0] — 2026-11-03
+
+First public release: the full lifecycle (ingest → clean → SQL → ML → dashboard and report → API) in English and Spanish, on $0 infrastructure.
+
+### Added (release)
+- `/ready` (database + DuckDB), `X-Request-ID` on every answer, one JSON log line per request with request ID and locale (no query strings, bodies or keys).
+- Security headers: CSP, HSTS, X-Frame-Options, nosniff, Referrer-Policy on the web; nosniff, DENY, no-referrer and (production) HSTS on the API; the HTML report cannot run scripts.
+- The API refuses to start in production with development defaults (database URL, non-https origins, short admin token); production CORS allows only the production web origin.
+- k6 light load test in CI (20 users on `/kpis` + `/query`, p95 < 1.5 s) against the API image in 512 MB; `pip-audit` job.
+- `docs/runbook.md` (restart, rollback with a tested Vercel drill, migration order, key revocation, restore), `docs/production-checklist.md` with evidence, README case study (EN + ES) with screenshots, release workflow.
+
+### Fixed (release)
+- Concurrent requests on the same dataset could fail with 500 ("configuration has been locked"): DuckDB limits are now set at connect time (found by the load test).
+
 ### Changed
 - Dependencies: 18 web minor/patch updates (Next.js tooling, Playwright 1.64, axe-core 4.14, TypeScript 5.9, Radix, next-auth 4.24.15); GitHub Actions on Node 24 (`checkout`, `setup-node`, `setup-python` v7, `gitleaks-action` v3).
 - Language switcher: the accessible name starts with the visible code ("EN English"), WCAG 2.5.3.

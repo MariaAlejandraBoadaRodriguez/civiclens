@@ -32,3 +32,4 @@ data/demo/
 .vscode/
 .idea/
 .schemathesis/
+build/

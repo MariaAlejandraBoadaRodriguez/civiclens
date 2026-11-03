@@ -6,7 +6,7 @@ import logging
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import settings
+from app.config import DEV_DATABASE_URL, settings
 from app.core import observability as obs
 from app.main import app
 
@@ -83,3 +83,43 @@ def test_json_log_lines_carry_request_id_and_locale_but_no_query_or_key() -> Non
     assert line["request_id"] == "req-42" and line["locale"] == "es"
     assert line["path"] == "/api/v1/datasets" and line["status"] == 401  # unknown key
     assert "source=seed" not in records[-1] and "secret" not in records[-1]
+
+
+@pytest.mark.parametrize(
+    ("env", "message"),
+    [
+        ({"database_url": DEV_DATABASE_URL}, "DATABASE_URL is the development default"),
+        (
+            {
+                "database_url": "sqlite:////srv/var/x.db",
+                "allowed_origins": ["http://localhost:3000"],
+            },
+            "https origins only",
+        ),
+        (
+            {
+                "database_url": "sqlite:////srv/var/x.db",
+                "allowed_origins": ["https://a.example"],
+                "admin_api_token": "short",
+            },
+            "ADMIN_API_TOKEN",
+        ),
+    ],
+)
+def test_production_fails_fast_on_unsafe_configuration(env: dict, message: str) -> None:
+    from app.config import Settings
+
+    with pytest.raises(ValueError, match=message):
+        Settings(environment="production", **env)
+
+
+def test_render_production_configuration_is_accepted() -> None:
+    from app.config import Settings
+
+    ok = Settings(
+        environment="production",
+        database_url="sqlite:////srv/var/civiclens.db",
+        allowed_origins=["https://civiclens-eosin.vercel.app"],
+        admin_api_token="x" * 48,
+    )
+    assert ok.environment == "production"

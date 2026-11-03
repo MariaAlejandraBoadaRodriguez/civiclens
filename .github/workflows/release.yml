@@ -1,0 +1,42 @@
+name: Release
+
+# Run by hand once every release PR is merged: Actions → Release → Run workflow → version 1.0.0.
+# Tags the current main and publishes a GitHub Release with that version's CHANGELOG section,
+# only if CI passed on that exact commit.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the v (e.g. 1.0.0); CHANGELOG.md must have a '## [x.y.z]' section"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: CI passed on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          conclusion=$(gh api "repos/${{ github.repository }}/actions/workflows/ci.yml/runs?head_sha=$sha&event=push" \
+            --jq '.workflow_runs[0].conclusion // "none"')
+          echo "CI on $sha: $conclusion"
+          test "$conclusion" = "success" || { echo "::error::CI is not green on main ($conclusion)"; exit 1; }
+      - name: Release notes from CHANGELOG.md
+        run: |
+          v="${{ inputs.version }}"
+          python3 scripts/release_notes.py "$v" > /tmp/notes.md
+          test -s /tmp/notes.md
+          git tag --list "v$v" | grep -q . && { echo "::error::tag v$v already exists"; exit 1; } || true
+      - name: Tag and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v${{ inputs.version }}" --target "$(git rev-parse HEAD)" --title "CivicLens v${{ inputs.version }}" --notes-file /tmp/notes.md

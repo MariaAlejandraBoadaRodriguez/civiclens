@@ -2,7 +2,10 @@
 
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEV_DATABASE_URL = "postgresql+psycopg://civiclens:civiclens@localhost:5432/civiclens"
 
 # Repository checkout: apps/api/app/config.py → repo root. In the Docker image the file is
 # /srv/app/config.py and data lives in /srv/data, so the root is /srv.
@@ -20,7 +23,7 @@ class Settings(BaseSettings):
     # Extra origins by pattern, e.g. Vercel preview deployments of the web app.
     allowed_origin_regex: str | None = None
     default_locale: str = "en"
-    database_url: str = "postgresql+psycopg://civiclens:civiclens@localhost:5432/civiclens"
+    database_url: str = DEV_DATABASE_URL
 
     # Files: committed seed Parquet (read-only) and a writable working directory.
     seed_dir: Path = REPO_ROOT / "data" / "seed"
@@ -49,6 +52,26 @@ class Settings(BaseSettings):
     # Proxies in front of the API that append to X-Forwarded-For (Render: 1). The client is the
     # entry that many hops from the right; entries further left are caller-controlled.
     trusted_proxy_hops: int = 0
+
+    @model_validator(mode="after")
+    def _production_is_configured(self) -> "Settings":
+        """Fail fast at startup (ROADMAP §5): a production API with development defaults would
+        start and then fail on the first request, or accept every origin."""
+        if self.environment != "production":
+            return self
+        problems = []
+        if self.database_url == DEV_DATABASE_URL:
+            problems.append("DATABASE_URL is the development default")
+        insecure = [o for o in self.allowed_origins if not o.startswith("https://")]
+        if not self.allowed_origins or insecure:
+            problems.append(
+                f"ALLOWED_ORIGINS must list https origins only (got {insecure or 'none'})"
+            )
+        if self.admin_api_token is not None and len(self.admin_api_token) < 32:
+            problems.append("ADMIN_API_TOKEN is shorter than 32 characters")
+        if problems:
+            raise ValueError("refusing to start in production: " + "; ".join(problems))
+        return self
 
 
 settings = Settings()
