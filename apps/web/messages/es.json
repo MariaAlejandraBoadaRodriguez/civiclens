@@ -534,5 +534,65 @@
     },
     "continue": "Continuar al tablero →",
     "continueSoon": "Tablero: próximamente"
+  },
+  "admin": {
+    "metaTitle": "Claves de API · Administración de CivicLens",
+    "title": "Claves de API",
+    "subtitle": "Emite claves con permisos acotados para las entidades que usan la API de CivicLens y revócalas cuando ya no se necesiten.",
+    "signedInAs": "Sesión iniciada como {login}",
+    "signOut": "Cerrar sesión",
+    "notConfigured": {
+      "title": "La consola de administración no está configurada",
+      "body": "Define estas variables de entorno en la aplicación web para activarla:"
+    },
+    "signIn": {
+      "title": "Acceso de administración",
+      "body": "Solo la propietaria del proyecto puede gestionar claves de API. Inicia sesión con la cuenta de GitHub autorizada.",
+      "github": "Iniciar sesión con GitHub",
+      "testMode": "Iniciar sesión (modo de prueba)",
+      "denied": "Esta cuenta de GitHub no tiene permiso para gestionar claves de API.",
+      "failed": "No se completó el inicio de sesión. Inténtalo de nuevo."
+    },
+    "errors": {
+      "signedOutTitle": "Tu sesión de administración terminó",
+      "signedOutBody": "Vuelve a iniciar sesión para gestionar claves de API."
+    },
+    "form": {
+      "title": "Nueva clave",
+      "name": "Nombre",
+      "nameHint": "Quién la usará; p. ej., \"Ministerio de Hacienda – equipo de datos\".",
+      "scopes": "Qué puede hacer la clave",
+      "create": "Crear clave",
+      "creating": "Creando…"
+    },
+    "scopes": {
+      "datasets_write": "Subir conjuntos de datos",
+      "recipes_write": "Guardar y aplicar recetas de limpieza",
+      "models_run": "Ejecutar modelos y marcar alertas como revisadas",
+      "reports_read": "Leer reportes ejecutivos"
+    },
+    "created": {
+      "title": "Copia la clave ahora",
+      "body": "Esta es la única vez que se muestra la clave de \"{name}\". CivicLens solo guarda un hash.",
+      "label": "Nueva clave de API",
+      "copy": "Copiar clave",
+      "copied": "Copiada",
+      "done": "Ya la guardé"
+    },
+    "list": {
+      "title": "Claves emitidas",
+      "count": "{n, plural, =0 {Sin claves} one {# clave} other {# claves}}",
+      "empty": "Aún no hay claves. Crea la primera arriba.",
+      "active": "Activa",
+      "revoked": "Revocada",
+      "created": "Creada el {date}",
+      "lastUsed": "último uso el {date}",
+      "neverUsed": "sin uso",
+      "revoke": "Revocar",
+      "revokeLabel": "Revocar la clave {name}",
+      "confirmRevoke": "Confirmar: revocar ahora",
+      "cancel": "Cancelar",
+      "prefix": "{prefix}…"
+    }
   }
 }

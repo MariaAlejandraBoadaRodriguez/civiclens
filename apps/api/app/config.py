@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     rate_limit_key: int = 1200
     rate_limit_heavy_anonymous: int = 12
     rate_limit_heavy_key: int = 60
+    # Proxies in front of the API that append to X-Forwarded-For (Render: 1). The client is the
+    # entry that many hops from the right; entries further left are caller-controlled.
+    trusted_proxy_hops: int = 0
 
 
 settings = Settings()

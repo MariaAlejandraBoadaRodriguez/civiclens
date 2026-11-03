@@ -273,3 +273,19 @@ export type ForecastResult = {
   origin: StarOrigin;
   card: ModelCard;
 };
+
+export const API_SCOPES = ["datasets:write", "recipes:write", "models:run", "reports:read"] as const;
+export type ApiScope = (typeof API_SCOPES)[number];
+
+export type ApiKey = {
+  id: string;
+  name: string;
+  prefix: string;
+  scopes: ApiScope[];
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+};
+
+/** Returned once, at creation: the only time the full key exists outside its hash. */
+export type CreatedApiKey = ApiKey & { key: string };

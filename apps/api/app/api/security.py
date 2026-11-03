@@ -128,6 +128,18 @@ def _resolve_key(raw: str) -> Principal | None:
         return Principal("key", row.id, frozenset(row.scopes or []), row.name)
 
 
+def client_ip(request: Request) -> str:
+    """The caller's address for rate limiting. Behind ``TRUSTED_PROXY_HOPS`` proxies, the entry
+    they appended to ``X-Forwarded-For``; anything left of it can be forged by the caller."""
+    hops = settings.trusted_proxy_hops
+    if hops > 0:
+        chain = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",")]
+        chain = [p for p in chain if p]
+        if len(chain) >= hops:
+            return chain[-hops]
+    return request.client.host if request.client else "unknown"
+
+
 def forget_key(key_id: uuid.UUID) -> None:
     """Drop cached verifications of a revoked key (revocation is checked on every request
     anyway; this only frees memory)."""
@@ -152,7 +164,7 @@ async def security_middleware(request: Request, call_next):
             bucket = f"key:{principal.key_id}"
             limit = settings.rate_limit_heavy_key if heavy else settings.rate_limit_key
         else:
-            bucket = f"ip:{request.client.host if request.client else 'unknown'}"
+            bucket = f"ip:{client_ip(request)}"
             limit = settings.rate_limit_heavy_anonymous if heavy else settings.rate_limit_anonymous
         wait = limiter.hit(bucket, "heavy" if heavy else "default", limit)
         if wait is not None:

@@ -326,3 +326,15 @@ def test_allow_never_advertises_a_refusing_stub() -> None:
     doc = client.post("/api/v1/recipes", json={"name": "doc", "steps": []}).json()
     exported = client.get(f"/api/v1/recipes/{doc['id']}/export?format=json").json()
     assert set(exported) == {"schema", "name", "version", "steps"}  # RecipeDocument
+
+
+def test_client_ip_behind_a_proxy_cannot_be_forged(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "rate_limit_anonymous", 1)
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 1)
+    # Render appends the real client last; a caller-supplied left part changes nothing.
+    first = {"X-Forwarded-For": "1.1.1.1, 203.0.113.7"}
+    forged = {"X-Forwarded-For": "9.9.9.9, 203.0.113.7"}
+    other = {"X-Forwarded-For": "198.51.100.2"}
+    assert client.get("/api/v1/guided-queries", headers=first).status_code == 200
+    assert client.get("/api/v1/guided-queries", headers=forged).status_code == 429
+    assert client.get("/api/v1/guided-queries", headers=other).status_code == 200

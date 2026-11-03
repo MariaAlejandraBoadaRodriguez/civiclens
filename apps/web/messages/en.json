@@ -534,5 +534,65 @@
     },
     "continue": "Continue to dashboard →",
     "continueSoon": "Dashboard — coming soon"
+  },
+  "admin": {
+    "metaTitle": "API keys · CivicLens admin",
+    "title": "API keys",
+    "subtitle": "Issue scoped keys for agencies that call the CivicLens API, and revoke them when they are no longer needed.",
+    "signedInAs": "Signed in as {login}",
+    "signOut": "Sign out",
+    "notConfigured": {
+      "title": "The admin console is not configured",
+      "body": "Set these environment variables on the web app to enable it:"
+    },
+    "signIn": {
+      "title": "Admin sign-in",
+      "body": "Only the project owner can manage API keys. Sign in with the allowlisted GitHub account.",
+      "github": "Sign in with GitHub",
+      "testMode": "Sign in (test mode)",
+      "denied": "This GitHub account is not allowed to manage API keys.",
+      "failed": "Sign-in did not complete. Try again."
+    },
+    "errors": {
+      "signedOutTitle": "Your admin session has ended",
+      "signedOutBody": "Sign in again to manage API keys."
+    },
+    "form": {
+      "title": "New key",
+      "name": "Name",
+      "nameHint": "Who will use it, e.g. \"Ministry of Finance – data team\".",
+      "scopes": "What the key may do",
+      "create": "Create key",
+      "creating": "Creating…"
+    },
+    "scopes": {
+      "datasets_write": "Upload datasets",
+      "recipes_write": "Save and apply cleaning recipes",
+      "models_run": "Run models and mark flags as reviewed",
+      "reports_read": "Read executive reports"
+    },
+    "created": {
+      "title": "Copy the key now",
+      "body": "This is the only time the key for \"{name}\" is shown. CivicLens stores only a hash of it.",
+      "label": "New API key",
+      "copy": "Copy key",
+      "copied": "Copied",
+      "done": "I have stored it"
+    },
+    "list": {
+      "title": "Issued keys",
+      "count": "{n, plural, =0 {No keys} one {# key} other {# keys}}",
+      "empty": "No keys yet. Create the first one above.",
+      "active": "Active",
+      "revoked": "Revoked",
+      "created": "Created {date}",
+      "lastUsed": "last used {date}",
+      "neverUsed": "never used",
+      "revoke": "Revoke",
+      "revokeLabel": "Revoke key {name}",
+      "confirmRevoke": "Confirm: revoke now",
+      "cancel": "Cancel",
+      "prefix": "{prefix}…"
+    }
   }
 }
