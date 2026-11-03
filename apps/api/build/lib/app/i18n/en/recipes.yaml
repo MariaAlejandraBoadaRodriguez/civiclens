@@ -1,0 +1,17 @@
+# Short, human description of each recipe operation (Cleaning Studio recipe panel).
+ops:
+  rename_columns: Rename columns
+  drop_columns: Remove columns
+  mask_columns: Mask personal data
+  standardize_nulls: Turn coded nulls into empty values
+  drop_duplicates: Remove duplicates
+  parse_numbers: Read numbers
+  normalize_timezones: Normalize time zones
+  parse_dates: Read dates
+  convert_currency: Convert currency
+  normalize_text: Normalize text
+  unify_variants: Unify name variants
+  handle_missing: Handle missing values
+  handle_outliers: Handle outliers
+  cast_type: Change type
+  standardize_categories: Standardize categories

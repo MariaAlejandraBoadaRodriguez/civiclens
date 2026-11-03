@@ -1,0 +1,19 @@
+# Labels of canonical schema fields. Field NAMES are never translated; only these labels.
+contract_id: {label: Contract ID}
+entity_id: {label: Entity ID}
+entity_name: {label: Contracting entity}
+supplier_id: {label: Supplier ID}
+supplier_name: {label: Supplier}
+signed_date: {label: Signed date}
+start_date: {label: Start date}
+end_date: {label: End date}
+amount_original: {label: Contract value (original currency)}
+currency: {label: Currency}
+award_type: {label: Award type}
+n_bidders: {label: Number of bidders}
+category_code: {label: Category code}
+description: {label: Description}
+contract_type: {label: Contract type}
+status: {label: Status}
+region: {label: Region}
+city: {label: City}

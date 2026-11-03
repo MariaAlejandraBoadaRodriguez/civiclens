@@ -1,0 +1,120 @@
+# RFC 7807 problem texts, keyed by the stable error code. {params} come from the problem.
+ingest:
+  unsupported_format:
+    title: Unsupported file type
+    detail: "Upload a CSV, XLSX or JSON file. Legacy .xls files and macro-enabled workbooks are not accepted."
+  empty_file:
+    title: The file is empty
+    detail: We could not find any rows in this file.
+  too_large:
+    title: File too large
+    detail: "The limit is {limit_mb} MB per file."
+  unreadable:
+    title: We could not read this file
+    detail: The file seems damaged or is not in the format its extension says.
+dataset:
+  not_found:
+    title: Dataset not found
+    detail: "No dataset with id {dataset_id}. Uploaded files are deleted after 24 hours."
+  not_ready:
+    title: The dataset is still being processed
+    detail: Try again in a few seconds.
+job:
+  not_found:
+    title: Job not found
+    detail: "No job with id {job_id}."
+  out_of_memory:
+    title: The job ran out of memory
+    detail: The file is too large for the free server's 512 MB. Try a smaller file or fewer rows; the rest of the app keeps working.
+  crashed:
+    title: The job stopped unexpectedly
+    detail: The error was logged. Try again; if it happens again, the file may be in a format the engine cannot read.
+request:
+  invalid:
+    title: Invalid request
+    detail: One or more fields are not valid.
+  not_found:
+    title: Not found
+    detail: There is no API route at this address. See /docs for the available routes.
+  method_not_allowed:
+    title: Method not allowed
+    detail: "This route does not accept {method}. The Allow header lists the methods it accepts."
+  malformed:
+    title: The request body could not be read
+    detail: Send valid JSON (or a multipart form for uploads).
+server:
+  internal:
+    title: Something went wrong on our side
+    detail: The error was logged. Try again in a moment.
+  not_ready:
+    title: The service is not ready
+    detail: "These checks failed: {checks}. Try again in a moment."
+recipe:
+  invalid:
+    title: The recipe is not valid
+    detail: "Step {step}: {message}"
+  not_found:
+    title: Recipe not found
+    detail: "No recipe with id {recipe_id}."
+  failed:
+    title: The recipe could not be applied
+    detail: A step failed on this file. The error was logged.
+sql:
+  empty:
+    title: Write a query first
+    detail: The editor is empty.
+  too_long:
+    title: The query is too long
+    detail: "Queries are limited to {limit} characters."
+  multiple_statements:
+    title: Only one statement at a time
+    detail: Remove the extra statements after the first semicolon.
+  forbidden_statement:
+    title: Only read-only queries are allowed
+    detail: "The SQL Lab runs SELECT and WITH queries only ({keyword} is not allowed)."
+  forbidden_function:
+    title: This function is not available
+    detail: "{function} could read files, the network or system settings, so it is blocked."
+  syntax_error:
+    title: The query has a syntax error
+    detail: "DuckDB says: {message}"
+  runtime_error:
+    title: The query failed
+    detail: "DuckDB says: {message}"
+  timeout:
+    title: The query took too long
+    detail: "Queries stop after {seconds} seconds. Add filters or aggregate before joining."
+model:
+  not_available:
+    title: This model is not available yet
+    detail: "{model_type} is planned for a later release. Available now: red_flags, forecast."
+  not_run:
+    title: This model has not been run on this dataset
+    detail: Run it first with POST /api/v1/models/{model_type}/run.
+  failed:
+    title: The model run failed
+    detail: Something went wrong while training the model. Try again; if it keeps failing, check the dataset in the Cleaning studio.
+auth:
+  invalid_key:
+    title: Invalid API key
+    detail: The API key is unknown or has been revoked. Ask the administrator for a new one.
+  missing_key:
+    title: An API key is required
+    detail: "This operation needs an API key with the {scope} scope (header X-API-Key)."
+  insufficient_scope:
+    title: The API key cannot do this
+    detail: "This operation needs the {scope} scope. Ask the administrator for a key that includes it."
+  admin_required:
+    title: Administrator sign-in required
+    detail: API keys are managed by the administrator from the CivicLens web app.
+  admin_only:
+    title: Only the administrator can manage API keys
+    detail: Agency API keys cannot create, list or revoke keys.
+api_key:
+  not_found:
+    title: API key not found
+    detail: "No API key with id {key_id}."
+rate_limit:
+  exceeded:
+    title: Too many requests
+    detail: "Wait {retry_after} seconds and try again."

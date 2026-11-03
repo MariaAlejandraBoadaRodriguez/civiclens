@@ -1,0 +1,10 @@
+# Seed (sample) datasets: display names and descriptions. Data values are never translated.
+secop_co:
+  name: Colombia · Public contracts
+  description: Snapshot of SECOP II contract records. Amounts in COP, Spanish headers.
+contracts_ca:
+  name: Canada · Federal contracts
+  description: Proactive disclosure of contracts. Bilingual headers, amounts in CAD.
+contracts_qc:
+  name: Québec · Public contracts
+  description: Contract notices in French, nested JSON, dates in mixed formats.

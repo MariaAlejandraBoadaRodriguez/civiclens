@@ -1,0 +1,54 @@
+"""Runtime configuration read from environment variables."""
+
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Repository checkout: apps/api/app/config.py → repo root. In the Docker image the file is
+# /srv/app/config.py and data lives in /srv/data, so the root is /srv.
+_HERE = Path(__file__).resolve()
+REPO_ROOT = _HERE.parents[3] if len(_HERE.parents) > 3 else _HERE.parents[1]
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    environment: str = "local"
+    # One JSON object per log line, with request ID and locale (off in tests: pytest's capture).
+    json_logs: bool = True
+    allowed_origins: list[str] = ["http://localhost:3000"]
+    # Extra origins by pattern, e.g. Vercel preview deployments of the web app.
+    allowed_origin_regex: str | None = None
+    default_locale: str = "en"
+    database_url: str = "postgresql+psycopg://civiclens:civiclens@localhost:5432/civiclens"
+
+    # Files: committed seed Parquet (read-only) and a writable working directory.
+    seed_dir: Path = REPO_ROOT / "data" / "seed"
+    fx_path: Path = REPO_ROOT / "data" / "fx_rates.csv"
+    data_dir: Path = REPO_ROOT / "data" / "runtime"
+    upload_max_mb: int = 50
+    upload_ttl_hours: int = 24
+    # Build the three demo datasets in the background at startup (off in tests).
+    warm_seeds: bool = True
+    # Background jobs: "inline" (tests, local) or "fork" (Docker: each job in its own process,
+    # see app/core/jobs.py).
+    job_runner: str = "inline"
+
+    # Public API (ROADMAP 5e). The public demo lets anonymous visitors write (upload, clean,
+    # run models); an agency deployment sets ANONYMOUS_WRITES=false so writes need a key.
+    anonymous_writes: bool = True
+    # Shared with the web app's server, which calls /api/v1/keys after GitHub OAuth of the
+    # allowlisted admin. Unset = key administration disabled.
+    admin_api_token: str | None = None
+    # Requests per minute: per IP for anonymous callers, per key for agencies; "heavy" = routes
+    # that start background work (upload, apply recipe, run model).
+    rate_limit_anonymous: int = 300
+    rate_limit_key: int = 1200
+    rate_limit_heavy_anonymous: int = 12
+    rate_limit_heavy_key: int = 60
+    # Proxies in front of the API that append to X-Forwarded-For (Render: 1). The client is the
+    # entry that many hops from the right; entries further left are caller-controlled.
+    trusted_proxy_hops: int = 0
+
+
+settings = Settings()

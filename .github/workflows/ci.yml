@@ -86,6 +86,20 @@ jobs:
       - run: pip install -e "apps/api" "schemathesis==4.33.0"
       - run: scripts/contract_check.sh
 
+  audit:
+    name: Security · pip-audit (API dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: |
+          python -m venv /tmp/venv && /tmp/venv/bin/pip install ./apps/api pip-audit
+          /tmp/venv/bin/pip freeze --exclude civiclens-api > /tmp/requirements.txt
+          /tmp/venv/bin/pip-audit -r /tmp/requirements.txt --progress-spinner off
+
   i18n:
     name: i18n · EN/ES catalogs match
     runs-on: ubuntu-latest

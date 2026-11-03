@@ -1,0 +1,48 @@
+top_suppliers:
+  title: ¿Quiénes son los principales proveedores y qué tan concentrado está el gasto?
+  question: ¿Qué diez proveedores reciben más dinero y qué porcentaje del gasto total recibe cada uno?
+  explanation: Un CTE agrega el gasto por proveedor y luego dos funciones de ventana calculan la participación de cada proveedor en el total y su posición, sin un segundo GROUP BY.
+direct_award_share:
+  title: ¿Qué porcentaje de contratos fue por contratación directa?
+  question: ¿Cómo se reparten los contratos y el gasto entre modalidades directa, abierta y limitada?
+  explanation: "SUM(COUNT(*)) OVER () es una ventana sobre filas agrupadas: da el total general junto a cada grupo, así que los porcentajes salen en una sola pasada."
+fiscal_year_end:
+  title: ¿Hay un pico de gasto antes del cierre de la vigencia?
+  question: ¿Cómo se compara el gasto de los últimos 30 días de cada año fiscal con un mes promedio?
+  explanation: "FILTER (WHERE …) calcula un agregado condicional dentro del mismo GROUP BY; dim_date ya conoce el calendario fiscal de cada jurisdicción."
+monthly_spend_by_entity:
+  title: Gasto mes a mes por entidad
+  question: Para cada entidad contratante, ¿cuánto cambió el gasto de un mes al siguiente?
+  explanation: LAG() lee la fila anterior de la misma partición (entidad) en orden de mes; es la forma clásica de calcular el cambio entre periodos.
+suppliers_many_entities:
+  title: Proveedores que trabajan con muchas entidades
+  question: ¿Qué proveedores tienen contratos con tres o más entidades distintas?
+  explanation: COUNT(DISTINCT …) con HAVING filtra los grupos después de agregar; WHERE no podría, porque se ejecuta antes de agrupar.
+new_supplier_cohorts:
+  title: Cohortes de proveedores nuevos por año
+  question: ¿Cuántos proveedores aparecieron por primera vez cada año y cuánto recibieron?
+  explanation: dim_supplier guarda la primera aparición de cada proveedor; agrupar por su año convierte a los proveedores en cohortes.
+hhi_by_entity:
+  title: ¿Qué entidades dependen de pocos proveedores?
+  question: Para cada entidad con al menos cinco proveedores, ¿qué tan concentrado está su gasto (Índice Herfindahl-Hirschman)?
+  explanation: "El IHH es la suma de los cuadrados de las participaciones. Una ventana particionada por entidad convierte el gasto de cada proveedor en su participación sobre el total de esa entidad."
+single_bidder:
+  title: ¿Con qué frecuencia hay un solo oferente?
+  question: Para cada modalidad, ¿qué porcentaje de contratos recibió una sola oferta?
+  explanation: Dos cláusulas FILTER cuentan subconjuntos distintos del mismo grupo; NULLIF evita dividir por cero cuando no se reporta el número de ofertas.
+split_contracts:
+  title: Posibles contratos fraccionados
+  question: ¿Qué parejas entidad–proveedor firmaron contratos con menos de siete días de diferencia?
+  explanation: LAG() sobre (entidad, proveedor) ordenado por fecha da la firma anterior; restar fechas encuentra parejas firmadas muy cerca. Son pistas, no acusaciones.
+spend_by_category:
+  title: Gasto por categoría
+  question: ¿Cómo se divide el gasto entre bienes, servicios y obras?
+  explanation: dim_category guarda las etiquetas en inglés y en español junto al valor de origen, así la misma consulta sirve para reportes en ambos idiomas.
+running_total:
+  title: Gasto acumulado por mes
+  question: ¿Cómo se acumula el gasto total mes a mes?
+  explanation: SUM() OVER (ORDER BY mes) es un total acumulado; la ventana crece un mes en cada fila.
+largest_per_entity:
+  title: Los tres contratos más grandes por entidad
+  question: ¿Cuáles son los tres contratos más grandes de cada entidad?
+  explanation: ROW_NUMBER() vuelve a empezar en 1 en cada partición; filtrar por él en una consulta externa es el patrón estándar de «top N por grupo».

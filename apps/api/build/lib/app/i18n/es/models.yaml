@@ -1,0 +1,59 @@
+# Fichas de modelo del laboratorio de ML (spec M6): pregunta, método, reglas, variables, advertencia, límites.
+red_flags:
+  name: Detección de alertas
+  question: ¿Qué contratos merecen una segunda mirada antes de que se reúna el comité de auditoría?
+  method: Isolation Forest + 5 reglas transparentes
+  method_detail: "Un Isolation Forest ({trees} árboles, semilla fija {seed}) mide qué tan inusual es cada contrato frente al resto; cinco reglas revisan patrones de riesgo conocidos. Puntaje = 60 % percentil de anomalía + 40 % reglas cumplidas (hasta dos)."
+  warning: Las alertas son pistas para revisión humana, nunca acusaciones. Los resultados dependen de la calidad de los datos y de los umbrales definidos para cada jurisdicción.
+  thresholds: "Umbrales de contratación usados ({currency}): {values}. Son aproximados: confírmalos para tu jurisdicción."
+  flagged_rule: "Un contrato se marca cuando cumple dos reglas, está en el 1 % más inusual, o cumple una regla y está en el 10 % más inusual."
+  limitations:
+    l1: El modelo solo aprende lo que es habitual en este conjunto de datos; un patrón común a todos no se marca.
+    l2: Si faltan número de ofertas o fechas, las reglas que los usan pierden fuerza; las variables sin información se excluyen.
+    l3: Los umbrales y las ventanas de las reglas están simplificados; la ley de contratación tiene excepciones que las reglas no ven.
+  rules:
+    split_contract: Contratos fraccionados (mismo proveedor, ≤ 7 días)
+    under_threshold: Monto justo por debajo de un umbral de contratación
+    single_bidder: Oferente único en un proceso competitivo
+    fy_end_spike: Pico de fin de año fiscal
+    new_large_supplier: Proveedor nuevo y grande
+  reasons:
+    split_contract: Fraccionamiento
+    under_threshold: Bajo el umbral
+    single_bidder: Oferente único
+    fy_end_spike: Pico de fin de año
+    new_large_supplier: Proveedor nuevo y grande
+    unusual_pattern: Patrón inusual
+  features:
+    amount_cad: Valor del contrato en CAD (escala logarítmica)
+    days_to_fy_end: Días que faltan para el cierre del año fiscal
+    n_bidders: Número de ofertas recibidas
+    supplier_age_days: Días desde el primer contrato del proveedor
+    entity_share: Proporción del gasto total de la entidad
+    days_between_contracts: Días desde el contrato anterior entre la misma entidad y el mismo proveedor
+    gap_to_threshold: Distancia por debajo del umbral más cercano (proporción del umbral)
+forecast:
+  name: Pronóstico de gasto
+  question: ¿Cuánto se gastará en los próximos seis meses y qué tanto podemos confiar en la estimación?
+  method: Gradient boosting frente a una línea base estacional ingenua
+  method_detail: "Gradient boosting (semilla fija {seed}) con rezagos de 1, 2, 3 y 12 meses, la media de 3 meses y el mes del año, entrenado sobre el logaritmo del gasto. La línea base repite el mismo mes del año anterior. Ambos se prueban en los últimos {test} meses, que no vieron al entrenar."
+  warning: Un pronóstico es un rango de valores plausibles, no una promesa. Los contratos grandes y puntuales hacen difícil predecir el gasto mensual.
+  verdict_beats: "El modelo supera a la línea base: MAPE {model} frente a {baseline}."
+  verdict_loses: "El modelo no supera a la línea base estacional ingenua (MAPE {model} frente a {baseline}). Usa la línea base para planear."
+  insufficient: "No hay suficiente historia: {months} meses completos; el pronóstico necesita al menos {min}."
+  dropped: "Los últimos {n} meses parecen aún no reportados (gasto muy inferior al del año anterior) y se excluyeron."
+  limitations:
+    l1: El MAPE ignora los meses sin gasto y crece rápido cuando el gasto real es pequeño.
+    l2: El pronóstico supone que el próximo año se parece a los últimos seis; cambios de política o de presupuesto lo rompen.
+    l3: Los totales están en CAD con tasas mensuales; los movimientos cambiarios alteran los montos en COP o USD.
+  features:
+    lag_1: Gasto un mes antes
+    lag_2: Gasto dos meses antes
+    lag_3: Gasto tres meses antes
+    lag_12: Gasto en el mismo mes del año anterior
+    mean_3: Media de los últimos tres meses
+    month_of_year: Mes del año (estacionalidad)
+classifier:
+  name: Clasificador de categorías
+segments:
+  name: Segmentos de proveedores

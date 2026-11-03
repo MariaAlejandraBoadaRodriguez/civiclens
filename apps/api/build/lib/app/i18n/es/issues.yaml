@@ -1,0 +1,106 @@
+# Tarjetas de problemas del Estudio de limpieza.
+header_mapping:
+  title: "Revisa el mapeo de «{header}»"
+  what: "El encabezado «{header}» se asoció al campo canónico {field} con una confianza de {confidence}."
+  why: Un mapeo equivocado pone valores en el KPI incorrecto; por ejemplo, modalidades contadas como categorías.
+  learn_more: Los encabezados se comparan con un diccionario EN/FR/ES; todo lo que queda por debajo de 0,8 es una suposición aproximada que necesita revisión humana.
+  options:
+    keep: {label: "Mantener {field}", hint: El mapeo sugerido se ve correcto.}
+    unmap: {label: No mapear esta columna, hint: "Se conserva con su nombre original; no alimentará ningún KPI."}
+    use: {label: "Mapear a {field}", hint: Usar este campo canónico en su lugar.}
+pii:
+  title: "Datos personales en {count} columnas"
+  what: "{rows} filas contienen valores que parecen datos personales en: {columns}."
+  why: Los datos personales nunca deben llegar a un gráfico, una exportación o una respuesta de la API. Enmascararlos permite seguir contando filas.
+  learn_more: Enmascarar reemplaza cada valor por un código estable (mismo valor → mismo código), así se pueden encontrar duplicados sin que nadie lea el original.
+  options:
+    mask: {label: Enmascarar los valores, hint: Cada valor se convierte en un código estable como MASK-3f2a….}
+    drop: {label: Eliminar las columnas, hint: Úsalo cuando el análisis nunca necesita estas columnas.}
+    keep: {label: Conservar como están, hint: Solo para uso interno autorizado; la decisión queda registrada.}
+duplicates:
+  title: "{total} filas duplicadas ({share})"
+  what: "{exact} duplicados exactos y {near} casi duplicados (mismos valores si se ignoran mayúsculas, tildes y espacios)."
+  why: Los duplicados inflan el gasto total y el número de contratos.
+  learn_more: Los casi duplicados suelen ser el mismo registro exportado dos veces con pequeñas diferencias de digitación.
+  options:
+    keep_first: {label: Conservar la primera aparición, hint: Conserva la fila tal como aparece primero en el archivo.}
+    keep_last: {label: Conservar la última aparición, hint: Útil cuando las filas posteriores son correcciones.}
+    flag: {label: Conservar todas y marcarlas, hint: Agrega una columna is_duplicate; no se elimina nada.}
+missing_values:
+  title: Valores faltantes escritos como texto
+  what: "{cells} celdas en {columns} columnas dicen {tokens} en lugar de estar vacías."
+  why: Un texto como «N/A» se cuenta como un valor real, así que la completitud parece mejor de lo que es y los filtros fallan.
+  learn_more: Cada idioma escribe «sin dato» de forma distinta (sin dato, non disponible, N/A). Convertirlos en nulos reales hace que todas las herramientas los traten igual.
+  options:
+    to_null: {label: Convertirlos en valores vacíos, hint: La completitud se vuelve honesta.}
+    keep: {label: Conservar el texto, hint: Solo si el texto tiene significado en tu proceso.}
+time_zone:
+  title: "{count} fechas tienen zona horaria"
+  what: "{count} valores de signed_date incluyen un desfase como -04:00 o -05:00."
+  why: Mezclar desfases mueve contratos firmados cerca de la medianoche a otro día, y a otro mes en el reporte.
+  learn_more: Convertir a UTC da una sola línea de tiempo para todas las jurisdicciones; conservar la hora local mantiene la hora escrita por la entidad.
+  options:
+    to_utc: {label: Convertir a UTC, hint: Lo mejor para comparar jurisdicciones.}
+    local: {label: Conservar la hora local, hint: Elimina el desfase y conserva la hora como está escrita.}
+date_format:
+  title: "Fechas en {formats} formatos distintos"
+  what: "signed_date mezcla fechas ISO ({iso}), con el día primero ({dmy}) y con el mes primero ({mdy}); {ambiguous} son ambiguas, como 05/06/2025."
+  why: Una hoja de cálculo lee un solo formato, así que el gasto mensual y las alertas de cierre de vigencia pierden filas sin avisar.
+  learn_more: Los valores sin ambigüedad (25/12/2025) siempre conservan su significado; la opción que elijas decide cómo se leen los ambiguos.
+  options:
+    day_first: {label: Leer las fechas ambiguas como día/mes, hint: Convención en español y francés (dd/mm/aaaa).}
+    month_first: {label: Leer las fechas ambiguas como mes/día, hint: Convención de EE. UU. (mm/dd/aaaa).}
+number_locale:
+  title: Montos escritos en formatos numéricos distintos
+  what: "amount_original mezcla la coma decimal ({comma} valores, 1.234,56) y el punto decimal ({point} valores, 1,234.56)."
+  why: Con una sola convención, «1.234,56» se vuelve texto o 1,23 y los totales quedan mal sin ningún mensaje de error.
+  learn_more: Cada valor se lee en su propia notación; los ambiguos como 1.234 siguen la convención que elijas.
+  options:
+    auto: {label: Detectar el formato de cada valor, hint: "Los ambiguos siguen el formato principal de la columna."}
+    comma: {label: Los ambiguos usan coma decimal, hint: "1.234 → mil doscientos treinta y cuatro."}
+    point: {label: Los ambiguos usan punto decimal, hint: 1.234 → uno coma dos tres cuatro.}
+mixed_currency:
+  title: "Los montos están en {n} monedas distintas"
+  what: "amount_original contiene {breakdown}."
+  why: Sumarlos hace que el gasto total no tenga sentido, y comparar Colombia con Canadá requiere una sola moneda.
+  learn_more: Cada monto se convierte con la tasa del mes en que se firmó. Las tasas vienen de la TRM (Superfinanciera de Colombia) y del Banco de Canadá; la fuente aparece abajo.
+  fx_note: "Tabla de tasas de cambio: tasa del mes de firma de cada contrato · fuente: {source}"
+  options:
+    to_cad: {label: Convertir todo a CAD, hint: Lo mejor para comparar con los conjuntos de datos de Canadá.}
+    to_cop: {label: Convertir todo a COP, hint: Mantiene el reporte de Colombia en moneda local.}
+    to_usd: {label: Convertir todo a USD, hint: Moneda neutral para audiencias internacionales.}
+    keep_add_cad: {label: Conservar los originales y agregar amount_cad, hint: No se sobrescribe nada; una columna adicional.}
+text_variants:
+  title: "Variantes de nombre en {field}"
+  what: "{rows} filas escriben un nombre distinto de su forma más frecuente ({groups} nombres afectados)."
+  why: Las variantes dividen a un proveedor o entidad en varios, así que la concentración (IHH) y los rankings de proveedores quedan mal.
+  learn_more: Las variantes se agrupan ignorando mayúsculas, tildes y espacios; en cada grupo gana la forma más frecuente.
+  options:
+    unify: {label: Usar la forma más frecuente, hint: Los nombres siguen siendo legibles.}
+    upper: {label: Mayúsculas sin tildes, hint: "Simple y estricto: «Bogotá S.A.S.» → «BOGOTA S.A.S.»."}
+    keep: {label: Conservar como están, hint: Los rankings contarán las variantes por separado.}
+category_labels:
+  title: Las modalidades usan etiquetas propias de cada fuente
+  what: "award_type tiene {distinct} valores de origen (nombres en español, códigos canadienses, términos OCDS)."
+  why: «Contratación directa», «TN» y «direct» significan lo mismo; sin una sola etiqueta no se puede comparar el porcentaje de contratación directa.
+  learn_more: "Los valores se asignan a {labels}. El valor original se conserva en award_type_source para trazabilidad."
+  options:
+    standardize: {label: Asignar las etiquetas canónicas, hint: Permite KPI entre jurisdicciones.}
+    keep: {label: Conservar las etiquetas de origen, hint: Los KPI que necesitan la modalidad no estarán disponibles.}
+outliers:
+  title: "{count} montos inusualmente altos o bajos"
+  what: "{count} contratos están muy por fuera del rango habitual (por encima de {high} o por debajo de {low})."
+  why: Un solo monto digitado con tres ceros de más puede duplicar el gasto total.
+  learn_more: "Usamos el rango intercuartílico sobre el logaritmo de los montos (k = 3), adecuado para datos de gasto con cola larga. Los valores atípicos son pistas para revisar, no errores."
+  options:
+    flag: {label: Marcarlos para revisión, hint: Agrega amount_original_outlier; los totales no cambian.}
+    cap: {label: Limitarlos al umbral superior, hint: Reduce su peso en los totales; se pierde el valor original.}
+    keep: {label: Conservar como están, hint: No se agrega ninguna marca.}
+type_casting:
+  title: "{field} está guardado como texto"
+  what: "{count} valores de {field} son números guardados como texto."
+  why: El texto no se puede promediar ni comparar, así que las alertas de «oferente único» fallan.
+  learn_more: Los valores se convierten en números enteros; lo que no sea un número queda vacío.
+  options:
+    to_integer: {label: Convertir a números enteros, hint: Permite validaciones numéricas como los contratos con oferente único.}
+    keep: {label: Conservar como texto, hint: Se omiten las validaciones numéricas en esta columna.}

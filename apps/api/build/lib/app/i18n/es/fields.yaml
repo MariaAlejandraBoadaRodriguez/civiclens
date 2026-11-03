@@ -1,0 +1,19 @@
+# Etiquetas de los campos del esquema canónico. Los NOMBRES de campo nunca se traducen.
+contract_id: {label: ID del contrato}
+entity_id: {label: ID de la entidad}
+entity_name: {label: Entidad contratante}
+supplier_id: {label: ID del proveedor}
+supplier_name: {label: Proveedor}
+signed_date: {label: Fecha de firma}
+start_date: {label: Fecha de inicio}
+end_date: {label: Fecha de fin}
+amount_original: {label: Valor del contrato (moneda original)}
+currency: {label: Moneda}
+award_type: {label: Modalidad de contratación}
+n_bidders: {label: Número de oferentes}
+category_code: {label: Código de categoría}
+description: {label: Descripción}
+contract_type: {label: Tipo de contrato}
+status: {label: Estado}
+region: {label: Región}
+city: {label: Ciudad}

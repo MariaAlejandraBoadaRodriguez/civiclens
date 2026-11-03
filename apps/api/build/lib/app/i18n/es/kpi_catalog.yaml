@@ -1,0 +1,9 @@
+total_spend: {name: Gasto total, definition: Suma del valor de los contratos convertidos a CAD con la tasa del mes de firma.}
+contract_count: {name: Contratos, definition: Número de contratos después de la limpieza (sin duplicados).}
+avg_value: {name: Valor promedio, definition: Valor medio de los contratos en CAD. Es sensible a contratos muy grandes; léelo junto con la mediana.}
+median_value: {name: Valor mediano, definition: El valor central de los contratos en CAD; la mitad de los contratos son menores.}
+direct_award_share: {name: Porcentaje de contratación directa, definition: Porcentaje de contratos adjudicados sin competencia (modalidad canónica «direct»).}
+hhi: {name: Concentración de proveedores (IHH), definition: "Suma de los cuadrados de la participación de cada proveedor en el gasto, de 0 a 1. Menos de 0,15 es no concentrado; más de 0,25 es muy concentrado."}
+single_bidder_share: {name: Porcentaje con oferente único, definition: Porcentaje de contratos con una sola oferta entre los que reportan el número de ofertas.}
+yoy_growth: {name: Crecimiento interanual, definition: Cambio del gasto entre los dos años fiscales más recientes que tienen cada uno al menos el 10 % de los contratos.}
+quality_score: {name: Puntaje de calidad de datos, definition: "Completitud, validez, unicidad y consistencia de los datos, de 0 a 100 (después de la limpieza si se aplicó una receta)."}

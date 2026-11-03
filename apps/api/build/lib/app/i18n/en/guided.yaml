@@ -1,0 +1,49 @@
+# Guided queries: title (list), question (business question) and what the SQL teaches.
+top_suppliers:
+  title: Who are the top suppliers, and how concentrated is spend?
+  question: Which ten suppliers receive the most money, and what share of total spend does each one get?
+  explanation: A CTE aggregates spend per supplier, then two window functions compute each supplier's share of the total and its rank — without a second GROUP BY.
+direct_award_share:
+  title: What share of contracts were direct awards?
+  question: How are contracts and spend split between direct, open and limited award types?
+  explanation: "SUM(COUNT(*)) OVER () is a window over grouped rows: it gives the grand total next to each group, so shares come out in one pass."
+fiscal_year_end:
+  title: Is there a spending spike before fiscal year end?
+  question: How does spend in the last 30 days of each fiscal year compare with an average month?
+  explanation: "FILTER (WHERE …) computes a conditional aggregate inside the same GROUP BY; dim_date already knows each jurisdiction's fiscal calendar."
+monthly_spend_by_entity:
+  title: Month-over-month spend by entity
+  question: For each contracting entity, how much did spend change from one month to the next?
+  explanation: LAG() reads the previous row of the same partition (entity) in month order — the classic way to compute period-over-period change.
+suppliers_many_entities:
+  title: Suppliers working with many entities
+  question: Which suppliers hold contracts with three or more different entities?
+  explanation: COUNT(DISTINCT …) with HAVING filters groups after aggregation; WHERE could not, because it runs before grouping.
+new_supplier_cohorts:
+  title: New supplier cohorts by year
+  question: How many suppliers appeared for the first time each year, and how much did they receive?
+  explanation: dim_supplier stores each supplier's first appearance; grouping by its year turns suppliers into cohorts.
+hhi_by_entity:
+  title: Which entities depend on few suppliers?
+  question: For each entity with at least five suppliers, how concentrated is its spend (Herfindahl–Hirschman Index)?
+  explanation: "The HHI is the sum of squared shares. A window partitioned by entity turns each supplier's spend into its share of that entity's total."
+single_bidder:
+  title: How often is there only one bidder?
+  question: For each award type, what share of contracts received a single bid?
+  explanation: Two FILTER clauses count different subsets of the same group; NULLIF avoids dividing by zero when no bid counts are reported.
+split_contracts:
+  title: Possible split contracts
+  question: Which entity–supplier pairs signed contracts within seven days of each other?
+  explanation: LAG() over (entity, supplier) ordered by date gives the previous signature; subtracting dates finds pairs signed close together. These are leads, not accusations.
+spend_by_category:
+  title: Spend by category
+  question: How is spend divided between goods, services and construction works?
+  explanation: dim_category holds labels in English and Spanish next to the source value, so the same query serves both report languages.
+running_total:
+  title: Cumulative spend by month
+  question: How does total spend accumulate month by month?
+  explanation: SUM() OVER (ORDER BY month) is a running total — the window grows by one month on each row.
+largest_per_entity:
+  title: The three largest contracts per entity
+  question: What are the three biggest contracts of each entity?
+  explanation: ROW_NUMBER() restarts at 1 in each partition; filtering on it in an outer query is the standard “top N per group” pattern.

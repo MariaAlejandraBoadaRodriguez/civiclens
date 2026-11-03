@@ -1,0 +1,107 @@
+# Cleaning Studio issue cards. Keys: issues.<issue_type>.{title,what,why,learn_more,options.<option_id>.{label,hint}}
+# Placeholders come from the issue's machine params; numbers arrive pre-formatted for the language.
+header_mapping:
+  title: "Check the mapping of “{header}”"
+  what: "The header “{header}” was matched to the canonical field {field} with confidence {confidence}."
+  why: A wrong mapping puts values in the wrong KPI — for example award types counted as categories.
+  learn_more: Headers are matched with an EN/FR/ES dictionary; anything below 0.8 is a fuzzy guess that needs a human check.
+  options:
+    keep: {label: "Keep {field}", hint: The suggested mapping looks right.}
+    unmap: {label: Do not map this column, hint: "Keep it with its original name; it will not feed any KPI."}
+    use: {label: "Map to {field}", hint: Use this canonical field instead.}
+pii:
+  title: "Personal data in {count} columns"
+  what: "{rows} rows contain values that look like personal data in: {columns}."
+  why: Personal data must never reach a chart, an export or an API response. Masking keeps the rows usable for counts.
+  learn_more: Masking replaces each value with a stable code (same input → same code), so duplicates can still be found but nobody can read the original.
+  options:
+    mask: {label: Mask the values, hint: Each value becomes a stable code like MASK-3f2a….}
+    drop: {label: Remove the columns, hint: Use when the analysis never needs these columns.}
+    keep: {label: Keep as is, hint: Only for authorized internal use; the decision is logged.}
+duplicates:
+  title: "{total} duplicate rows ({share})"
+  what: "{exact} exact duplicates and {near} near-duplicates (same values once case, accents and spaces are ignored)."
+  why: Duplicates inflate total spend and the number of contracts.
+  learn_more: Near-duplicates usually come from the same record exported twice with small typing differences.
+  options:
+    keep_first: {label: Keep the first occurrence, hint: Keeps the row as it first appears in the file.}
+    keep_last: {label: Keep the last occurrence, hint: Useful when later rows are corrections.}
+    flag: {label: Keep all and flag them, hint: Adds an is_duplicate column; nothing is removed.}
+missing_values:
+  title: Missing values written as text
+  what: "{cells} cells in {columns} columns say {tokens} instead of being empty."
+  why: Text like “N/A” is counted as a real value, so completeness looks better than it is and filters break.
+  learn_more: Each language writes “no data” differently (sin dato, non disponible, N/A). Turning them into real nulls makes every tool treat them the same way.
+  options:
+    to_null: {label: Turn them into empty values, hint: Completeness becomes honest.}
+    keep: {label: Keep the text, hint: Only if the text carries meaning in your process.}
+time_zone:
+  title: "{count} dates carry a time-zone offset"
+  what: "{count} values of signed_date include an offset such as -04:00 or -05:00."
+  why: Mixing offsets shifts contracts signed near midnight to another day — and another month in the report.
+  learn_more: Converting to UTC gives one timeline for every jurisdiction; keeping local time preserves the clock time written by the buyer.
+  options:
+    to_utc: {label: Convert to UTC, hint: Best for cross-jurisdiction comparisons.}
+    local: {label: Keep the local time, hint: Drops the offset and keeps the time as written.}
+date_format:
+  title: "Dates in {formats} different formats"
+  what: "signed_date mixes ISO dates ({iso}), day-first ({dmy}) and month-first ({mdy}) dates; {ambiguous} are ambiguous, like 05/06/2025."
+  why: A spreadsheet reads only one format, so monthly spend and fiscal-year-end checks silently lose rows.
+  learn_more: Unambiguous values (25/12/2025) always keep their meaning; the option you choose decides how ambiguous ones are read.
+  options:
+    day_first: {label: Read ambiguous dates as day/month, hint: Spanish and French convention (dd/mm/yyyy).}
+    month_first: {label: Read ambiguous dates as month/day, hint: US convention (mm/dd/yyyy).}
+number_locale:
+  title: Amounts written in different number formats
+  what: "amount_original mixes the decimal comma ({comma} values, 1.234,56) and the decimal point ({point} values, 1,234.56)."
+  why: Read with one convention, “1.234,56” becomes text or 1.23 — totals are wrong without any error message.
+  learn_more: Each value is read in its own notation; ambiguous values like 1.234 follow the convention you choose.
+  options:
+    auto: {label: Detect each value's format, hint: "Ambiguous values follow the column's main format."}
+    comma: {label: Ambiguous values use the decimal comma, hint: "1.234 → one thousand two hundred thirty-four."}
+    point: {label: Ambiguous values use the decimal point, hint: 1.234 → one point two three four.}
+mixed_currency:
+  title: "Amounts are in {n} different currencies"
+  what: "amount_original holds {breakdown}."
+  why: Adding them together makes total spend meaningless, and comparing Colombia with Canada needs a single currency.
+  learn_more: Each amount is converted with the rate of its signed month. Rates come from the TRM (Superfinanciera de Colombia) and the Bank of Canada; the source is shown below.
+  fx_note: "FX table: rate of each contract's signed month · source: {source}"
+  options:
+    to_cad: {label: Convert all to CAD, hint: Best for comparing with the Canadian datasets.}
+    to_cop: {label: Convert all to COP, hint: Keeps the Colombian report in local currency.}
+    to_usd: {label: Convert all to USD, hint: Neutral currency for international audiences.}
+    keep_add_cad: {label: Keep originals and add amount_cad, hint: Nothing is overwritten; one extra column.}
+text_variants:
+  title: "Name variants in {field}"
+  what: "{rows} rows write a name differently from its most common spelling ({groups} names affected)."
+  why: Variants split one supplier or entity into several, so concentration (HHI) and top-supplier rankings are wrong.
+  learn_more: Variants are grouped ignoring case, accents and spaces; within each group the most frequent spelling wins.
+  options:
+    unify: {label: Use the most frequent spelling, hint: Keeps names readable.}
+    upper: {label: Upper case without accents, hint: "Simple and strict: “Bogotá S.A.S.” → “BOGOTA S.A.S.”."}
+    keep: {label: Keep as is, hint: Rankings will count variants separately.}
+category_labels:
+  title: Award types use source-specific labels
+  what: "award_type has {distinct} source values (Spanish names, Canadian codes, OCDS terms)."
+  why: “Contratación directa”, “TN” and “direct” mean the same thing; without one label the direct-award share cannot be compared.
+  learn_more: "Values are mapped to {labels}. The original value is kept in award_type_source for traceability."
+  options:
+    standardize: {label: Map to the canonical labels, hint: Enables cross-jurisdiction KPIs.}
+    keep: {label: Keep the source labels, hint: KPIs that need award types stay unavailable.}
+outliers:
+  title: "{count} unusually large or small amounts"
+  what: "{count} contracts are far outside the usual range (above {high} or below {low})."
+  why: A single amount typed with three extra zeros can double total spend.
+  learn_more: "We use the interquartile range on the logarithm of amounts (k = 3), which suits spending data with a long tail. Outliers are leads to check, not errors."
+  options:
+    flag: {label: Flag them for review, hint: Adds amount_original_outlier; totals stay the same.}
+    cap: {label: Cap at the upper limit, hint: Limits their weight in totals; the original value is lost.}
+    keep: {label: Keep as is, hint: No flag is added.}
+type_casting:
+  title: "{field} is stored as text"
+  what: "{count} values of {field} are numbers stored as text."
+  why: Text cannot be averaged or compared, so “single bidder” checks fail.
+  learn_more: Values are converted to whole numbers; anything that is not a number becomes empty.
+  options:
+    to_integer: {label: Convert to whole numbers, hint: Enables numeric checks such as single-bidder contracts.}
+    keep: {label: Keep as text, hint: Numeric checks on this column are skipped.}

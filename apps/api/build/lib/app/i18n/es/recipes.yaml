@@ -1,0 +1,16 @@
+ops:
+  rename_columns: Renombrar columnas
+  drop_columns: Eliminar columnas
+  mask_columns: Enmascarar datos personales
+  standardize_nulls: Convertir nulos codificados en vacíos
+  drop_duplicates: Eliminar duplicados
+  parse_numbers: Leer números
+  normalize_timezones: Normalizar zonas horarias
+  parse_dates: Leer fechas
+  convert_currency: Convertir moneda
+  normalize_text: Normalizar texto
+  unify_variants: Unificar variantes de nombre
+  handle_missing: Tratar valores faltantes
+  handle_outliers: Tratar valores atípicos
+  cast_type: Cambiar tipo
+  standardize_categories: Estandarizar categorías
