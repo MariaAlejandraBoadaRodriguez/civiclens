@@ -1,0 +1,14 @@
+# Contract test settings (scripts/contract_check.sh). Every exclusion is justified in the 5e PR
+# and in the script's header. All other checks run.
+
+[checks]
+# Schema-valid but semantically invalid input is refused with a documented 400/406/422 problem.
+positive_data_acceptance.enabled = false
+# Authentication is optional by design on the public demo (ANONYMOUS_WRITES).
+ignored_auth.enabled = false
+
+[[operations]]
+# Multipart cannot carry JSON types: a "number" in the binary `file` part is just the bytes
+# "123", which is a valid (one-cell) file. Every other check still runs on this operation.
+include-name = "POST /api/v1/datasets"
+checks.negative_data_rejection.enabled = false

@@ -481,11 +481,12 @@ paths:
         - $ref: "#/components/parameters/RecipeId"
         - name: format
           in: query
-          required: true
+          required: false
           description: Target language of the generated code.
           schema:
             type: string
             enum: [pandas, sql, json]
+            default: pandas
       responses:
         "200":
           description: Generated code.
@@ -495,7 +496,7 @@ paths:
                 type: string
             application/json:
               schema:
-                $ref: "#/components/schemas/Recipe"
+                $ref: "#/components/schemas/RecipeDocument"
             text/x-python:
               schema:
                 type: string
@@ -662,7 +663,7 @@ paths:
                   description: "`forecast` only: `entity_id` restricts the series to one entity."
                   properties:
                     entity_id:
-                      type: string
+                      type: [string, "null"]
       responses:
         "202":
           description: Accepted; poll the job in `Location`.
@@ -1540,6 +1541,23 @@ components:
           items:
             $ref: "#/components/schemas/RecipeStep"
 
+    RecipeDocument:
+      type: object
+      description: Portable recipe file (what `format=json` downloads); no ids or timestamps.
+      required: [schema, name, version, steps]
+      properties:
+        schema:
+          type: string
+          const: civiclens.recipe/v1
+        name:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipeStep"
     Recipe:
       allOf:
         - $ref: "#/components/schemas/RecipeInput"

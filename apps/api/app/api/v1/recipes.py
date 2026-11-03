@@ -7,11 +7,12 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.problems import ProblemError, iso_utc
+from app.api.headers import content_disposition
+from app.api.problems import ProblemError, iso_utc, only_methods
 from app.api.security import require_scope
 from app.core.cleaning.recipe import RecipeError, validate_steps
 from app.db.models import Recipe
@@ -72,6 +73,9 @@ def preview_wrong_method() -> None:
     raise StarletteHTTPException(405)
 
 
+only_methods(f"{router.prefix}/preview", ["POST"])
+
+
 @router.post("/preview")
 def preview_recipe(body: PreviewInput) -> dict[str, str]:
     """Code for the live recipe panel: pandas pipeline, DuckDB SQL and the JSON document."""
@@ -112,5 +116,5 @@ def export_recipe(
     return PlainTextResponse(
         text,
         media_type=media,
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": content_disposition("attachment", filename)},
     )

@@ -59,7 +59,7 @@ def job_ref(job: Job) -> dict[str, str]:
 
 @router.get("")
 def list_datasets(
-    session: SessionDep, t: TDep, source: Literal["seed", "upload"] | None = None
+    session: SessionDep, t: TDep, source: Literal["seed", "upload", "api"] | None = None
 ) -> dict:
     items = [dataset_out(d, t) for d in svc.list_datasets(session)]
     if source:

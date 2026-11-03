@@ -197,7 +197,7 @@ def test_report_in_the_requested_language() -> None:
 
 def test_report_pdf_is_not_available_yet_and_unknown_dataset_is_404() -> None:
     r = client.get("/api/v1/reports/contracts_qc?format=pdf", headers={"Accept-Language": "es"})
-    assert r.status_code == 501 and r.json()["code"] == "report.pdf_unavailable"
+    assert r.status_code == 406 and r.json()["code"] == "report.pdf_unavailable"
     assert client.get("/api/v1/reports/nope").status_code == 404
 
 
@@ -269,3 +269,60 @@ def test_same_request_in_en_and_es_has_identical_machine_fields(path: str, has_t
     assert en.headers["content-language"] == "en" and es.headers["content-language"] == "es"
     assert _machine(en.json()) == _machine(es.json())
     assert (en.json() != es.json()) == has_text  # only the human text changes
+
+
+# ------------------------------------------------------------------------------ contract edges
+
+
+def test_content_disposition_is_latin1_safe_for_any_name() -> None:
+    from app.api.headers import content_disposition
+
+    assert content_disposition("inline", "report-en.html") == 'inline; filename="report-en.html"'
+    value = content_disposition("attachment", "Nettoyage_été_\U00106e9a_v1.py")
+    value.encode("latin-1")  # Starlette encodes headers as latin-1
+    assert 'filename="Nettoyage_t_v1.py"' in value
+    assert "filename*=UTF-8''Nettoyage_%C3%A9t%C3%A9_%F4%86%BA%9A_v1.py" in value
+    r = client.post("/api/v1/recipes", json={"name": "Limpieza — año 2024 ✓", "steps": []})
+    export = client.get(f"/api/v1/recipes/{r.json()['id']}/export")
+    assert (
+        export.status_code == 200 and "filename*=UTF-8''" in export.headers["content-disposition"]
+    )
+
+
+def test_framework_errors_are_localized_problems_with_allow() -> None:
+    r = client.get("/api/v1/nothing-here", headers={"Accept-Language": "es"})
+    assert r.status_code == 404 and r.json()["code"] == "request.not_found"
+    assert r.headers["content-type"].startswith("application/problem+json")
+    r = client.put("/api/v1/keys", headers={"Accept-Language": "es"})
+    assert r.status_code == 405 and r.json()["code"] == "request.method_not_allowed"
+    assert set(r.headers["allow"].replace(" ", "").split(",")) >= {"GET", "POST"}
+    stub = client.get("/api/v1/recipes/preview")
+    assert stub.status_code == 405 and stub.headers["allow"] == "POST"
+
+
+@pytest.mark.parametrize(
+    ("path", "body"),
+    [
+        (
+            "/api/v1/models/red_flags/reviews",
+            {"dataset_id": "x", "contract_id": "c", "reviewed": "no"},
+        ),
+        ("/api/v1/models/forecast/run", {"dataset_id": "contracts_ca", "params": {"entity_id": 7}}),
+    ],
+)
+def test_no_silent_type_coercion(path: str, body: dict) -> None:
+    assert client.post(path, json=body).status_code == 422
+
+
+def test_datasets_filter_accepts_every_documented_source() -> None:
+    for source in ("seed", "upload", "api"):
+        assert client.get(f"/api/v1/datasets?source={source}").status_code == 200
+    assert client.get("/api/v1/datasets?source=other").status_code == 422
+
+
+def test_allow_never_advertises_a_refusing_stub() -> None:
+    r = client.options("/api/v1/recipes/preview")
+    assert r.status_code == 405 and r.headers["allow"] == "POST"
+    doc = client.post("/api/v1/recipes", json={"name": "doc", "steps": []}).json()
+    exported = client.get(f"/api/v1/recipes/{doc['id']}/export?format=json").json()
+    assert set(exported) == {"schema", "name", "version", "steps"}  # RecipeDocument

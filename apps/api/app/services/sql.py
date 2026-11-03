@@ -48,12 +48,15 @@ def source_frame(ds: Dataset) -> tuple[Any, str]:
     return apply_steps(staged, steps, context()), "recommended"
 
 
-def ensure_star(ds: Dataset) -> Path:
+def ensure_star(ds: Dataset, rebuild: bool = False) -> Path:
+    """The dataset's star schema, built when missing. ``rebuild`` replaces an existing one
+    atomically: readers keep querying the old file until the new one is in place (deleting it
+    first made concurrent KPI/SQL requests fail while a recipe was being applied)."""
     path = storage.star_path(ds.id)
-    if path.exists():
+    if path.exists() and not rebuild:
         return path
     with _locks[str(ds.id)]:
-        if path.exists():
+        if path.exists() and not rebuild:
             return path
         frame, origin = source_frame(ds)
         star = build_star(
@@ -115,8 +118,7 @@ def run_star_phase(job_id: uuid.UUID) -> None:
     from app.core.jobs import run_phase
 
     def work(session: Any, job: Job, ds: Dataset) -> None:
-        storage.star_path(ds.id).unlink(missing_ok=True)
-        ensure_star(ds)
+        ensure_star(ds, rebuild=True)
         if ds.status == DatasetStatus.UPLOADED:
             ds.status = DatasetStatus.PROFILED
 

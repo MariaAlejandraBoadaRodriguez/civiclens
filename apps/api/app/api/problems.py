@@ -62,17 +62,30 @@ def iso_utc(value: datetime | None) -> str | None:
     return (value if value.tzinfo else value.replace(tzinfo=UTC)).isoformat()
 
 
+# Paths whose only methods are fixed, though a broader route (e.g. ``/recipes/{id}``) would
+# also match them. Their stub routes raise 405 and must never appear in ``Allow``.
+ONLY_METHODS: dict[str, list[str]] = {}
+
+
+def only_methods(path: str, methods: list[str]) -> None:
+    ONLY_METHODS[path] = methods
+
+
 def _allowed_methods(request: Request) -> list[str]:
-    """Every method any route serves for this path (Starlette lists only the first match)."""
+    """Every method some route serves for this path (Starlette lists only the first match).
+
+    Asks the router itself, method by method, so nested/included routers are covered too.
+    """
     from starlette.routing import Match
 
-    methods: set[str] = set()
-    for route in request.app.routes:
-        match, _ = route.matches({**request.scope, "method": "GET", "type": "http"})
-        if match != Match.NONE and getattr(route, "methods", None):
-            methods |= set(route.methods)
-    methods.discard("HEAD")
-    return sorted(methods)
+    if request.url.path in ONLY_METHODS:
+        return ONLY_METHODS[request.url.path]
+    allowed = []
+    for method in ("GET", "POST", "PUT", "PATCH", "DELETE"):
+        scope = {**request.scope, "method": method, "type": "http"}
+        if any(route.matches(scope)[0] == Match.FULL for route in request.app.routes):
+            allowed.append(method)
+    return allowed
 
 
 async def http_error_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:

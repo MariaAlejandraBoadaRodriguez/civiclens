@@ -6,8 +6,7 @@ from __future__ import annotations
 MONTHS = {
     "en": "January February March April May June July August September October November December",
     "es": (
-        "enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre "
-        "diciembre"
+        "enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre"
     ),
 }
 

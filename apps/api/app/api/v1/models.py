@@ -7,7 +7,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
@@ -25,15 +25,22 @@ SessionDep = Annotated[Session, Depends(get_session)]
 TDep = Annotated[Translator, Depends(get_translator)]
 
 
+class RunParams(BaseModel):
+    """Known parameters are typed strictly; unknown ones are accepted and ignored."""
+
+    model_config = ConfigDict(extra="allow")
+    entity_id: StrictStr | None = None
+
+
 class RunRequest(BaseModel):
     dataset_id: str = Field(description="Dataset id (UUID) or seed slug")
-    params: dict[str, Any] = Field(default_factory=dict)
+    params: RunParams = Field(default_factory=RunParams)
 
 
 class ReviewRequest(BaseModel):
     dataset_id: str
     contract_id: str = Field(min_length=1, max_length=200)
-    reviewed: bool = True
+    reviewed: StrictBool = True
 
 
 def _model(model_type: str) -> str:
@@ -53,7 +60,7 @@ def run_model(
 ) -> JSONResponse:
     model = _model(model_type)
     ds = ready_dataset(session, body.dataset_id)
-    params = {k: v for k, v in body.params.items() if k == "entity_id" and isinstance(v, str)}
+    params = {"entity_id": body.params.entity_id} if body.params.entity_id else {}
     job = Job(
         type=JobType.MODEL_RUN,
         status=JobStatus.QUEUED,

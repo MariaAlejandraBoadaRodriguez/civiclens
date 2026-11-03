@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
+from app.api.headers import content_disposition
 from app.api.problems import ProblemError
 from app.api.security import current_principal
 from app.api.v1.sql import ready_dataset
@@ -44,6 +45,6 @@ def get_report(
         html,
         headers={
             "Content-Language": language,
-            "Content-Disposition": f'inline; filename="{name}"',
+            "Content-Disposition": content_disposition("inline", name),
         },
     )
