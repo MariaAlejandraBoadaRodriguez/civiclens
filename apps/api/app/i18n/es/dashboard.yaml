@@ -1,0 +1,19 @@
+# Textos del tablero ejecutivo (spec M5). Los valores de los datos (nombres) nunca se traducen.
+jurisdictions:
+  CO: Colombia
+  CA: Canadá (federal)
+  QC: Quebec
+hhi:
+  unconcentrated: no concentrado
+  moderate: moderadamente concentrado
+  high: altamente concentrado
+finding:
+  peak: "El gasto de {month} es cerca de {ratio}× el promedio mensual: un pico que merece una segunda mirada."
+  flat: "Ningún mes sobresale: el más alto, {month}, es {ratio}× el promedio mensual."
+  flagged: "{n} de los contratos firmados en {month} están en la lista de revisión."
+  empty: No hay suficientes contratos con fecha en esta selección para graficar el gasto mensual.
+notes:
+  fx: "{place}: montos convertidos de {currency} a CAD con la tasa del mes de firma de cada contrato ({source})."
+  missing: "{place}: {share} de los contratos no tienen un monto utilizable y quedan fuera de los totales."
+  recommended: "{place}: aún no se aplica una receta de limpieza; las cifras usan las opciones de limpieza recomendadas."
+  flags: Las alertas son pistas para revisión humana, nunca acusaciones.

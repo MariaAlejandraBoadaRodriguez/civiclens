@@ -18,7 +18,7 @@ from app.api.problems import (
     validation_handler,
 )
 from app.api.security import problem, security_middleware
-from app.api.v1 import datasets, jobs, keys, models, recipes, reports, sql
+from app.api.v1 import dashboard, datasets, jobs, keys, models, recipes, reports, sql
 from app.config import settings
 from app.core import jobs as job_runner
 from app.i18n.loader import Translator, negotiate
@@ -84,6 +84,7 @@ app.include_router(recipes.router)
 app.include_router(sql.router)
 app.include_router(models.router)
 app.include_router(reports.router)
+app.include_router(dashboard.router)
 app.include_router(keys.router)
 
 

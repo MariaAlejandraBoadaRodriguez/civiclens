@@ -9,7 +9,7 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const BASE = process.argv[2] || "http://localhost:3000";
-const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc", "/en/datasets/contracts_ca/clean", "/es/datasets/secop_co/clean", "/en/datasets/secop_co/sql", "/es/datasets/contracts_ca/sql", "/en/datasets/contracts_qc/ml", "/es/datasets/secop_co/ml", "/en/admin", "/es/admin"];
+const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc", "/en/datasets/contracts_ca/clean", "/es/datasets/secop_co/clean", "/en/datasets/secop_co/sql", "/es/datasets/contracts_ca/sql", "/en/datasets/contracts_qc/ml", "/es/datasets/secop_co/ml", "/en/admin", "/es/admin", "/en/datasets/secop_co/dashboard", "/es/datasets/contracts_ca/dashboard?scope=all&period=12m"];
 const AXE = path.join(__dirname, "..", "node_modules", "axe-core", "axe.min.js");
 
 (async () => {
@@ -23,6 +23,9 @@ const AXE = path.join(__dirname, "..", "node_modules", "axe-core", "axe.min.js")
       if (route.endsWith("/sql")) await page.waitForSelector("#query-results h3, #query-results [role=note]");
       // The ML lab trains the model on first visit: audit it with results.
       if (route.endsWith("/ml")) await page.waitForSelector("#flags", { timeout: 120_000 });
+      // The dashboard streams a loading state first (the API may build a star schema): audit the
+      // dashboard itself (the loading state has its own h1; see tests/unit/errorPage.test.tsx).
+      if (route.includes("/dashboard")) await page.waitForSelector("#kpis-heading", { state: "attached", timeout: 120_000 });
       await page.addScriptTag({ path: AXE });
       const result = await page.evaluate(() =>
         // eslint-disable-next-line no-undef

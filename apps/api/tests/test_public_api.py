@@ -195,10 +195,26 @@ def test_report_in_the_requested_language() -> None:
     assert "attachment" not in en.headers["content-disposition"]
 
 
-def test_report_pdf_is_not_available_yet_and_unknown_dataset_is_404() -> None:
-    r = client.get("/api/v1/reports/contracts_qc?format=pdf", headers={"Accept-Language": "es"})
-    assert r.status_code == 406 and r.json()["code"] == "report.pdf_unavailable"
-    assert client.get("/api/v1/reports/nope").status_code == 404
+def test_report_pdf_in_the_requested_language_and_unknown_dataset_is_404() -> None:
+    import io
+
+    from pypdf import PdfReader
+
+    for lang, title in (("en", "Executive report"), ("es", "Reporte ejecutivo")):
+        r = client.get(f"/api/v1/reports/contracts_qc?format=pdf&lang={lang}")
+        assert r.status_code == 200 and r.headers["content-type"] == "application/pdf"
+        assert r.headers["content-language"] == lang
+        assert f"civiclens-report-contracts_qc-{lang}.pdf" in r.headers["content-disposition"]
+        text = "".join(p.extract_text() for p in PdfReader(io.BytesIO(r.content)).pages)
+        assert title in text
+    es = "".join(
+        p.extract_text()
+        for p in PdfReader(
+            io.BytesIO(client.get("/api/v1/reports/contracts_qc?format=pdf&lang=es").content)
+        ).pages
+    )
+    assert "revisión humana" in es  # accents survive the core fonts
+    assert client.get("/api/v1/reports/nope?format=pdf").status_code == 404
 
 
 def test_report_needs_reports_read_when_called_with_a_key() -> None:

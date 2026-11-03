@@ -13,6 +13,7 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from app.core import memory
 from app.core.reports import format as fmt
 from app.core.seed.registry import SEEDS
 from app.core.sql import engine
@@ -156,7 +157,8 @@ def _chart(monthly: list[dict[str, Any]], peak: dict[str, Any] | None, lang: str
     }
 
 
-def render_html(ds: Dataset, lang: str) -> str:
+def report_context(ds: Dataset, lang: str) -> dict[str, Any]:
+    """Everything the HTML and PDF reports show, already localized and formatted."""
     t = Translator(lang)
     data = summary(ds, t)
     k = data["kpis"]
@@ -222,16 +224,15 @@ def render_html(ds: Dataset, lang: str) -> str:
         for i in kpi_ids
         if i in k
     ]
-    template = _env.get_template("report.html.j2")
-    return template.render(
-        lang=lang,
-        t=t,
-        data=data,
-        texts=texts,
-        tiles=tiles,
-        date=date_text,
-        chart=_chart(monthly, peak, lang) if monthly else None,
-        suppliers=[
+    return {
+        "lang": lang,
+        "t": t,
+        "data": data,
+        "texts": texts,
+        "tiles": tiles,
+        "date": date_text,
+        "chart": _chart(monthly, peak, lang) if monthly else None,
+        "suppliers": [
             {
                 "name": s["name"],
                 "spend": fmt.money(s["spend"], "CAD", lang),
@@ -239,4 +240,16 @@ def render_html(ds: Dataset, lang: str) -> str:
             }
             for s in data["top_suppliers"]
         ],
-    )
+    }
+
+
+def render_html(ds: Dataset, lang: str) -> str:
+    return _env.get_template("report.html.j2").render(**report_context(ds, lang))
+
+
+def render_pdf(ds: Dataset, lang: str) -> bytes:
+    from app.core.reports import pdf
+
+    body = pdf.render(report_context(ds, lang))
+    memory.release()
+    return body

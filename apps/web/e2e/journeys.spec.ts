@@ -84,5 +84,37 @@ for (const lang of LANGS) {
       await page.getByRole("tab", { name: m.ml.tabs.forecast }).click();
       await expect(page.getByRole("heading", { level: 2, name: m.ml.forecast.title })).toBeVisible({ timeout: 150_000 });
     });
+    test("ML lab → dashboard → filters → executive report (HTML + PDF) and BI export", async ({ page, request }) => {
+      await page.goto(`/${lang}/datasets/contracts_qc/ml`);
+      await page.getByRole("link", { name: m.ml.continue }).click();
+      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/contracts_qc/dashboard$`));
+      await expect(page.getByRole("heading", { level: 1, name: m.dashboard.title })).toBeVisible();
+      await expect(page.getByTestId("kpi-tile")).toHaveCount(6);
+      await expect(page.getByTestId("finding")).toContainText(m.dashboard.monthly.finding);
+      // Filters update the URL and the figures; the comparison is always in CAD.
+      await page.getByRole("combobox", { name: m.dashboard.filters.jurisdiction, exact: true }).selectOption("all");
+      await page.getByRole("combobox", { name: m.dashboard.filters.period, exact: true }).selectOption("12m");
+      await expect(page).toHaveURL(/scope=all/);
+      await expect(page).toHaveURL(/period=12m/);
+      await expect(page.getByTestId("kpi-tile").first()).toContainText(
+        m.dashboard.kpi.change.replace("{value} ", ""),
+      );
+      await expect(page.getByTestId("jurisdiction-row")).toHaveCount(3);
+      // The report is generated in the UI language, as HTML and as PDF.
+      const report = page.getByRole("link", { name: new RegExp(m.dashboard.actions.report) });
+      const href = await report.getAttribute("href");
+      expect(href).toContain(`lang=${lang}`);
+      const html = await request.get(href as string);
+      expect(html.status()).toBe(200);
+      expect(await html.text()).toContain(`<html lang="${lang}">`);
+      const pdfHref = await page.getByRole("link", { name: new RegExp(m.dashboard.actions.pdf) }).getAttribute("href");
+      const pdf = await request.get(pdfHref as string);
+      expect(pdf.headers()["content-type"]).toBe("application/pdf");
+      expect(pdf.headers()["content-language"]).toBe(lang);
+      const zip = await request.get((await page.getByRole("link", { name: m.dashboard.actions.export }).getAttribute("href")) as string);
+      expect(zip.headers()["content-type"]).toBe("application/zip");
+      // Lifecycle nav: step 5 is a real link now.
+      await expect(page.getByRole("navigation", { name: m.nav.lifecycle }).getByRole("link", { name: new RegExp(m.nav.dashboard) })).toHaveAttribute("aria-current", "page");
+    });
   });
 }

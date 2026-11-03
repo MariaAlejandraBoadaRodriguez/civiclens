@@ -31,6 +31,17 @@
       "unavailableTitle": "El motor no respondió",
       "unavailableBody": "Puede que se esté reiniciando o despertando. No perdiste tu trabajo: inténtalo de nuevo en unos segundos.",
       "retry": "Reintentar"
+    },
+    "errorPage": {
+      "title": "Algo salió mal en esta página",
+      "body": "Tus datos están a salvo. Inténtalo de nuevo; si se repite, vuelve al inicio.",
+      "retry": "Intentar de nuevo",
+      "home": "Volver al inicio"
+    },
+    "notFoundPage": {
+      "title": "No encontramos esta página",
+      "body": "El enlace puede estar mal, o el conjunto de datos puede haber expirado (las cargas se guardan 24 horas).",
+      "home": "Volver al inicio"
     }
   },
   "nav": {
@@ -40,16 +51,83 @@
     "clean": "Limpieza",
     "sql": "SQL",
     "ml": "ML",
-    "dashboard": "Tablero",
-    "comingSoon": "Próximamente"
+    "dashboard": "Tablero"
   },
   "landing": {
     "eyebrow": "Motor de datos del sector público · datos en EN / FR / ES",
     "title": "De archivos públicos desordenados a decisiones que puedes defender.",
-    "subtitle": "Carga contratos, presupuestos o datos de programas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y genera el reporte ejecutivo.",
-    "status": "Versión temprana — la experiencia completa está en construcción.",
-    "designLink": "Ver el sistema de diseño",
-    "trySample": "Probar con datos de ejemplo"
+    "subtitle": "Sube contratos, presupuestos o datos de programas en cualquiera de tres idiomas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y arma el reporte ejecutivo: los mismos pasos, repetibles mediante una API.",
+    "trySample": "Probar con datos de ejemplo",
+    "upload": "Subir mi propio archivo",
+    "outputs": {
+      "title": "Lo que produce una ejecución",
+      "quality": {
+        "label": "Puntaje de calidad de datos",
+        "value": "antes → después"
+      },
+      "recipe": {
+        "label": "Receta de limpieza",
+        "value": "JSON · pandas · SQL"
+      },
+      "star": {
+        "label": "Esquema estrella",
+        "value": "1 hecho · 5 dims"
+      },
+      "flags": {
+        "label": "Alertas para revisión",
+        "value": "lista priorizada"
+      },
+      "report": {
+        "label": "Reporte ejecutivo",
+        "value": "PDF · HTML"
+      }
+    },
+    "flow": {
+      "title": "El ciclo analítico completo, paso a paso",
+      "ingest": {
+        "title": "Carga y perfilado",
+        "body": "Detecta formato, codificación e idioma; mapea encabezados; mide la calidad."
+      },
+      "clean": {
+        "title": "Limpieza guiada",
+        "body": "Decides cada corrección y ves su impacto en los KPI antes de aplicarla."
+      },
+      "sql": {
+        "title": "Modelado SQL",
+        "body": "Un esquema estrella y consultas guiadas responden preguntas reales del negocio."
+      },
+      "ml": {
+        "title": "Apoyo a decisiones",
+        "body": "Modelos explicables señalan anomalías y pronostican el gasto."
+      },
+      "report": {
+        "title": "Reporte y API",
+        "body": "Tablero, reporte en un clic y el mismo flujo vía REST."
+      }
+    },
+    "samples": {
+      "title": "Empieza con un conjunto de ejemplo",
+      "use": "Usar este conjunto →",
+      "useFor": "({name})",
+      "secop_co": {
+        "name": "Colombia · Contratos públicos",
+        "body": "Extracto de contratos de SECOP II. Montos en COP, encabezados en español."
+      },
+      "contracts_ca": {
+        "name": "Canadá · Contratos federales",
+        "body": "Divulgación proactiva de contratos. Encabezados bilingües, montos en CAD."
+      },
+      "contracts_qc": {
+        "name": "Quebec · Contratos públicos",
+        "body": "Avisos de contratos en francés, JSON anidado, fechas en formatos mixtos."
+      }
+    },
+    "footer": {
+      "builtBy": "Hecho por María Alejandra Boada · Analista de datos",
+      "github": "GitHub",
+      "licenses": "Licencias de los datos",
+      "design": "Sistema de diseño"
+    }
   },
   "design": {
     "metaTitle": "Sistema de diseño · CivicLens",
@@ -532,8 +610,7 @@
         "month": "Mes"
       }
     },
-    "continue": "Continuar al tablero →",
-    "continueSoon": "Tablero: próximamente"
+    "continue": "Continuar al tablero →"
   },
   "admin": {
     "metaTitle": "Claves de API · Administración de CivicLens",
@@ -593,6 +670,89 @@
       "confirmRevoke": "Confirmar: revocar ahora",
       "cancel": "Cancelar",
       "prefix": "{prefix}…"
+    }
+  },
+  "dashboard": {
+    "metaTitle": "Tablero · CivicLens",
+    "title": "Contratación pública · vista ejecutiva",
+    "subtitle": "Todos los montos en CAD, convertidos con la tasa del mes de firma de cada contrato.",
+    "kpisHeading": "Cifras clave",
+    "currencyNote": "Pasa el cursor o enfoca una cifra para ver su definición. Los cambios se comparan con el periodo anterior de la misma duración.",
+    "notReady": "Este conjunto de datos aún se está preparando. El tablero aparece en cuanto esté listo.",
+    "notFound": {
+      "title": "No encontramos el conjunto de datos",
+      "body": "Puede haber expirado (las cargas se guardan 24 horas).",
+      "action": "Abrir un conjunto de ejemplo"
+    },
+    "actions": {
+      "report": "Generar reporte ejecutivo",
+      "pdf": "Descargar PDF",
+      "export": "Exportar para Power BI",
+      "newTab": "(se abre en una pestaña nueva)"
+    },
+    "origin": {
+      "clean": "Tu receta de limpieza aplicada",
+      "recommended": "Limpieza recomendada aplicada"
+    },
+    "filters": {
+      "label": "Filtros del tablero",
+      "jurisdiction": "Jurisdicción",
+      "period": "Periodo",
+      "category": "Categoría",
+      "updating": "Actualizando…",
+      "periods": {
+        "all": "Todos los datos",
+        "12m": "Últimos 12 meses",
+        "fy": "Último año fiscal"
+      },
+      "categories": {
+        "all": "Todas las categorías",
+        "goods": "Bienes",
+        "services": "Servicios",
+        "construction": "Obras",
+        "other": "Otras"
+      }
+    },
+    "scopes": {
+      "all": "Los tres ejemplos",
+      "secop_co": "Colombia",
+      "contracts_ca": "Canadá (federal)",
+      "contracts_qc": "Quebec",
+      "upload": "Esta carga: {name}"
+    },
+    "kpi": {
+      "change": "{value} vs. periodo anterior",
+      "points": "{value} pts",
+      "median": "mediana {value}",
+      "was": "antes {value}"
+    },
+    "monthly": {
+      "title": "Gasto mensual, CAD",
+      "finding": "Hallazgo:",
+      "chartLabel": "Gráfico de barras del gasto mensual en CAD, de {first} a {last}",
+      "table": "Ver las cifras",
+      "month": "Mes",
+      "spend": "Gasto",
+      "contracts": "Contratos",
+      "bar": "{month}: {value}"
+    },
+    "jurisdictions": {
+      "title": "Por jurisdicción",
+      "contracts": "{n} contratos",
+      "unavailable": "No se pudo cargar la comparación."
+    },
+    "notes": {
+      "title": "Notas sobre los datos"
+    },
+    "api": {
+      "title": "Automatiza esto cada mes",
+      "body": "Una entidad envía el archivo del mes siguiente, se aplica la misma receta y los KPI y las alertas vuelven en JSON, sin que nadie abra la aplicación.",
+      "docs": "Abrir la documentación de la API",
+      "key": "Crear clave de API",
+      "codeLabel": "Ejemplo de la API (curl)",
+      "step1": "1. Sube el archivo del mes siguiente",
+      "step2": "2. Aplica la misma receta de limpieza (un trabajo)",
+      "step3": "3. Obtén los KPI, en CAD"
     }
   }
 }

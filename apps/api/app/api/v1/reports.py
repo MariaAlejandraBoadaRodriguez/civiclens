@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from sqlalchemy.orm import Session
 
 from app.api.headers import content_disposition
@@ -27,7 +27,7 @@ def get_report(
     session: SessionDep,
     lang: Annotated[Literal["en", "es"] | None, Query()] = None,
     format: Annotated[Literal["html", "pdf"], Query()] = "html",  # noqa: A002 — public param name
-) -> HTMLResponse:
+) -> Response:
     """``lang`` wins over ``Accept-Language``. Open to anonymous callers; a key needs
     ``reports:read``."""
     principal = current_principal(request)
@@ -37,14 +37,14 @@ def get_report(
     if language not in SUPPORTED:
         language = "en"
     ds = ready_dataset(session, dataset_id)
+    slug = ds.slug or ds.id
+    headers = {"Content-Language": language}
     if format == "pdf":
-        raise ProblemError(406, "report.pdf_unavailable")
-    html = reports.render_html(ds, language)
-    name = f"civiclens-report-{ds.slug or ds.id}-{language}.html"
-    return HTMLResponse(
-        html,
-        headers={
-            "Content-Language": language,
-            "Content-Disposition": content_disposition("inline", name),
-        },
-    )
+        name = f"civiclens-report-{slug}-{language}.pdf"
+        headers["Content-Disposition"] = content_disposition("inline", name)
+        return Response(
+            reports.render_pdf(ds, language), media_type="application/pdf", headers=headers
+        )
+    name = f"civiclens-report-{slug}-{language}.html"
+    headers["Content-Disposition"] = content_disposition("inline", name)
+    return HTMLResponse(reports.render_html(ds, language), headers=headers)
