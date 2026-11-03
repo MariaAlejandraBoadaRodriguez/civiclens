@@ -2,7 +2,6 @@ import { unstable_noStore as noStore } from "next/cache";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { KeyConsole } from "@/components/admin/KeyConsole";
 import { SignInButtons, SignOutButton } from "@/components/admin/SignIn";
-import { Alert } from "@/components/ui/Alert";
 import { Card } from "@/components/ui/Card";
 import { WakingUp } from "@/components/ui/WakingUp";
 import { adminConfig } from "@/lib/admin/access";
@@ -61,10 +60,10 @@ export default async function AdminPage({ params: { locale }, searchParams }: Pr
       </div>
 
       {!config.ready && (
-        <Alert variant="info" title={t("notConfigured.title")} titleId="admin-not-configured">
-          <p className="m-0">{t("notConfigured.body")}</p>
-          <p className="m-0 break-words font-mono text-xs">{config.missing.join(", ")}</p>
-        </Alert>
+        <Card title={t("notConfigured.title")} titleId="admin-not-configured" className="max-w-xl">
+          <p className="m-0 text-[15px]">{t("notConfigured.body")}</p>
+          <p className="m-0 break-words font-mono text-xs text-muted">{config.missing.join(", ")}</p>
+        </Card>
       )}
 
       {config.ready && !login && (
