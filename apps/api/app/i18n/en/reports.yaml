@@ -23,7 +23,8 @@ suppliers:
   share: Share of spend
 red_flags:
   heading: Contracts to review
-  text: "{flagged} of {contracts} contracts are flagged for human review. Most frequent reasons: {reasons}."
+  text: "{flagged} of {contracts} contracts are flagged for human review. Most frequent reasons among the flagged contracts (one contract can have several): {reasons}."
+  unscored: "{n} contracts have no positive amount or no signing date and could not be scored."
   not_run: The red-flag model has not been run on this dataset yet (ML lab).
   warning: Flags are leads for human review, never accusations.
 forecast:

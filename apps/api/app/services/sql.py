@@ -119,6 +119,9 @@ def run_star_phase(job_id: uuid.UUID) -> None:
 
     def work(session: Any, job: Job, ds: Dataset) -> None:
         ensure_star(ds, rebuild=True)
+        from app.services import ml  # model results described the previous star schema
+
+        ml.invalidate_results(ds)
         if ds.status == DatasetStatus.UPLOADED:
             ds.status = DatasetStatus.PROFILED
 

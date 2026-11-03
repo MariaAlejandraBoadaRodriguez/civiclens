@@ -114,11 +114,14 @@ Rebuild with `python scripts/fetch_fx.py`.
 | Pair | Source | Status |
 |---|---|---|
 | COP per USD | TRM, Superintendencia Financiera de Colombia (datos.gov.co `32sa-8pi3`, CC BY-SA 4.0) — monthly mean of daily values, 2015-01 → 2026-10 | ✅ official |
-| CAD per USD | Bank of Canada `FXMUSDCAD` monthly average | ⚠️ **approximate annual averages** — the Bank of Canada, StatCan, ECB and FRED hosts are blocked from the build sandbox |
+| CAD per USD | Federal Reserve H.10 monthly average, FRED series `EXCAUS` (public domain), read from the [datasets/exchange-rates](https://github.com/datasets/exchange-rates) mirror — 2015-01 → 2026-10 | ✅ official, monthly, dated |
+| COP → CAD | COP per USD (TRM) × CAD per USD (FRED), same month | ✅ derived from the two above |
 
-**To replace the approximation:** download https://www.bankofcanada.ca/valet/observations/FXMUSDCAD/csv
-and run `python scripts/fetch_fx.py --boc-csv FXMUSDCAD.csv`. Rows built from the approximation say so in their `source` column,
-and the Cleaning Studio shows that source under the currency KPI.
+`scripts/fetch_fx.py` tries the Bank of Canada `FXMUSDCAD` series first (or `--boc-csv` with the CSV
+downloaded from https://www.bankofcanada.ca/valet/observations/FXMUSDCAD/csv) and falls back to FRED.
+The two series differ by well under 1 % (both are monthly averages of daily noon/close rates). There
+is no approximate fallback: the script fails rather than write invented rates. Every row names its
+source, and the Cleaning Studio, dashboard and report show it.
 
 ## If a download breaks later
 

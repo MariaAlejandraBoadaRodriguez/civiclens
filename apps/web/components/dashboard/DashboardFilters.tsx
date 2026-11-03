@@ -48,7 +48,7 @@ export function DashboardFilters({
     >
       <label className="flex flex-col gap-1 text-[13px] text-muted">
         {t("jurisdiction")}
-        <select className={selectClass} value={scope} onChange={(e) => update("scope", e.target.value)}>
+        <select id="filter-scope" name="scope" className={selectClass} value={scope} onChange={(e) => update("scope", e.target.value)}>
           {scopes.map((s) => (
             <option key={s.value} value={s.value}>
               {s.label}
@@ -58,7 +58,7 @@ export function DashboardFilters({
       </label>
       <label className="flex flex-col gap-1 text-[13px] text-muted">
         {t("period")}
-        <select className={selectClass} value={period} onChange={(e) => update("period", e.target.value)}>
+        <select id="filter-period" name="period" className={selectClass} value={period} onChange={(e) => update("period", e.target.value)}>
           {PERIODS.map((p) => (
             <option key={p} value={p}>
               {t(`periods.${p}`)}
@@ -68,7 +68,7 @@ export function DashboardFilters({
       </label>
       <label className="flex flex-col gap-1 text-[13px] text-muted">
         {t("category")}
-        <select className={selectClass} value={category} onChange={(e) => update("category", e.target.value)}>
+        <select id="filter-category" name="category" className={selectClass} value={category} onChange={(e) => update("category", e.target.value)}>
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {t(`categories.${c}`)}
