@@ -71,14 +71,16 @@ def summary(ds: Dataset, t: Translator) -> dict[str, Any]:
     quality_after = (profile.get("quality_after") or {}).get("score")
     red = ml.load_result(ds, "red_flags")
     red_flags = None
-    if red and red.get("model_type") == "red_flags":
-        reasons = Counter(r for item in red.get("items", []) for r in item.get("reasons", []))
+    # Results written before the consistent counts existed are treated as not run.
+    if red and red.get("model_type") == "red_flags" and "reason_counts" in red:
+        counts = Counter({r: n for r, n in red["reason_counts"].items() if n})
         red_flags = {
             "flagged": red.get("flagged", 0),
             "contracts": red.get("contracts", 0),
+            "unscored": red.get("unscored", 0),
             "top_reasons": [
                 {"id": r, "label": t(f"models.red_flags.reasons.{r}"), "count": n}
-                for r, n in reasons.most_common(3)
+                for r, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:3]
             ],
         }
     forecast = None
@@ -205,6 +207,10 @@ def report_context(ds: Dataset, lang: str) -> dict[str, Any]:
                 f"{r['label']} ({fmt.number(r['count'], lang)})" for r in rf["top_reasons"]
             ),
         )
+        if rf["unscored"]:
+            texts["red_flags"] += " " + t(
+                "reports.red_flags.unscored", n=fmt.number(rf["unscored"], lang)
+            )
     seed = data["dataset"]
     texts["source"] = (
         t("reports.notes.source", publisher=seed["name"], license=seed["license"])

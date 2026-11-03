@@ -1,5 +1,6 @@
 import { PUBLIC_API_URL } from "./api";
 import type { Job, Problem } from "./api-types";
+import { isRouteMissing, routeUnavailable } from "./routeUnavailable";
 
 /**
  * Browser calls to the API. Every failure comes back as a value the UI must show — never a
@@ -43,6 +44,9 @@ export async function apiRequest<T>(path: string, options: Options): Promise<Api
   if (res.status === 204) return { ok: true, data: null as T };
   const body: unknown = await res.json().catch(() => null);
   if (res.ok && body !== null) return { ok: true, data: body as T };
+  if (isRouteMissing(res.status, body)) {
+    return { ok: false, error: { kind: "problem", problem: routeUnavailable() } };
+  }
   if (res.status < 500 && body && typeof body === "object" && "code" in body) {
     return { ok: false, error: { kind: "problem", problem: body as Problem } };
   }

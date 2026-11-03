@@ -30,7 +30,9 @@
     "apiError": {
       "unavailableTitle": "El motor no respondió",
       "unavailableBody": "Puede que se esté reiniciando o despertando. No perdiste tu trabajo: inténtalo de nuevo en unos segundos.",
-      "retry": "Reintentar"
+      "retry": "Reintentar",
+      "routeTitle": "No disponible en esta versión de la API",
+      "routeBody": "La API que respondió aún no tiene esta función. Puede ser una versión anterior que todavía se está actualizando: inténtalo de nuevo después del próximo despliegue."
     },
     "errorPage": {
       "title": "Algo salió mal en esta página",
@@ -739,7 +741,9 @@
     "jurisdictions": {
       "title": "Por jurisdicción",
       "contracts": "{n} contratos",
-      "unavailable": "No se pudo cargar la comparación."
+      "unavailable": "No se pudo cargar la comparación.",
+      "filtered": "El mismo periodo y la misma categoría que las cifras de arriba: {period} · {category}. La jurisdicción seleccionada aparece en negrita.",
+      "selected": " (seleccionada)"
     },
     "notes": {
       "title": "Notas sobre los datos"

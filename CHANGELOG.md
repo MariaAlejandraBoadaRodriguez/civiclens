@@ -4,6 +4,11 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 
 ## [Unreleased]
 ### Fixed
+- Report, KPIs, dashboard and red flags use one cleaned row count: red flags count every contract (and say how many could not be scored); model results are reset when a recipe rebuilds the star schema.
+- "Most frequent reasons" are counted over every flagged contract (not the listed ones), with wording that a contract can have several.
+- FX: USD/CAD is the dated Federal Reserve monthly average (FRED EXCAUS) instead of a placeholder annual approximation; `fetch_fx.py` fails rather than invent rates.
+- Dashboard: the by-jurisdiction panel states its period and category (the same as the KPIs) and highlights the selected jurisdiction; filter selects have `id`/`name`.
+- A 404 for an API route that does not exist yet (older API version) says "not available on this API version" instead of "the engine did not wake up".
 - Dashboard filters changed in quick succession no longer drop the previous choice.
 - Intermittent API test failure: rate-limit windows are reset before every test.
 - Applying a recipe deleted the star schema before rebuilding it, so KPI/SQL/report requests in between failed with 500; it is now replaced atomically (found by Schemathesis).

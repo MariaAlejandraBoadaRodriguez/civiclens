@@ -31,8 +31,7 @@ FROM fact_contract f
 LEFT JOIN dim_entity e USING (entity_id)
 LEFT JOIN dim_supplier s USING (supplier_id)
 LEFT JOIN dim_date d USING (date_id)
-WHERE f.amount_cad IS NOT NULL
-"""
+"""  # every contract: red flags count them all and score those with an amount and a date
 
 
 def contracts_frame(path: Path) -> pd.DataFrame:
@@ -56,6 +55,7 @@ def run_model(ds: Dataset, model: str, params: dict[str, Any] | None = None) -> 
     if model == "red_flags":
         result = red_flags.run(frame, red_flags.RedFlagParams(jurisdiction), context().fx)
     else:
+        frame = frame[frame["amount_cad"].notna()]  # what the forecast always used
         result = forecast.run(frame, entity_id=(params or {}).get("entity_id"))
     result["origin"] = sql_svc.star_origin(ds)
     result["model_type"] = model
@@ -63,6 +63,16 @@ def run_model(ds: Dataset, model: str, params: dict[str, Any] | None = None) -> 
     result["reviewed"] = reviewed
     storage.write_json(result, result_path(ds, model))
     return result
+
+
+def invalidate_results(ds: Dataset) -> None:
+    """The star schema changed (a recipe was applied): stored model results describe other data,
+    so they are dropped. Only the human review marks are kept."""
+    for model in MODELS:
+        path = result_path(ds, model)
+        old = storage.read_json(path)
+        if old is not None:
+            storage.write_json({"reviewed": old.get("reviewed", [])}, path)
 
 
 def load_result(ds: Dataset, model: str) -> dict[str, Any] | None:

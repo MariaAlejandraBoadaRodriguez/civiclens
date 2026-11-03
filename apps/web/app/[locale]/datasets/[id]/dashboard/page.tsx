@@ -14,6 +14,7 @@ import { KpiTile } from "@/components/ui/KpiTile";
 import { SkeletonGroup } from "@/components/ui/Skeleton";
 import { WakingUp } from "@/components/ui/WakingUp";
 import { PUBLIC_API_URL, apiGet } from "@/lib/api";
+import { ROUTE_UNAVAILABLE } from "@/lib/routeUnavailable";
 import { CATEGORIES, PERIODS, type Category, type Dashboard, type Dataset, type Period } from "@/lib/api-types";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ const query = (refs: readonly string[], period: Period, category: Category) =>
 export default async function DashboardPage({ params: { locale, id }, searchParams }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
+  const tc = await getTranslations("common.apiError");
   const period: Period = (PERIODS as readonly string[]).includes(searchParams.period ?? "") ? (searchParams.period as Period) : "all";
   const category: Category = (CATEGORIES as readonly string[]).includes(searchParams.category ?? "")
     ? (searchParams.category as Category)
@@ -121,7 +123,11 @@ export default async function DashboardPage({ params: { locale, id }, searchPara
         </Card>
       )}
       {!main.ok && main.kind === "problem" && !notReady && (
-        <EmptyState title={main.problem.title} body={main.problem.detail} />
+        main.problem.code === ROUTE_UNAVAILABLE ? (
+          <EmptyState title={tc("routeTitle")} body={tc("routeBody")} />
+        ) : (
+          <EmptyState title={main.problem.title} body={main.problem.detail} />
+        )
       )}
 
       {main.ok && (
@@ -153,8 +159,17 @@ export default async function DashboardPage({ params: { locale, id }, searchPara
               </p>
             </Card>
             <Card title={t("jurisdictions.title")} titleId="jurisdictions" className="flex-[1_1_320px]">
+              <p className="m-0 text-[13px] text-muted" data-testid="jurisdiction-filters">
+                {t("jurisdictions.filtered", {
+                  period: t(`filters.periods.${period}`),
+                  category: t(`filters.categories.${category}`),
+                })}
+              </p>
               {comparison.ok ? (
-                <JurisdictionBars items={comparison.data.by_jurisdiction} />
+                <JurisdictionBars
+                  items={comparison.data.by_jurisdiction}
+                  selected={main.data.by_jurisdiction.map((j) => j.dataset_id)}
+                />
               ) : (
                 <p className="m-0 text-sm">{t("jurisdictions.unavailable")}</p>
               )}

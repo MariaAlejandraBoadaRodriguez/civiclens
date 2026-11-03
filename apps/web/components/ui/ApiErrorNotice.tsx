@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import type { ApiFailure } from "@/lib/apiClient";
+import { ROUTE_UNAVAILABLE } from "@/lib/routeUnavailable";
 
 /**
  * What the user sees when an API call fails: the API's own localized problem, or — when the
@@ -11,8 +12,9 @@ import type { ApiFailure } from "@/lib/apiClient";
  */
 export function ApiErrorNotice({ error, onRetry }: { error: ApiFailure; onRetry?: () => void }) {
   const t = useTranslations("common.apiError");
-  const title = error.kind === "problem" ? error.problem.title : t("unavailableTitle");
-  const detail = error.kind === "problem" ? error.problem.detail : t("unavailableBody");
+  const routeMissing = error.kind === "problem" && error.problem.code === ROUTE_UNAVAILABLE;
+  const title = routeMissing ? t("routeTitle") : error.kind === "problem" ? error.problem.title : t("unavailableTitle");
+  const detail = routeMissing ? t("routeBody") : error.kind === "problem" ? error.problem.detail : t("unavailableBody");
   return (
     <div role="alert" className="flex flex-col gap-3 rounded-card border border-flag-border bg-flag-tint p-4 text-sm text-flag-text">
       <div className="flex flex-col gap-1">

@@ -2026,10 +2026,23 @@ components:
             $ref: "#/components/schemas/RedFlagRule"
         contracts:
           type: integer
+          description: Every contract in the star schema (the same count as the `contract_count` KPI).
+        scored:
+          type: integer
+          description: Contracts with a positive amount and a signing date, which the model can score.
+        unscored:
+          type: integer
+          description: "`contracts - scored`."
         flagged:
           type: integer
         rule_counts:
           type: object
+          description: Contracts matching each rule (flagged or not).
+          additionalProperties:
+            type: integer
+        reason_counts:
+          type: object
+          description: Among the flagged contracts, how many have each reason (a contract can have several).
           additionalProperties:
             type: integer
         reviewed:
