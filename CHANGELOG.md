@@ -4,6 +4,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 
 ## [Unreleased]
 ### Fixed
+- Dashboard filters changed in quick succession no longer drop the previous choice.
+- Intermittent API test failure: rate-limit windows are reset before every test.
 - Applying a recipe deleted the star schema before rebuilding it, so KPI/SQL/report requests in between failed with 500; it is now replaced atomically (found by Schemathesis).
 - Exports and reports of datasets or recipes with non-Latin-1 names failed with 500 (`Content-Disposition` now uses RFC 5987 `filename*`).
 - Production 502s (shown by the browser as CORS errors): the API exceeded Render's 512 MB. Background jobs now run in phases, each in a short-lived forked process (an OOM-killed job is marked failed and the API keeps serving); the staged layer, file reader, duplicate detection and output hash use far less memory; uploads stream to disk. Full flow on the three seeds: 419 MB peak instead of 568 MB.
@@ -11,6 +13,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [
 - Deploy: Render Blueprint (`render.yaml`) for the API (Docker, free plan, `/health`, seed datasets and their star schemas built into the image, CORS for the production and preview web URLs) and memory limits for the 512 MB free instance; the "Waking up the engine" state stops after 90 s with a translated error and a Retry button; favicon; the Dashboard step is shown disabled ("Coming soon") until Phase 6.
 
 ### Added
+- Phase 6: executive dashboard (`/[locale]/datasets/[id]/dashboard`: jurisdiction / period / category filters, six KPI tiles with period changes, monthly spend chart with a written finding, comparison by jurisdiction in CAD, data notes, "Automate this every month" API block), `GET /api/v1/dashboard` (several datasets combined exactly), executive report as PDF (`?format=pdf`, fpdf2) next to HTML, star-schema export for Power BI / Tableau (`/api/v1/datasets/{id}/export?format=csv|parquet`, `docs/bi-export.md`), final Landing, Dashboard step enabled in the lifecycle nav, translated loading / error / not-found states, E2E check for clipped text at 375 px and 1280 px in EN and ES.
 - Slice 5e: public API — agency API keys (argon2id hashes, scopes `datasets:write`, `recipes:write`, `models:run`, `reports:read`, revocable, shown once, audit-logged), per-caller rate limits with a stricter limit on job-starting routes (429 + `Retry-After`), `ANONYMOUS_WRITES` switch for the public demo, executive report endpoint `/api/v1/reports/{id}?lang=en|es` (self-contained HTML), RFC 7807 problems for every error including unknown routes and wrong methods (with a complete `Allow`), UTC timestamps with offset, admin API-key console (`/[locale]/admin`, Auth.js GitHub OAuth, one allowlisted account), Schemathesis contract job in CI.
 - Quality gates: CI job running the API image in 512 MB with the full flow and Playwright E2E in /en and /es (fails on any console error or OOM kill), Vitest unit tests, Render `autoDeployTrigger: checksPass`, Vercel Deployment Check workflow, post-deploy smoke test that opens an issue with rollback steps.
 - Phase 0: monorepo scaffold (Next.js 14 + next-intl EN/ES, FastAPI), Docker Compose, CI, repo templates.
