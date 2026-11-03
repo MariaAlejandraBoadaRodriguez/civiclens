@@ -25,3 +25,14 @@ def _migrated_db() -> None:
     cfg.set_main_option("script_location", str(API_DIR / "app" / "db" / "migrations"))
     cfg.cmd_opts = type("Opts", (), {"x": [f"url={os.environ['DATABASE_URL']}"]})()
     command.upgrade(cfg, "head")
+
+
+@pytest.fixture(autouse=True)
+def _fresh_rate_limits() -> None:
+    """Every test starts with empty rate-limit windows. The test client is one "IP": without
+    this, job-starting calls from earlier test files that fell in the same minute pushed a later
+    test over the 12-per-minute heavy limit (an intermittent 429). The limits themselves are
+    tested in test_public_api.py with explicit values."""
+    from app.api.security import limiter
+
+    limiter.reset()
