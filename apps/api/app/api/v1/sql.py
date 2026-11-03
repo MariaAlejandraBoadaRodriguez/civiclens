@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
+from app.api.headers import content_disposition
 from app.api.problems import ProblemError
 from app.core.sql import engine
 from app.core.sql.guard import MAX_SQL_CHARS, QueryRejected
@@ -98,3 +99,20 @@ def get_kpis(dataset_id: str, session: SessionDep, t: TDep) -> dict[str, Any]:
     ds = ready_dataset(session, dataset_id)
     items = svc.kpis(ds, t)  # builds the star schema first, so the origin below is known
     return {"dataset_id": str(ds.id), "origin": svc.star_origin(ds), "items": items}
+
+
+@router.get("/datasets/{dataset_id}/export", tags=["sql"])
+def export_star_schema(
+    dataset_id: str,
+    session: SessionDep,
+    format: Literal["csv", "parquet"] = "csv",  # noqa: A002
+) -> Response:
+    """The star schema as a zip (one file per table) for Power BI / Tableau."""
+    ds = ready_dataset(session, dataset_id)
+    body = svc.export_star(ds, format)
+    name = f"civiclens-star-{ds.slug or ds.id}-{format}.zip"
+    return Response(
+        body,
+        media_type="application/zip",
+        headers={"Content-Disposition": content_disposition("attachment", name)},
+    )

@@ -38,6 +38,8 @@ tags:
     description: Red flags and forecasting (M6).
   - name: jobs
     description: Asynchronous work.
+  - name: dashboard
+    description: Executive dashboard and cross-jurisdiction comparison in CAD (M5).
   - name: reports
     description: Executive report (M5).
   - name: admin
@@ -826,12 +828,108 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
 
+  /api/v1/dashboard:
+    get:
+      tags: [dashboard]
+      operationId: getDashboard
+      summary: Executive dashboard
+      description: |
+        KPIs, monthly spend and a by-jurisdiction comparison for one or several datasets, all in
+        CAD. Several datasets are combined exactly (one HHI over every supplier, one median).
+        `12m` is each dataset's last 12 months of data; `fy` its last fiscal year holding at
+        least 10 % of its contracts (Colombia: calendar year; Canada and Québec: April–March).
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-22, US-23]
+      parameters:
+        - $ref: "#/components/parameters/AcceptLanguage"
+        - name: dataset_id
+          in: query
+          required: true
+          description: Dataset UUID or seed slug; repeat for a comparison (at most 5).
+          style: form
+          explode: true
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 5
+            items:
+              type: string
+              minLength: 1
+              maxLength: 64
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [all, 12m, fy]
+            default: all
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [all, goods, services, construction, other]
+            default: all
+      responses:
+        "200":
+          description: Dashboard.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/v1/datasets/{dataset_id}/export:
+    get:
+      tags: [sql]
+      operationId: exportStarSchema
+      summary: Star schema for Power BI / Tableau
+      description: A zip with one CSV or Parquet file per star-schema table and a README.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-23]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [csv, parquet]
+            default: csv
+      responses:
+        "200":
+          description: The zip.
+          content:
+            application/zip:
+              schema:
+                type: string
+                contentMediaType: application/zip
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
   /api/v1/reports/{dataset_id}:
     get:
       tags: [reports]
       operationId: getReport
       summary: Executive report
-      description: "HTML report in the requested language (`format=pdf` answers 406 until PDF is enabled). `lang` wins over `Accept-Language`.\n\nWith an API key, the key needs the `reports:read` scope."
+      description: "Self-contained HTML or A4 PDF report in the requested language. `lang` wins over `Accept-Language`.\n\nWith an API key, the key needs the `reports:read` scope."
       security: [{}, ApiKey: []]
       x-user-stories: [US-05]
       parameters:
@@ -875,8 +973,6 @@ paths:
           $ref: "#/components/responses/Unprocessable"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-        "406":
-          $ref: "#/components/responses/NotAcceptable"
 
   /api/v1/keys:
     get:
@@ -1097,12 +1193,6 @@ components:
           schema:
             $ref: "#/components/schemas/Problem"
 
-    NotAcceptable:
-      description: The requested format is not available (e.g. PDF before it is enabled).
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
   schemas:
     UiLanguage:
       type: string
@@ -1698,6 +1788,130 @@ components:
       type: string
       description: "`clean`: built from the applied recipe; `recommended`: recommended recipe applied on the fly."
       enum: [clean, recommended]
+
+    DashboardKpi:
+      allOf:
+        - $ref: "#/components/schemas/Kpi"
+        - type: object
+          properties:
+            change:
+              type: [number, "null"]
+              description: Relative change against the previous period (0.068 = +6.8 %); null for `all`.
+            change_points:
+              type: [number, "null"]
+              description: "`direct_award_share` only: change in share (0.03 = +3 points)."
+            median:
+              type: [number, "null"]
+              description: "`avg_value` only: the median contract value in CAD."
+            level:
+              type: [string, "null"]
+              enum: [unconcentrated, moderate, high, null]
+              description: "`hhi` only (US DOJ/FTC 2023 thresholds: 0.10 and 0.18)."
+            level_label:
+              type: [string, "null"]
+            before:
+              type: [number, "null"]
+              description: "`quality_score` only: the score before cleaning."
+
+    Dashboard:
+      type: object
+      required: [filters, currency, kpis, monthly, finding, by_jurisdiction, notes]
+      properties:
+        filters:
+          type: object
+          properties:
+            period:
+              type: string
+              enum: [all, 12m, fy]
+            category:
+              type: string
+              enum: [all, goods, services, construction, other]
+        currency:
+          type: string
+          const: CAD
+        kpis:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardKpi"
+        monthly:
+          type: array
+          items:
+            type: object
+            required: [month, spend, contracts]
+            properties:
+              month:
+                type: string
+                pattern: "^[0-9]{4}-[0-9]{2}$"
+              spend:
+                type: number
+              contracts:
+                type: integer
+        peak:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [month, spend, ratio, is_peak]
+              properties:
+                month:
+                  type: string
+                spend:
+                  type: number
+                contracts:
+                  type: integer
+                ratio:
+                  type: number
+                  description: Peak month over the average month.
+                is_peak:
+                  type: boolean
+                  description: True when the ratio is at least 2.
+                flagged:
+                  type: [integer, "null"]
+                  description: Red-flagged contracts signed that month (null when the model has not run).
+        finding:
+          type: string
+          description: Localized written finding about the monthly chart.
+        by_jurisdiction:
+          type: array
+          items:
+            type: object
+            required: [dataset_id, jurisdiction, spend, contracts, share_of_max]
+            properties:
+              dataset_id:
+                type: string
+                format: uuid
+              slug:
+                type: [string, "null"]
+              jurisdiction:
+                type: string
+                enum: [CO, CA, QC]
+              name:
+                type: string
+              label:
+                type: string
+              spend:
+                type: number
+              contracts:
+                type: integer
+              share_of_max:
+                type: number
+                minimum: 0
+                maximum: 1
+              origin:
+                $ref: "#/components/schemas/StarOrigin"
+              window:
+                type: object
+                properties:
+                  start:
+                    type: [string, "null"]
+                  end:
+                    type: [string, "null"]
+                  fiscal_year:
+                    type: [integer, "null"]
+        notes:
+          type: array
+          description: Localized data notes (currency conversion, excluded rows, cleaning state).
+          items:
+            type: string
 
     StarSchema:
       type: object

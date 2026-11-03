@@ -123,3 +123,55 @@ def run_star_phase(job_id: uuid.UUID) -> None:
             ds.status = DatasetStatus.PROFILED
 
     run_phase(job_id, "job.crashed", work, finish=True)
+
+
+BI_FORMATS = ("csv", "parquet")
+
+
+def export_star(ds: Dataset, fmt: str) -> bytes:
+    """The star schema as a zip of one file per table, for Power BI / Tableau (spec M5).
+    Read through the guarded read-only connection; written in memory (the tables are small)."""
+    import io
+    import zipfile
+
+    import pyarrow.csv as pa_csv
+    import pyarrow.parquet as pq
+
+    from app.core.sql.star_schema import TABLES
+
+    if fmt not in BI_FORMATS:
+        raise ValueError(fmt)
+    buffer = io.BytesIO()
+    con = engine.connect(ensure_star(ds))
+    try:
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            for name in TABLES:
+                rel = con.sql(f"SELECT * FROM {name}")  # noqa: S608 — fixed table names
+                # DuckDB 2 renamed the relation's arrow() to to_arrow_table().
+                fetch = getattr(rel, "to_arrow_table", None) or rel.arrow
+                table = fetch()
+                out = io.BytesIO()
+                if fmt == "csv":
+                    pa_csv.write_csv(table, out)
+                else:
+                    pq.write_table(table, out, compression="zstd")
+                zf.writestr(f"{name}.{fmt}", out.getvalue())
+            zf.writestr("README.txt", BI_README)
+    finally:
+        con.close()
+    memory.release()
+    return buffer.getvalue()
+
+
+BI_README = """CivicLens star schema export
+
+fact_contract  one row per contract; amount_cad is the amount converted to CAD with the
+               rate of the signing month; joins: entity_id, supplier_id, date_id, category_id
+dim_entity     buying entities
+dim_supplier   suppliers (first_seen = first signing date)
+dim_date       calendar and fiscal year of the jurisdiction
+dim_category   goods / services / construction / other, with EN and ES labels
+dim_currency   currencies present in the source
+
+Load guide: https://github.com/MariaAlejandraBoadaRodriguez/civiclens/blob/main/docs/bi-export.md
+"""

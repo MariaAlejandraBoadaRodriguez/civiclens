@@ -115,7 +115,3 @@ rate_limit:
   exceeded:
     title: Too many requests
     detail: "Wait {retry_after} seconds and try again."
-report:
-  pdf_unavailable:
-    title: PDF reports are not available yet
-    detail: Ask for the HTML report (format=html) and print it to PDF from the browser.

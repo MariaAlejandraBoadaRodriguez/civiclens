@@ -115,7 +115,3 @@ rate_limit:
   exceeded:
     title: Demasiadas solicitudes
     detail: "Espera {retry_after} segundos e inténtalo de nuevo."
-report:
-  pdf_unavailable:
-    title: Los reportes en PDF aún no están disponibles
-    detail: Pide el reporte HTML (format=html) e imprímelo como PDF desde el navegador.
