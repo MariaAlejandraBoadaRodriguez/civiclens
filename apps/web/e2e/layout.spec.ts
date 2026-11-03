@@ -1,4 +1,4 @@
-import { expect, test, type Lang } from "./fixtures";
+import { MESSAGES, expect, test, type Lang } from "./fixtures";
 
 /**
  * Phase 6 DoD: no clipped or overflowing text in either language at 375 px and 1280 px.
@@ -64,3 +64,14 @@ test("the clipping check catches clipped text and sideways scroll", async ({ pag
   expect(problems.some((p) => p.startsWith("page scrolls sideways"))).toBe(true);
   expect(problems.some((p) => p.includes("Presupuesto ejecutado"))).toBe(true);
 });
+
+for (const lang of LANGS) {
+  test(`unknown pages are a translated 404 in /${lang}`, async ({ page, browserConsole }) => {
+    browserConsole.allow(/status of 404/); // the browser logs the 404 response itself
+    const res = await page.goto(`/${lang}/no-such-page`);
+    expect(res?.status()).toBe(404);
+    const m = MESSAGES[lang];
+    await expect(page.getByRole("heading", { level: 1, name: m.common.notFoundPage.title })).toBeVisible();
+    await expect(page.getByRole("navigation").first()).toBeVisible(); // inside the app layout
+  });
+}

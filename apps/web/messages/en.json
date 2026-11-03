@@ -31,6 +31,17 @@
       "unavailableTitle": "The engine did not answer",
       "unavailableBody": "It may be restarting or waking up. Your work is not lost — try again in a few seconds.",
       "retry": "Retry"
+    },
+    "errorPage": {
+      "title": "Something went wrong on this page",
+      "body": "Your data is safe. Try again; if it keeps happening, go back to the start.",
+      "retry": "Try again",
+      "home": "Back to the start"
+    },
+    "notFoundPage": {
+      "title": "Page not found",
+      "body": "The link may be wrong, or the dataset may have expired (uploads are kept 24 hours).",
+      "home": "Back to the start"
     }
   },
   "nav": {
