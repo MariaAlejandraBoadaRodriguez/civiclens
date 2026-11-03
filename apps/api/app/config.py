@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     environment: str = "local"
+    # One JSON object per log line, with request ID and locale (off in tests: pytest's capture).
+    json_logs: bool = True
     allowed_origins: list[str] = ["http://localhost:3000"]
     # Extra origins by pattern, e.g. Vercel preview deployments of the web app.
     allowed_origin_regex: str | None = None

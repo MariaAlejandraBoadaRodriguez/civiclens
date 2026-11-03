@@ -11,6 +11,7 @@ _TMP = Path(tempfile.mkdtemp(prefix="civiclens-tests-"))
 os.environ.setdefault("DATABASE_URL", f"sqlite:///{_TMP / 'app.db'}")
 os.environ.setdefault("DATA_DIR", str(_TMP / "data"))
 os.environ["WARM_SEEDS"] = "false"
+os.environ["JSON_LOGS"] = "false"
 
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402
