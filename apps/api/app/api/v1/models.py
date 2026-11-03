@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
 from app.api.problems import ProblemError
+from app.api.security import Principal, require_scope
 from app.api.v1.sql import ready_dataset
 from app.core import jobs
 from app.db.models import Job, JobStatus, JobType
@@ -46,7 +47,11 @@ def _model(model_type: str) -> str:
 
 @router.post("/{model_type}/run", status_code=202)
 def run_model(
-    model_type: str, body: RunRequest, background: BackgroundTasks, session: SessionDep
+    model_type: str,
+    body: RunRequest,
+    background: BackgroundTasks,
+    session: SessionDep,
+    caller: Annotated[Principal, Depends(require_scope("models:run"))],
 ) -> JSONResponse:
     model = _model(model_type)
     ds = ready_dataset(session, body.dataset_id)
@@ -55,6 +60,7 @@ def run_model(
         type=JobType.MODEL_RUN,
         status=JobStatus.QUEUED,
         dataset_id=ds.id,
+        api_key_id=caller.key_id,
         input_json={"model_type": model, "params": params},
     )
     session.add(job)
@@ -78,7 +84,7 @@ def latest(model_type: str, dataset_id: str, session: SessionDep, t: TDep) -> di
     return svc.localize(result, t)
 
 
-@router.post("/red_flags/reviews")
+@router.post("/red_flags/reviews", dependencies=[Depends(require_scope("models:run"))])
 def review(body: ReviewRequest, session: SessionDep) -> dict[str, Any]:
     """Human-in-the-loop: mark a flagged contract as reviewed (or undo it)."""
     ds = ready_dataset(session, body.dataset_id)

@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.problems import ProblemError
+from app.api.security import require_scope
 from app.core.cleaning.recipe import RecipeError, validate_steps
 from app.db.models import Recipe
 from app.db.session import get_session
@@ -57,7 +58,7 @@ def recipe_out(recipe: Recipe) -> dict[str, Any]:
     }
 
 
-@router.post("", status_code=201)
+@router.post("", status_code=201, dependencies=[Depends(require_scope("recipes:write"))])
 def create_recipe(body: RecipeInput, session: SessionDep) -> dict[str, Any]:
     steps = validated(body.steps)
     recipe = cleaning.save_recipe(session, body.name, steps, body.dataset_id)

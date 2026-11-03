@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
 from app.api.problems import ProblemError
+from app.api.security import Principal, require_scope
 from app.api.v1.recipes import RecipeInput, validated
 from app.config import settings
 from app.core import jobs
@@ -71,6 +72,7 @@ async def upload_dataset(
     session: SessionDep,
     t: TDep,
     file: Annotated[UploadFile, File()],
+    caller: Annotated[Principal, Depends(require_scope("datasets:write"))],
     name: Annotated[str | None, Form(max_length=255)] = None,
 ) -> JSONResponse:
     # Streamed to disk chunk by chunk: a 50 MB upload never sits in the API's memory.
@@ -95,7 +97,7 @@ async def upload_dataset(
         except UnsupportedFormatError as exc:
             raise ProblemError(415, "ingest.unsupported_format") from exc
         svc.purge_expired(session)
-        ds, job = svc.create_upload(session, filename, tmp, fmt.value, name)
+        ds, job = svc.create_upload(session, filename, tmp, fmt.value, name, caller.key_id)
     finally:
         tmp.unlink(missing_ok=True)
     background.add_task(jobs.run, jobs.INGEST, job.id)
@@ -182,7 +184,11 @@ class ApplyRecipeBody(BaseModel):
 
 @router.post("/{dataset_id}/recipes/apply", status_code=202)
 def apply_recipe(
-    dataset_id: str, body: ApplyRecipeBody, background: BackgroundTasks, session: SessionDep
+    dataset_id: str,
+    body: ApplyRecipeBody,
+    background: BackgroundTasks,
+    session: SessionDep,
+    caller: Annotated[Principal, Depends(require_scope("recipes:write"))],
 ) -> JSONResponse:
     ds = _get(session, dataset_id)
     if body.recipe_id:
@@ -198,6 +204,7 @@ def apply_recipe(
         type=JobType.APPLY_RECIPE,
         status=JobStatus.QUEUED,
         dataset_id=ds.id,
+        api_key_id=caller.key_id,
         input_json={"recipe_id": recipe_id, "steps": steps},
     )
     session.add(job)

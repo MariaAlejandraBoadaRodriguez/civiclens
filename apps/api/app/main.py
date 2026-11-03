@@ -1,5 +1,6 @@
 """CivicLens API entry point."""
 
+import logging
 import os
 import threading
 from collections.abc import AsyncIterator
@@ -10,10 +11,13 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.problems import ProblemError, problem_handler, validation_handler
-from app.api.v1 import datasets, jobs, models, recipes, sql
+from app.api.security import problem, security_middleware
+from app.api.v1 import datasets, jobs, keys, models, recipes, reports, sql
 from app.config import settings
 from app.core import jobs as job_runner
 from app.i18n.loader import Translator, negotiate
+
+log = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -34,25 +38,37 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_origin_regex=settings.allowed_origin_regex,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-    expose_headers=["Content-Language", "Location", "Content-Disposition"],
-)
 app.add_exception_handler(ProblemError, problem_handler)
 app.add_exception_handler(RequestValidationError, validation_handler)
+
+# Middleware order (Starlette: the last added is the outermost):
+#   CORS → locale + error guard → security (key, rate limit) → routes.
+# CORS is outermost so that every answer, a 401/429/500 included, carries CORS headers.
+app.middleware("http")(security_middleware)
 
 
 @app.middleware("http")
 async def locale_middleware(request: Request, call_next):
-    """Negotiate the language once per request (ADR-0007) and echo it back."""
+    """Negotiate the language once per request (ADR-0007) and echo it back. An unexpected
+    error becomes a localized 500 problem here, inside CORS (never a bare 500)."""
     request.state.t = Translator(negotiate(request.headers.get("accept-language")))
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception:  # noqa: BLE001 — logged; the client gets a stable code
+        log.exception("unhandled error on %s %s", request.method, request.url.path)
+        response = problem(request, 500, "server.internal")
     response.headers.setdefault("Content-Language", request.state.t.lang)
     return response
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_origin_regex=settings.allowed_origin_regex,
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["*"],
+    expose_headers=["Content-Language", "Location", "Content-Disposition", "Retry-After"],
+)
 
 
 app.include_router(datasets.router)
@@ -60,6 +76,8 @@ app.include_router(jobs.router)
 app.include_router(recipes.router)
 app.include_router(sql.router)
 app.include_router(models.router)
+app.include_router(reports.router)
+app.include_router(keys.router)
 
 
 @app.get("/health", tags=["ops"])

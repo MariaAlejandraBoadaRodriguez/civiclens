@@ -82,3 +82,31 @@ model:
   failed:
     title: The model run failed
     detail: Something went wrong while training the model. Try again; if it keeps failing, check the dataset in the Cleaning studio.
+auth:
+  invalid_key:
+    title: Invalid API key
+    detail: The API key is unknown or has been revoked. Ask the administrator for a new one.
+  missing_key:
+    title: An API key is required
+    detail: "This operation needs an API key with the {scope} scope (header X-API-Key)."
+  insufficient_scope:
+    title: The API key cannot do this
+    detail: "This operation needs the {scope} scope. Ask the administrator for a key that includes it."
+  admin_required:
+    title: Administrator sign-in required
+    detail: API keys are managed by the administrator from the CivicLens web app.
+  admin_only:
+    title: Only the administrator can manage API keys
+    detail: Agency API keys cannot create, list or revoke keys.
+api_key:
+  not_found:
+    title: API key not found
+    detail: "No API key with id {key_id}."
+rate_limit:
+  exceeded:
+    title: Too many requests
+    detail: "Wait {retry_after} seconds and try again."
+report:
+  pdf_unavailable:
+    title: PDF reports are not available yet
+    detail: Ask for the HTML report (format=html) and print it to PDF from the browser.

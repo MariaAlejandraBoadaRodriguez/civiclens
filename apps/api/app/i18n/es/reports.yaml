@@ -1,0 +1,38 @@
+# Textos del reporte ejecutivo (US-05). Los valores de los datos (nombres, descripciones) nunca se traducen.
+title: Reporte ejecutivo
+subtitle: "{dataset} · generado el {date}"
+language: Español
+summary:
+  heading: Resumen
+  text: "{contracts} contratos por un total de {total}. {direct} de ellos fueron adjudicaciones directas y la concentración de proveedores (HHI) es {hhi}."
+  quality: "El puntaje de calidad de los datos pasó de {before} a {after} con la receta de limpieza."
+  quality_recommended: "Aún no se ha aplicado una receta de limpieza: las cifras usan las opciones de limpieza recomendadas (puntaje de calidad {before})."
+kpis:
+  heading: Cifras clave
+  currency_note: Montos en CAD, convertidos con la tasa del mes de firma de cada contrato.
+monthly:
+  heading: Gasto mensual
+  chart: "Gasto mensual en CAD, de {first} a {last}"
+  peak: "El gasto tuvo su pico en {month} con {amount}, {ratio} veces el mes promedio."
+  flat: "Ningún mes sobresale: el mes más alto es menos del doble del promedio."
+  empty: No hay suficientes contratos con fecha para mostrar el gasto mensual.
+suppliers:
+  heading: Principales proveedores
+  supplier: Proveedor
+  spend: Gasto
+  share: Proporción del gasto
+red_flags:
+  heading: Contratos para revisar
+  text: "{flagged} de {contracts} contratos están marcados para revisión humana. Razones más frecuentes: {reasons}."
+  not_run: El modelo de alertas aún no se ha ejecutado sobre este conjunto de datos (laboratorio de ML).
+  warning: Las alertas son pistas para revisión humana, nunca acusaciones.
+forecast:
+  heading: Pronóstico de gasto
+  not_run: El pronóstico de gasto aún no se ha ejecutado sobre este conjunto de datos (laboratorio de ML).
+notes:
+  heading: Notas sobre los datos
+  fx: "Conversión de monedas: {source}."
+  values: Los nombres de proveedores y entidades se muestran tal como se publicaron; nunca se traducen.
+  source: "Fuente: {publisher} — {license}."
+  upload: "Fuente: un archivo subido a CivicLens ({name}). Los archivos subidos se eliminan después de 24 horas."
+footer: "Generado por CivicLens · {date} · Idioma del reporte: español"

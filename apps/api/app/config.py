@@ -32,5 +32,18 @@ class Settings(BaseSettings):
     # see app/core/jobs.py).
     job_runner: str = "inline"
 
+    # Public API (ROADMAP 5e). The public demo lets anonymous visitors write (upload, clean,
+    # run models); an agency deployment sets ANONYMOUS_WRITES=false so writes need a key.
+    anonymous_writes: bool = True
+    # Shared with the web app's server, which calls /api/v1/keys after GitHub OAuth of the
+    # allowlisted admin. Unset = key administration disabled.
+    admin_api_token: str | None = None
+    # Requests per minute: per IP for anonymous callers, per key for agencies; "heavy" = routes
+    # that start background work (upload, apply recipe, run model).
+    rate_limit_anonymous: int = 300
+    rate_limit_key: int = 1200
+    rate_limit_heavy_anonymous: int = 12
+    rate_limit_heavy_key: int = 60
+
 
 settings = Settings()
