@@ -26,7 +26,6 @@ export function LanguageSwitcher() {
                 hrefLang={locale}
                 lang={locale}
                 aria-current={active ? "true" : undefined}
-                aria-label={t(`names.${locale}`)}
                 className={cn(
                   "inline-flex min-h-touch min-w-touch items-center justify-center rounded-nav px-3 text-sm uppercase no-underline",
                   active
@@ -34,7 +33,9 @@ export function LanguageSwitcher() {
                     : "text-ink-text hover:bg-ink-raised hover:text-white",
                 )}
               >
+                {/* The visible code starts the accessible name ("EN English"): WCAG 2.5.3 label in name. */}
                 {locale}
+                <span className="sr-only"> {t(`names.${locale}`)}</span>
               </Link>
             </li>
           );

@@ -3,6 +3,10 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Dependencies: 18 web minor/patch updates (Next.js tooling, Playwright 1.64, axe-core 4.14, TypeScript 5.9, Radix, next-auth 4.24.15); GitHub Actions on Node 24 (`checkout`, `setup-node`, `setup-python` v7, `gitleaks-action` v3).
+- Language switcher: the accessible name starts with the visible code ("EN English"), WCAG 2.5.3.
+
 ### Fixed
 - Report, KPIs, dashboard and red flags use one cleaned row count: red flags count every contract (and say how many could not be scored); model results are reset when a recipe rebuilds the star schema.
 - "Most frequent reasons" are counted over every flagged contract (not the listed ones), with wording that a contract can have several.
