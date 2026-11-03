@@ -21,7 +21,7 @@ export function KpiTile({
   tone?: KpiTone;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 rounded-card border border-line bg-surface p-4">
+    <div className="flex h-full min-w-0 flex-col gap-1.5 rounded-card border border-line bg-surface p-4">
       <span className="text-[13px] text-muted">{label}</span>
       <span className="break-words text-[26px] font-semibold leading-tight text-ink">{value}</span>
       {note && <span className={cn("text-[13px]", tones[tone])}>{note}</span>}

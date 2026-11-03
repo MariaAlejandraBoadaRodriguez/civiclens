@@ -40,8 +40,7 @@
     "clean": "Limpieza",
     "sql": "SQL",
     "ml": "ML",
-    "dashboard": "Tablero",
-    "comingSoon": "Próximamente"
+    "dashboard": "Tablero"
   },
   "landing": {
     "eyebrow": "Motor de datos del sector público · datos en EN / FR / ES",
@@ -532,8 +531,7 @@
         "month": "Mes"
       }
     },
-    "continue": "Continuar al tablero →",
-    "continueSoon": "Tablero: próximamente"
+    "continue": "Continuar al tablero →"
   },
   "admin": {
     "metaTitle": "Claves de API · Administración de CivicLens",
@@ -593,6 +591,89 @@
       "confirmRevoke": "Confirmar: revocar ahora",
       "cancel": "Cancelar",
       "prefix": "{prefix}…"
+    }
+  },
+  "dashboard": {
+    "metaTitle": "Tablero · CivicLens",
+    "title": "Contratación pública · vista ejecutiva",
+    "subtitle": "Todos los montos en CAD, convertidos con la tasa del mes de firma de cada contrato.",
+    "kpisHeading": "Cifras clave",
+    "currencyNote": "Pasa el cursor o enfoca una cifra para ver su definición. Los cambios se comparan con el periodo anterior de la misma duración.",
+    "notReady": "Este conjunto de datos aún se está preparando. El tablero aparece en cuanto esté listo.",
+    "notFound": {
+      "title": "No encontramos el conjunto de datos",
+      "body": "Puede haber expirado (las cargas se guardan 24 horas).",
+      "action": "Abrir un conjunto de ejemplo"
+    },
+    "actions": {
+      "report": "Generar reporte ejecutivo",
+      "pdf": "Descargar PDF",
+      "export": "Exportar para Power BI",
+      "newTab": "(se abre en una pestaña nueva)"
+    },
+    "origin": {
+      "clean": "Tu receta de limpieza aplicada",
+      "recommended": "Limpieza recomendada aplicada"
+    },
+    "filters": {
+      "label": "Filtros del tablero",
+      "jurisdiction": "Jurisdicción",
+      "period": "Periodo",
+      "category": "Categoría",
+      "updating": "Actualizando…",
+      "periods": {
+        "all": "Todos los datos",
+        "12m": "Últimos 12 meses",
+        "fy": "Último año fiscal"
+      },
+      "categories": {
+        "all": "Todas las categorías",
+        "goods": "Bienes",
+        "services": "Servicios",
+        "construction": "Obras",
+        "other": "Otras"
+      }
+    },
+    "scopes": {
+      "all": "Los tres ejemplos",
+      "secop_co": "Colombia",
+      "contracts_ca": "Canadá (federal)",
+      "contracts_qc": "Quebec",
+      "upload": "Esta carga: {name}"
+    },
+    "kpi": {
+      "change": "{value} vs. periodo anterior",
+      "points": "{value} pts",
+      "median": "mediana {value}",
+      "was": "antes {value}"
+    },
+    "monthly": {
+      "title": "Gasto mensual, CAD",
+      "finding": "Hallazgo:",
+      "chartLabel": "Gráfico de barras del gasto mensual en CAD, de {first} a {last}",
+      "table": "Ver las cifras",
+      "month": "Mes",
+      "spend": "Gasto",
+      "contracts": "Contratos",
+      "bar": "{month}: {value}"
+    },
+    "jurisdictions": {
+      "title": "Por jurisdicción",
+      "contracts": "{n} contratos",
+      "unavailable": "No se pudo cargar la comparación."
+    },
+    "notes": {
+      "title": "Notas sobre los datos"
+    },
+    "api": {
+      "title": "Automatiza esto cada mes",
+      "body": "Una entidad envía el archivo del mes siguiente, se aplica la misma receta y los KPI y las alertas vuelven en JSON, sin que nadie abra la aplicación.",
+      "docs": "Abrir la documentación de la API",
+      "key": "Crear clave de API",
+      "codeLabel": "Ejemplo de la API (curl)",
+      "step1": "1. Sube el archivo del mes siguiente",
+      "step2": "2. Aplica la misma receta de limpieza (un trabajo)",
+      "step3": "3. Obtén los KPI, en CAD"
     }
   }
 }

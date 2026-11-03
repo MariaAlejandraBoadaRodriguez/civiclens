@@ -289,3 +289,49 @@ export type ApiKey = {
 
 /** Returned once, at creation: the only time the full key exists outside its hash. */
 export type CreatedApiKey = ApiKey & { key: string };
+
+export const PERIODS = ["all", "12m", "fy"] as const;
+export type Period = (typeof PERIODS)[number];
+export const CATEGORIES = ["all", "goods", "services", "construction", "other"] as const;
+export type Category = (typeof CATEGORIES)[number];
+
+export type DashboardKpi = {
+  kpi_id: "total_spend" | "contract_count" | "avg_value" | "direct_award_share" | "hhi" | "quality_score";
+  value: number | null;
+  unit: "currency" | "count" | "ratio" | "index" | "score";
+  currency: string | null;
+  name: string;
+  definition: string;
+  change?: number | null;
+  change_points?: number | null;
+  median?: number | null;
+  level?: "unconcentrated" | "moderate" | "high" | null;
+  level_label?: string | null;
+  before?: number | null;
+};
+
+export type DashboardMonth = { month: string; spend: number; contracts: number };
+
+export type DashboardJurisdiction = {
+  dataset_id: string;
+  slug: string | null;
+  jurisdiction: "CO" | "CA" | "QC";
+  name: string;
+  label: string;
+  spend: number;
+  contracts: number;
+  share_of_max: number;
+  origin: "clean" | "recommended";
+  window: { start: string | null; end: string | null; fiscal_year: number | null };
+};
+
+export type Dashboard = {
+  filters: { period: Period; category: Category };
+  currency: "CAD";
+  kpis: DashboardKpi[];
+  monthly: DashboardMonth[];
+  peak: (DashboardMonth & { ratio: number; is_peak: boolean; flagged: number | null }) | null;
+  finding: string;
+  by_jurisdiction: DashboardJurisdiction[];
+  notes: string[];
+};

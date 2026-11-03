@@ -40,8 +40,7 @@
     "clean": "Clean",
     "sql": "SQL",
     "ml": "ML",
-    "dashboard": "Dashboard",
-    "comingSoon": "Coming soon"
+    "dashboard": "Dashboard"
   },
   "landing": {
     "eyebrow": "Public-sector data engine · EN / FR / ES data",
@@ -532,8 +531,7 @@
         "month": "Month"
       }
     },
-    "continue": "Continue to dashboard →",
-    "continueSoon": "Dashboard — coming soon"
+    "continue": "Continue to dashboard →"
   },
   "admin": {
     "metaTitle": "API keys · CivicLens admin",
@@ -593,6 +591,89 @@
       "confirmRevoke": "Confirm: revoke now",
       "cancel": "Cancel",
       "prefix": "{prefix}…"
+    }
+  },
+  "dashboard": {
+    "metaTitle": "Dashboard · CivicLens",
+    "title": "Public procurement · executive view",
+    "subtitle": "All amounts in CAD, converted with the rate of each contract's signing month.",
+    "kpisHeading": "Key figures",
+    "currencyNote": "Hover or focus a figure for its definition. Changes compare with the previous period of the same length.",
+    "notReady": "This dataset is still being prepared. The dashboard appears as soon as it is ready.",
+    "notFound": {
+      "title": "Dataset not found",
+      "body": "It may have expired (uploads are kept 24 hours).",
+      "action": "Open a sample dataset"
+    },
+    "actions": {
+      "report": "Generate executive report",
+      "pdf": "Download PDF",
+      "export": "Export for Power BI",
+      "newTab": "(opens in a new tab)"
+    },
+    "origin": {
+      "clean": "Your cleaning recipe applied",
+      "recommended": "Recommended cleaning applied"
+    },
+    "filters": {
+      "label": "Dashboard filters",
+      "jurisdiction": "Jurisdiction",
+      "period": "Period",
+      "category": "Category",
+      "updating": "Updating…",
+      "periods": {
+        "all": "All data",
+        "12m": "Last 12 months",
+        "fy": "Last fiscal year"
+      },
+      "categories": {
+        "all": "All categories",
+        "goods": "Goods",
+        "services": "Services",
+        "construction": "Construction",
+        "other": "Other"
+      }
+    },
+    "scopes": {
+      "all": "All three samples",
+      "secop_co": "Colombia",
+      "contracts_ca": "Canada (federal)",
+      "contracts_qc": "Québec",
+      "upload": "This upload: {name}"
+    },
+    "kpi": {
+      "change": "{value} vs previous period",
+      "points": "{value} pts",
+      "median": "median {value}",
+      "was": "was {value}"
+    },
+    "monthly": {
+      "title": "Monthly spend, CAD",
+      "finding": "Finding:",
+      "chartLabel": "Bar chart of monthly spend in CAD, {first} to {last}",
+      "table": "Show the numbers",
+      "month": "Month",
+      "spend": "Spend",
+      "contracts": "Contracts",
+      "bar": "{month}: {value}"
+    },
+    "jurisdictions": {
+      "title": "By jurisdiction",
+      "contracts": "{n} contracts",
+      "unavailable": "The comparison could not be loaded."
+    },
+    "notes": {
+      "title": "Data notes"
+    },
+    "api": {
+      "title": "Automate this every month",
+      "body": "An agency sends next month's file, the same recipe is applied, and KPIs plus red flags come back as JSON — no one opens the app.",
+      "docs": "Open API docs",
+      "key": "Create API key",
+      "codeLabel": "API example (curl)",
+      "step1": "1. Upload next month's file",
+      "step2": "2. Apply the same cleaning recipe (a job)",
+      "step3": "3. Get the KPIs, in CAD"
     }
   }
 }
