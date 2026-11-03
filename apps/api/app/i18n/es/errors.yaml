@@ -33,6 +33,15 @@ request:
   invalid:
     title: Solicitud no válida
     detail: Uno o más campos no son válidos.
+  not_found:
+    title: No encontrado
+    detail: No hay ninguna ruta de la API en esta dirección. Consulta /docs para ver las rutas disponibles.
+  method_not_allowed:
+    title: Método no permitido
+    detail: "Esta ruta no acepta {method}. El encabezado Allow indica los métodos que acepta."
+  malformed:
+    title: No pudimos leer el cuerpo de la solicitud
+    detail: Envía JSON válido (o un formulario multipart para las cargas de archivos).
 server:
   internal:
     title: Algo salió mal de nuestro lado
@@ -82,3 +91,31 @@ model:
   failed:
     title: La ejecución del modelo falló
     detail: Algo salió mal al entrenar el modelo. Inténtalo de nuevo; si sigue fallando, revisa el conjunto de datos en el Estudio de limpieza.
+auth:
+  invalid_key:
+    title: Clave de API no válida
+    detail: La clave de API no existe o fue revocada. Pide una nueva al administrador.
+  missing_key:
+    title: Se necesita una clave de API
+    detail: "Esta operación necesita una clave de API con el permiso {scope} (encabezado X-API-Key)."
+  insufficient_scope:
+    title: La clave de API no permite esta operación
+    detail: "Esta operación necesita el permiso {scope}. Pide al administrador una clave que lo incluya."
+  admin_required:
+    title: Se requiere iniciar sesión como administrador
+    detail: El administrador gestiona las claves de API desde la aplicación web de CivicLens.
+  admin_only:
+    title: Solo el administrador puede gestionar claves de API
+    detail: Las claves de API de las agencias no pueden crear, listar ni revocar claves.
+api_key:
+  not_found:
+    title: Clave de API no encontrada
+    detail: "No existe una clave de API con id {key_id}."
+rate_limit:
+  exceeded:
+    title: Demasiadas solicitudes
+    detail: "Espera {retry_after} segundos e inténtalo de nuevo."
+report:
+  pdf_unavailable:
+    title: Los reportes en PDF aún no están disponibles
+    detail: Pide el reporte HTML (format=html) e imprímelo como PDF desde el navegador.

@@ -223,7 +223,7 @@ def test_models_api_forecast_and_errors() -> None:
     assert en["status"] == "ok" and en["metrics"] == es["metrics"]
     assert "MAPE" in en["card"]["verdict"] and "MAPE" in es["card"]["verdict"]
     later = client.post("/api/v1/models/classifier/run", json={"dataset_id": "secop_co"})
-    assert later.status_code == 501 and later.json()["code"] == "model.not_available"
+    assert later.status_code == 404 and later.json()["code"] == "model.not_available"
     assert (
         client.post("/api/v1/models/nope/run", json={"dataset_id": "secop_co"}).status_code == 404
     )

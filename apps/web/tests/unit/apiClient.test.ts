@@ -55,3 +55,14 @@ describe("waitForJob", () => {
     expect(res).toEqual({ ok: false, error: { kind: "unavailable", status: 502 } });
   });
 });
+
+describe("apiRequest against this app's own routes", () => {
+  it("uses the given base and treats 204 as success", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const res = await apiRequest("/api/admin/keys/1", { locale: "es", base: "", method: "DELETE" });
+    expect(res).toEqual({ ok: true, data: null });
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/admin/keys/1");
+    expect(fetchMock.mock.calls[0][1].method).toBe("DELETE");
+  });
+});

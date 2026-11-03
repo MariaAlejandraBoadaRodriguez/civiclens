@@ -157,7 +157,12 @@ def load_profile(ds: Dataset) -> dict[str, Any] | None:
 
 
 def create_upload(
-    session: Session, filename: str, source: Path, fmt: str, name: str | None
+    session: Session,
+    filename: str,
+    source: Path,
+    fmt: str,
+    name: str | None,
+    api_key_id: uuid.UUID | None = None,
 ) -> tuple[Dataset, Job]:
     ds = Dataset(
         name=(name or filename)[:255],
@@ -175,6 +180,7 @@ def create_upload(
         type=JobType.INGEST,
         status=JobStatus.QUEUED,
         dataset_id=ds.id,
+        api_key_id=api_key_id,
         input_json={"filename": filename},
     )
     session.add(job)

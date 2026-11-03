@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse
@@ -11,7 +11,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
-from app.api.problems import ProblemError
+from app.api.problems import ProblemError, iso_utc
+from app.api.security import Principal, require_scope
 from app.api.v1.recipes import RecipeInput, validated
 from app.config import settings
 from app.core import jobs
@@ -47,8 +48,8 @@ def dataset_out(ds: Dataset, t: TDep) -> dict[str, Any]:
         "license": seed.license if seed else None,
         "source_url": seed.source_url if seed else None,
         "jurisdiction": seed.jurisdiction if seed else None,
-        "created_at": ds.created_at.isoformat() if ds.created_at else None,
-        "expires_at": ds.expires_at.isoformat() if ds.expires_at else None,
+        "created_at": iso_utc(ds.created_at),
+        "expires_at": iso_utc(ds.expires_at),
     }
 
 
@@ -57,7 +58,9 @@ def job_ref(job: Job) -> dict[str, str]:
 
 
 @router.get("")
-def list_datasets(session: SessionDep, t: TDep, source: str | None = None) -> dict:
+def list_datasets(
+    session: SessionDep, t: TDep, source: Literal["seed", "upload", "api"] | None = None
+) -> dict:
     items = [dataset_out(d, t) for d in svc.list_datasets(session)]
     if source:
         items = [i for i in items if i["source"] == source]
@@ -71,6 +74,7 @@ async def upload_dataset(
     session: SessionDep,
     t: TDep,
     file: Annotated[UploadFile, File()],
+    caller: Annotated[Principal, Depends(require_scope("datasets:write"))],
     name: Annotated[str | None, Form(max_length=255)] = None,
 ) -> JSONResponse:
     # Streamed to disk chunk by chunk: a 50 MB upload never sits in the API's memory.
@@ -95,7 +99,7 @@ async def upload_dataset(
         except UnsupportedFormatError as exc:
             raise ProblemError(415, "ingest.unsupported_format") from exc
         svc.purge_expired(session)
-        ds, job = svc.create_upload(session, filename, tmp, fmt.value, name)
+        ds, job = svc.create_upload(session, filename, tmp, fmt.value, name, caller.key_id)
     finally:
         tmp.unlink(missing_ok=True)
     background.add_task(jobs.run, jobs.INGEST, job.id)
@@ -182,7 +186,11 @@ class ApplyRecipeBody(BaseModel):
 
 @router.post("/{dataset_id}/recipes/apply", status_code=202)
 def apply_recipe(
-    dataset_id: str, body: ApplyRecipeBody, background: BackgroundTasks, session: SessionDep
+    dataset_id: str,
+    body: ApplyRecipeBody,
+    background: BackgroundTasks,
+    session: SessionDep,
+    caller: Annotated[Principal, Depends(require_scope("recipes:write"))],
 ) -> JSONResponse:
     ds = _get(session, dataset_id)
     if body.recipe_id:
@@ -198,6 +206,7 @@ def apply_recipe(
         type=JobType.APPLY_RECIPE,
         status=JobStatus.QUEUED,
         dataset_id=ds.id,
+        api_key_id=caller.key_id,
         input_json={"recipe_id": recipe_id, "steps": steps},
     )
     session.add(job)

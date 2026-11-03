@@ -51,6 +51,33 @@ for (const lang of LANGS) {
       await expect(notice).not.toContainText(m.common.apiError.unavailableTitle); // a 400, not an outage
     });
 
+    test("admin signs in, issues a scoped key, the API accepts it, then it is revoked", async ({ page, request }) => {
+      const api = process.env.E2E_API_URL ?? "http://127.0.0.1:8000";
+      await page.goto(`/${lang}/admin`);
+      await expect(page.getByRole("heading", { level: 1, name: m.admin.title })).toBeVisible();
+      await page.getByRole("button", { name: m.admin.signIn.testMode }).click();
+      await expect(page.getByRole("button", { name: m.admin.signOut })).toBeVisible();
+      const name = `E2E ${lang} ${Date.now()}`;
+      await page.getByLabel(m.admin.form.name, { exact: true }).fill(name);
+      await page.getByRole("button", { name: m.admin.form.create }).click();
+      const field = page.getByLabel(m.admin.created.label);
+      await expect(field).toHaveValue(/^cl_live_[0-9a-f]{8}\./);
+      const key = await field.inputValue();
+      // The key works against the API (default scope: reports:read)…
+      const ok = await request.get(`${api}/api/v1/reports/contracts_ca?lang=${lang}`, { headers: { "X-API-Key": key } });
+      expect(ok.status()).toBe(200);
+      await page.getByRole("button", { name: m.admin.created.done }).click();
+      await page.getByRole("button", { name: m.admin.list.revokeLabel.replace("{name}", name) }).click();
+      await page.getByRole("button", { name: m.admin.list.confirmRevoke }).click();
+      const row = page.getByTestId("api-key-row").filter({ hasText: name });
+      await expect(row.getByText(m.admin.list.revoked, { exact: true })).toBeVisible();
+      // …and is refused everywhere once revoked.
+      const refused = await request.get(`${api}/api/v1/datasets`, { headers: { "X-API-Key": key, "Accept-Language": lang } });
+      expect(refused.status()).toBe(401);
+      await page.getByRole("button", { name: m.admin.signOut }).click();
+      await expect(page.getByRole("button", { name: m.admin.signIn.testMode })).toBeVisible();
+    });
+
     test("ML lab → red flags and forecast", async ({ page }) => {
       await page.goto(`/${lang}/datasets/contracts_qc/ml`);
       await expect(page.getByRole("heading", { level: 2, name: m.ml.flags.title })).toBeVisible({ timeout: 150_000 });

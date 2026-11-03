@@ -17,7 +17,9 @@ export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiFailur
 
 type Options = {
   locale: string;
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "DELETE";
+  /** Base URL; "" calls this web app's own route handlers (e.g. the admin console's). */
+  base?: string;
   json?: unknown;
   form?: FormData;
   signal?: AbortSignal;
@@ -28,7 +30,7 @@ export async function apiRequest<T>(path: string, options: Options): Promise<Api
   if (options.json !== undefined) headers["Content-Type"] = "application/json";
   let res: Response;
   try {
-    res = await fetch(`${PUBLIC_API_URL}${path}`, {
+    res = await fetch(`${options.base ?? PUBLIC_API_URL}${path}`, {
       method: options.method ?? (options.json !== undefined || options.form ? "POST" : "GET"),
       headers,
       body: options.form ?? (options.json !== undefined ? JSON.stringify(options.json) : undefined),
@@ -38,6 +40,7 @@ export async function apiRequest<T>(path: string, options: Options): Promise<Api
     if (options.signal?.aborted) throw error; // the caller cancelled: not a failure to show
     return { ok: false, error: { kind: "unavailable" } };
   }
+  if (res.status === 204) return { ok: true, data: null as T };
   const body: unknown = await res.json().catch(() => null);
   if (res.ok && body !== null) return { ok: true, data: body as T };
   if (res.status < 500 && body && typeof body === "object" && "code" in body) {

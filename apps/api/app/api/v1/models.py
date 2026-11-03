@@ -7,11 +7,12 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
 from app.api.problems import ProblemError
+from app.api.security import Principal, require_scope
 from app.api.v1.sql import ready_dataset
 from app.core import jobs
 from app.db.models import Job, JobStatus, JobType
@@ -22,39 +23,49 @@ from app.services import ml as svc
 router = APIRouter(prefix="/api/v1/models", tags=["models"])
 SessionDep = Annotated[Session, Depends(get_session)]
 TDep = Annotated[Translator, Depends(get_translator)]
-LATER = ("classifier", "segments")
+
+
+class RunParams(BaseModel):
+    """Known parameters are typed strictly; unknown ones are accepted and ignored."""
+
+    model_config = ConfigDict(extra="allow")
+    entity_id: StrictStr | None = None
 
 
 class RunRequest(BaseModel):
     dataset_id: str = Field(description="Dataset id (UUID) or seed slug")
-    params: dict[str, Any] = Field(default_factory=dict)
+    params: RunParams = Field(default_factory=RunParams)
 
 
 class ReviewRequest(BaseModel):
     dataset_id: str
     contract_id: str = Field(min_length=1, max_length=200)
-    reviewed: bool = True
+    reviewed: StrictBool = True
 
 
 def _model(model_type: str) -> str:
     if model_type in svc.MODELS:
         return model_type
-    if model_type in LATER:
-        raise ProblemError(501, "model.not_available", model_type=model_type)
+    # Planned models (classifier, segments) do not exist yet: 404, like an unknown model.
     raise ProblemError(404, "model.not_available", model_type=model_type)
 
 
 @router.post("/{model_type}/run", status_code=202)
 def run_model(
-    model_type: str, body: RunRequest, background: BackgroundTasks, session: SessionDep
+    model_type: str,
+    body: RunRequest,
+    background: BackgroundTasks,
+    session: SessionDep,
+    caller: Annotated[Principal, Depends(require_scope("models:run"))],
 ) -> JSONResponse:
     model = _model(model_type)
     ds = ready_dataset(session, body.dataset_id)
-    params = {k: v for k, v in body.params.items() if k == "entity_id" and isinstance(v, str)}
+    params = {"entity_id": body.params.entity_id} if body.params.entity_id else {}
     job = Job(
         type=JobType.MODEL_RUN,
         status=JobStatus.QUEUED,
         dataset_id=ds.id,
+        api_key_id=caller.key_id,
         input_json={"model_type": model, "params": params},
     )
     session.add(job)
@@ -78,7 +89,7 @@ def latest(model_type: str, dataset_id: str, session: SessionDep, t: TDep) -> di
     return svc.localize(result, t)
 
 
-@router.post("/red_flags/reviews")
+@router.post("/red_flags/reviews", dependencies=[Depends(require_scope("models:run"))])
 def review(body: ReviewRequest, session: SessionDep) -> dict[str, Any]:
     """Human-in-the-loop: mark a flagged contract as reviewed (or undo it)."""
     ds = ready_dataset(session, body.dataset_id)

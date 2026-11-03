@@ -33,3 +33,14 @@ services:
       # Vercel preview deployments of this project (civiclens-git-<branch>-…, civiclens-<hash>-…).
       - key: ALLOWED_ORIGIN_REGEX
         value: ^https://civiclens(-[a-z0-9-]+)?\.vercel\.app$
+      # Render's proxy appends the caller's address to X-Forwarded-For (rate-limit buckets).
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
+      # Public demo: anonymous callers may upload, clean and run models (rate-limited).
+      # Set to "false" to require a scoped API key for every write.
+      - key: ANONYMOUS_WRITES
+        value: "true"
+      # Shared with the Vercel project (same value): lets the admin console manage API keys.
+      # Set in the Render dashboard, never in this file.
+      - key: ADMIN_API_TOKEN
+        sync: false

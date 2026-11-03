@@ -31,3 +31,4 @@ data/demo/
 .DS_Store
 .vscode/
 .idea/
+.schemathesis/

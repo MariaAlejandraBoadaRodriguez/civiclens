@@ -9,8 +9,11 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.problems import ProblemError
+from app.api.headers import content_disposition
+from app.api.problems import ProblemError, iso_utc, only_methods
+from app.api.security import require_scope
 from app.core.cleaning.recipe import RecipeError, validate_steps
 from app.db.models import Recipe
 from app.db.session import get_session
@@ -53,15 +56,24 @@ def recipe_out(recipe: Recipe) -> dict[str, Any]:
         "version": recipe.version,
         "dataset_id": str(recipe.dataset_id) if recipe.dataset_id else None,
         "steps": recipe.steps_json,
-        "created_at": recipe.created_at.isoformat() if recipe.created_at else None,
+        "created_at": iso_utc(recipe.created_at),
     }
 
 
-@router.post("", status_code=201)
+@router.post("", status_code=201, dependencies=[Depends(require_scope("recipes:write"))])
 def create_recipe(body: RecipeInput, session: SessionDep) -> dict[str, Any]:
     steps = validated(body.steps)
     recipe = cleaning.save_recipe(session, body.name, steps, body.dataset_id)
     return recipe_out(recipe)
+
+
+@router.get("/preview", include_in_schema=False)
+def preview_wrong_method() -> None:
+    """Only POST exists here; without this, GET would read "preview" as a recipe id."""
+    raise StarletteHTTPException(405)
+
+
+only_methods(f"{router.prefix}/preview", ["POST"])
 
 
 @router.post("/preview")
@@ -104,5 +116,5 @@ def export_recipe(
     return PlainTextResponse(
         text,
         media_type=media,
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": content_disposition("attachment", filename)},
     )

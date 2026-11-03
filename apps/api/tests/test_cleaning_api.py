@@ -141,3 +141,36 @@ def test_recipe_with_missing_column_fails_job_with_code() -> None:
 
 def test_unknown_recipe_404() -> None:
     assert client.get("/api/v1/recipes/nope").json()["code"] == "recipe.not_found"
+
+
+def test_reads_keep_working_while_a_recipe_is_applied(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regression (found by Schemathesis): the apply phase deleted the star schema before the
+    next phase rebuilt it, so KPI/SQL requests in between failed with 500."""
+    from app.core.sql import engine
+    from app.services import sql, storage
+
+    assert client.get("/api/v1/kpis/contracts_qc").status_code == 200  # star exists
+    seen: list[int] = []
+    original = sql.ensure_star
+
+    def between_phases(ds, rebuild: bool = False):  # noqa: ANN001, ANN202
+        # Runs at the start of the star phase: the apply phase is done, the rebuild is not.
+        path = storage.star_path(ds.id)
+        seen.append(len(engine.run(path, "SELECT COUNT(*) FROM fact_contract").rows))
+        return original(ds, rebuild)
+
+    monkeypatch.setattr(sql, "ensure_star", between_phases)
+    steps = [{"op": "standardize_nulls", "args": {}}]
+    job = client.post(
+        "/api/v1/datasets/contracts_qc/recipes/apply",
+        json={"recipe": {"name": "x", "steps": steps}},
+    )
+    assert client.get(job.headers["location"]).json()["status"] == "succeeded"
+    assert seen == [1]  # the old star schema was still there and queryable
+    monkeypatch.undo()
+    assert client.get("/api/v1/kpis/contracts_qc").status_code == 200
+    from app.db.session import SessionLocal
+    from app.services.datasets import resolve
+
+    with SessionLocal() as session:
+        assert sql.star_origin(resolve(session, "contracts_qc")) == "clean"  # rebuilt, clean data

@@ -74,6 +74,18 @@ jobs:
           node-version: "20"
       - run: npx --yes @stoplight/spectral-cli@6.14.2 lint openapi.yaml --fail-severity warn
 
+  contract:
+    name: API · contract (Schemathesis)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e "apps/api" "schemathesis==4.33.0"
+      - run: scripts/contract_check.sh
+
   i18n:
     name: i18n · EN/ES catalogs match
     runs-on: ubuntu-latest
@@ -118,9 +130,14 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
       - name: Build the API image (also builds the seed datasets)
         run: docker build -f apps/api/Dockerfile -t civiclens-api .
+      - name: Throwaway admin secrets for this run (the E2E admin journey)
+        run: |
+          echo "ADMIN_API_TOKEN=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+          echo "NEXTAUTH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - name: Run it with the production memory limit (512 MB, no swap)
         run: |
           docker run -d --name api --memory=512m --memory-swap=512m -p 8000:8000 \
+            -e ADMIN_API_TOKEN \
             -e ALLOWED_ORIGINS='["http://localhost:3000","http://127.0.0.1:3000"]' civiclens-api
           npx --yes wait-on@8.0.1 http-get://127.0.0.1:8000/health --timeout 120000 || (docker logs api; exit 1)
       - name: Demo upload files
@@ -134,6 +151,11 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
           NEXT_TELEMETRY_DISABLED: "1"
+          # Admin console in test mode: password-less sign-in as the allowlisted login
+          # (refused on Vercel by lib/admin/access.ts).
+          ADMIN_TEST_LOGIN: "true"
+          ADMIN_GITHUB_LOGIN: e2e-admin
+          NEXTAUTH_URL: http://localhost:3000
         run: |
           npm ci
           npx playwright install --with-deps chromium
@@ -144,6 +166,7 @@ jobs:
         working-directory: apps/web
         env:
           E2E_BASE_URL: http://localhost:3000
+          E2E_API_URL: http://127.0.0.1:8000
         run: npm run test:e2e
       - name: No OOM kill, API still up
         run: |
