@@ -1,4 +1,5 @@
 import type { Problem } from "./api-types";
+import { isRouteMissing, routeUnavailable } from "./routeUnavailable";
 
 /** Base URL for browser calls (uploads, polling). */
 export const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -24,6 +25,7 @@ export async function apiGet<T>(path: string, locale: string, timeoutMs = 20_000
     });
     const body = await res.json().catch(() => null);
     if (res.ok) return { ok: true, data: body as T };
+    if (isRouteMissing(res.status, body)) return { ok: false, kind: "problem", problem: routeUnavailable() };
     if (body && typeof body === "object" && "code" in body) {
       return { ok: false, kind: "problem", problem: body as Problem };
     }

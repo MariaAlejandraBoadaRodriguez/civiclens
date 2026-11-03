@@ -251,8 +251,17 @@ def run(df: pd.DataFrame, params: RedFlagParams, fx: FxTable) -> dict[str, Any]:
             "currency": THRESHOLDS.get(params.jurisdiction, THRESHOLDS["CA"])[0],
             "values": list(THRESHOLDS.get(params.jurisdiction, THRESHOLDS["CA"])[1]),
         },
-        "contracts": len(f),
+        # Same denominator as the KPIs (every contract in the star schema); contracts without a
+        # positive amount or a date cannot be scored and are counted separately.
+        "contracts": len(df),
+        "scored": len(f),
+        "unscored": len(df) - len(f),
         "flagged": int(flagged.sum()),
+        # Over every flagged contract (not just the listed ones); a contract can have several.
+        "reason_counts": {
+            **{r: int((rules[r].to_numpy() & flagged).sum()) for r in RULES},
+            "unusual_pattern": int((unusual & flagged).sum()),
+        },
         "rule_counts": {r: int(rules[r].sum()) for r in RULES},
         "unusual": int(unusual.sum()),
         "items": items,

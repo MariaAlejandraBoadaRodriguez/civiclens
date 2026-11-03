@@ -66,3 +66,22 @@ describe("apiRequest against this app's own routes", () => {
     expect(fetchMock.mock.calls[0][1].method).toBe("DELETE");
   });
 });
+
+describe("a route the API does not have", () => {
+  it("is 'not available on this API version', not an outage (browser and server clients)", async () => {
+    const { apiGet } = await import("@/lib/api");
+    for (const body of [JSON.stringify({ detail: "Not Found" }), JSON.stringify({ code: "request.not_found", title: "x", status: 404 })]) {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(body, { status: 404 })));
+      const browser = await apiRequest("/api/v1/dashboard", { locale: "es" });
+      expect(browser).toMatchObject({ ok: false, error: { kind: "problem", problem: { code: "client.route_unavailable" } } });
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(body, { status: 404 })));
+      expect(await apiGet("/api/v1/dashboard", "es")).toMatchObject({ ok: false, kind: "problem", problem: { code: "client.route_unavailable" } });
+    }
+  });
+
+  it("keeps a real 'dataset not found' problem as it is", async () => {
+    const problem = { type: "x", title: "Dataset not found", status: 404, code: "dataset.not_found" };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(problem, 404)));
+    expect(await apiRequest("/api/v1/datasets/nope", { locale: "en" })).toEqual({ ok: false, error: { kind: "problem", problem } });
+  });
+});

@@ -23,7 +23,8 @@ suppliers:
   share: Proporción del gasto
 red_flags:
   heading: Contratos para revisar
-  text: "{flagged} de {contracts} contratos están marcados para revisión humana. Razones más frecuentes: {reasons}."
+  text: "{flagged} de {contracts} contratos están marcados para revisión humana. Razones más frecuentes entre los contratos marcados (un contrato puede tener varias): {reasons}."
+  unscored: "{n} contratos no tienen un monto positivo o una fecha de firma y no se pudieron evaluar."
   not_run: El modelo de alertas aún no se ha ejecutado sobre este conjunto de datos (laboratorio de ML).
   warning: Las alertas son pistas para revisión humana, nunca acusaciones.
 forecast:

@@ -91,11 +91,14 @@ describe("JurisdictionBars", () => {
       origin: "clean",
       window: { start: null, end: null, fiscal_year: null },
     });
-    renderIn("es", <JurisdictionBars items={[item("CA", 2_000_000, 1), item("CO", 500_000, 0.25)]} />);
+    renderIn("es", <JurisdictionBars items={[item("CA", 2_000_000, 1), item("CO", 500_000, 0.25)]} selected={["CO"]} />);
     const rows = screen.getAllByTestId("jurisdiction-row");
     expect(rows[0]).toHaveTextContent("Canadá (federal)");
     expect(rows[0]).toHaveTextContent("CAD");
     expect(rows[1]).toHaveTextContent("1.200 contratos");
+    expect(rows[1]).toHaveAttribute("data-selected", "true");
+    expect(rows[1]).toHaveTextContent("(seleccionada)");
+    expect(rows[0]).not.toHaveAttribute("data-selected");
   });
 });
 
@@ -113,5 +116,9 @@ describe("DashboardFilters", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "Jurisdiction" }), { target: { value: "all" } });
     fireEvent.change(screen.getByRole("combobox", { name: "Period" }), { target: { value: "12m" } });
     expect(replace).toHaveBeenLastCalledWith("/datasets/secop_co/dashboard?scope=all&period=12m&category=all", { scroll: false });
+    for (const key of ["scope", "period", "category"]) {
+      const select = document.getElementById(`filter-${key}`) as HTMLSelectElement;
+      expect(select.name).toBe(key); // id + name: autofill, labels and form tooling find them
+    }
   });
 });

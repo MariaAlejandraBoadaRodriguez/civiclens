@@ -23,3 +23,15 @@ describe("ApiErrorNotice", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 });
+
+describe("ApiErrorNotice for a missing route", () => {
+  it.each([
+    ["en", "Not available on this API version"],
+    ["es", "No disponible en esta versión de la API"],
+  ] as const)("says so in %s instead of 'the engine did not answer'", (locale, title) => {
+    const problem = { type: "about:blank", title: "", status: 404, code: "client.route_unavailable" };
+    renderIn(locale, <ApiErrorNotice error={{ kind: "problem", problem }} />);
+    expect(screen.getByRole("alert")).toHaveTextContent(title);
+    expect(screen.getByRole("alert")).not.toHaveTextContent(/did not answer|no respondió/);
+  });
+});

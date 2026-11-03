@@ -100,6 +100,15 @@ for (const lang of LANGS) {
         m.dashboard.kpi.change.replace("{value} ", ""),
       );
       await expect(page.getByTestId("jurisdiction-row")).toHaveCount(3);
+      // The comparison uses the same filters as the tiles: its contracts add up to the tile.
+      await expect(page.getByTestId("jurisdiction-filters")).toContainText(m.dashboard.filters.periods["12m"]);
+      const digits = (text: string) => Number(text.replace(/\D/g, ""));
+      const rows = await page.getByTestId("jurisdiction-row").locator("span.text-xs").allInnerTexts();
+      const tile = await page.getByTestId("kpi-tile").nth(1).locator("span").nth(1).innerText();
+      expect(rows.map(digits).reduce((a, b) => a + b, 0)).toBe(digits(tile));
+      await page.getByRole("combobox", { name: m.dashboard.filters.category, exact: true }).selectOption("goods");
+      await expect(page).toHaveURL(/category=goods/);
+      await expect(page.getByTestId("jurisdiction-filters")).toContainText(m.dashboard.filters.categories.goods);
       // The report is generated in the UI language, as HTML and as PDF.
       const report = page.getByRole("link", { name: new RegExp(m.dashboard.actions.report) });
       const href = await report.getAttribute("href");

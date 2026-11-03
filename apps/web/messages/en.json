@@ -30,7 +30,9 @@
     "apiError": {
       "unavailableTitle": "The engine did not answer",
       "unavailableBody": "It may be restarting or waking up. Your work is not lost — try again in a few seconds.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "routeTitle": "Not available on this API version",
+      "routeBody": "The API that answered does not have this feature yet. It may be an older version that is still being updated — try again after the next deploy."
     },
     "errorPage": {
       "title": "Something went wrong on this page",
@@ -739,7 +741,9 @@
     "jurisdictions": {
       "title": "By jurisdiction",
       "contracts": "{n} contracts",
-      "unavailable": "The comparison could not be loaded."
+      "unavailable": "The comparison could not be loaded.",
+      "filtered": "Same period and category as the figures above: {period} · {category}. The selected jurisdiction is in bold.",
+      "selected": " (selected)"
     },
     "notes": {
       "title": "Data notes"
