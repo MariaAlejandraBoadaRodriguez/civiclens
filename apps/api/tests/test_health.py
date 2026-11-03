@@ -33,7 +33,10 @@ def test_render_blueprint_matches_the_app() -> None:
     assert service["healthCheckPath"] == "/health"
     assert service["plan"] == "free"
     assert service["autoDeployTrigger"] == "checksPass"  # never deploy a commit with red CI
-    env = {v["key"]: v["value"] for v in service["envVars"]}
+    env = {v["key"]: v.get("value") for v in service["envVars"]}
+    secrets = {v["key"] for v in service["envVars"] if v.get("sync") is False}
+    assert secrets == {"ADMIN_API_TOKEN"} and env["ADMIN_API_TOKEN"] is None  # set in the dashboard
+    assert env["TRUSTED_PROXY_HOPS"] == "1"  # Render's proxy, for per-client rate limits
     assert "https://civiclens-eosin.vercel.app" in env["ALLOWED_ORIGINS"]
     pattern = re.compile(env["ALLOWED_ORIGIN_REGEX"])
     for origin in (
