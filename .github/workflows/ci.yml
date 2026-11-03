@@ -41,7 +41,10 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest --cov=app --cov-report=term-missing
+      # Coverage gates (ROADMAP Phase 8): ≥ 75 % overall and ≥ 80 % on app/core. Measured at
+      # release v1.0.0: 94 % overall, 92 % app/core.
+      - run: pytest --cov=app --cov-report=term-missing --cov-fail-under=75
+      - run: coverage report --include="app/core/*" --fail-under=80
 
   web:
     name: Web · lint + typecheck + build

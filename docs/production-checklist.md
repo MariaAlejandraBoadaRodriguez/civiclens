@@ -63,7 +63,7 @@ job runs on every PR and gates the deploy.
 
 | Item | Status | Evidence |
 |---|---|---|
-| Coverage gates met; E2E green on prod in both locales | ✅ coverage gate, E2E on the production image · ⏳ E2E against the production URL | `pytest --cov-fail-under` in the API job (≥ 80 % `app/core`, ≥ 75 % overall); Playwright runs in CI against the production Docker image in 512 MB, in `/en` and `/es`. `post-deploy.yml` smoke-tests production. |
+| Coverage gates met; E2E green on prod in both locales | ✅ coverage gate, E2E on the production image · ⏳ E2E against the production URL | coverage gates in the API job (≥ 75 % overall, ≥ 80 % `app/core`; measured 94 % and 92 %, 378 tests); Playwright runs in CI against the production Docker image in 512 MB, in `/en` and `/es`. `post-deploy.yml` smoke-tests production. |
 | WCAG AA: axe 0 serious in both locales; keyboard-only run of the main flow | ✅ axe · ⏳ keyboard run | Job "Web · axe…" (20 pages × 2 widths, axe-core 4.14 after PR #28). A manual keyboard-only run is for the owner. |
 | README (EN) + ES summary, demo, architecture, how to run, API quickstart, skills table | ✅ | `README.md` (screenshots in `docs/screenshots/`) |
 | License + dataset licenses/attribution displayed in the app | ✅ | Landing footer "Dataset licenses"; report notes cite source and license per dataset; `LICENSE` (MIT) |

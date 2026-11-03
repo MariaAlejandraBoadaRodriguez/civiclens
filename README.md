@@ -73,7 +73,7 @@ most of the time cleaning — usually by hand, every month, without a record of 
 ### Quality gates
 
 Every PR must pass all of these before it can deploy:
-- API lint and tests (380+ tests, SQLite and Postgres 16)
+- API lint and tests (378 tests, 94 % coverage, SQLite and Postgres 16)
 - Schemathesis contract tests against `openapi.yaml`
 - the API Docker image running **in 512 MB** with the full flow, the Playwright journeys in `/en`
   and `/es`, and a **k6** load test (20 users, p95 < 1.5 s)
