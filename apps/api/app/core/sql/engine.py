@@ -41,20 +41,24 @@ def _json(value: Any) -> Any:
 
 
 def connect(path: Path) -> duckdb.DuckDBPyConnection:
-    """Read-only connection that cannot touch files, the network or its own settings."""
-    con = duckdb.connect(
+    """Read-only connection that cannot touch files, the network or its own settings.
+
+    The limits are part of the connect config, not ``SET`` statements: DuckDB shares one database
+    instance per file in a process, so once a first connection had locked its configuration,
+    a concurrent second request's ``SET memory_limit`` failed (500 under load, found by k6).
+    """
+    return duckdb.connect(
         str(path),
         read_only=True,
         config={
             "enable_external_access": False,
             "autoinstall_known_extensions": False,
             "autoload_known_extensions": False,
+            "threads": 2,
+            "memory_limit": "512MB",
+            "lock_configuration": True,
         },
     )
-    con.execute("SET threads = 2")
-    con.execute("SET memory_limit = '512MB'")
-    con.execute("SET lock_configuration = true")
-    return con
 
 
 def run(
