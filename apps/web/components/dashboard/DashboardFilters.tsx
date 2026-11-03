@@ -1,7 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/routing";
 import { CATEGORIES, PERIODS, type Category, type Period } from "@/lib/api-types";
@@ -26,12 +25,17 @@ export function DashboardFilters({
   const t = useTranslations("dashboard.filters");
   const router = useRouter();
   const pathname = usePathname();
-  const params = useSearchParams();
   const [pending, startTransition] = useTransition();
+  // The latest choice of every filter. Read from a ref, not from the URL: a second change made
+  // before the first navigation finished must not undo the first one.
+  const values = useRef({ scope, period, category });
+  useEffect(() => {
+    values.current = { scope, period, category };
+  }, [scope, period, category]);
 
-  function update(key: string, value: string) {
-    const next = new URLSearchParams(params?.toString());
-    next.set(key, value);
+  function update(key: "scope" | "period" | "category", value: string) {
+    values.current = { ...values.current, [key]: value };
+    const next = new URLSearchParams(values.current);
     startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
   }
 

@@ -6,7 +6,8 @@ Modes:
   full   Every flow on the three seeds: upload + ingest of the dirty demo file, profile,
          issues, a recipe preview for every option of every issue, apply the recommended
          recipe (job), star schema, the 12 guided queries, KPIs, both models (jobs), the
-         executive report in EN and ES.
+         executive report (HTML EN + ES, PDF), the BI export and the dashboard (one dataset and
+         all three, every period).
          Used by CI against the Docker image limited to 512 MB.
   smoke  /health and one recipe preview per seed. Used after each production deploy.
 
@@ -159,7 +160,20 @@ def full(c: Client, files: Path | None) -> None:
             html = c.get(f"/api/v1/reports/{slug}?lang={lang}")
             if f'<html lang="{lang}">'.encode() not in html:
                 raise FlowError(f"report {slug}: not rendered in {lang}")
-        log(f"  {slug}: executive report EN + ES OK ({time.perf_counter() - t0:.0f} s)")
+        pdf = c.get(f"/api/v1/reports/{slug}?lang=es&format=pdf")
+        if not pdf.startswith(b"%PDF"):
+            raise FlowError(f"report {slug}: PDF expected")
+        for fmt in ("csv", "parquet"):
+            if not c.get(f"/api/v1/datasets/{slug}/export?format={fmt}").startswith(b"PK"):
+                raise FlowError(f"export {slug}: zip expected")
+        for period in ("all", "12m", "fy"):
+            c.get(f"/api/v1/dashboard?dataset_id={slug}&period={period}")
+        log(f"  {slug}: report EN + ES + PDF, BI export, dashboard OK "
+            f"({time.perf_counter() - t0:.0f} s)")
+    every = "&".join(f"dataset_id={s}" for s in SEEDS)
+    for period in ("all", "12m", "fy"):
+        c.get(f"/api/v1/dashboard?{every}&period={period}&category=services")
+    log("  dashboard across the three jurisdictions OK")
 
 
 def smoke(c: Client) -> None:

@@ -45,10 +45,78 @@
   "landing": {
     "eyebrow": "Motor de datos del sector público · datos en EN / FR / ES",
     "title": "De archivos públicos desordenados a decisiones que puedes defender.",
-    "subtitle": "Carga contratos, presupuestos o datos de programas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y genera el reporte ejecutivo.",
-    "status": "Versión temprana — la experiencia completa está en construcción.",
-    "designLink": "Ver el sistema de diseño",
-    "trySample": "Probar con datos de ejemplo"
+    "subtitle": "Sube contratos, presupuestos o datos de programas en cualquiera de tres idiomas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y arma el reporte ejecutivo: los mismos pasos, repetibles mediante una API.",
+    "trySample": "Probar con datos de ejemplo",
+    "upload": "Subir mi propio archivo",
+    "outputs": {
+      "title": "Lo que produce una ejecución",
+      "quality": {
+        "label": "Puntaje de calidad de datos",
+        "value": "antes → después"
+      },
+      "recipe": {
+        "label": "Receta de limpieza",
+        "value": "JSON · pandas · SQL"
+      },
+      "star": {
+        "label": "Esquema estrella",
+        "value": "1 hecho · 5 dims"
+      },
+      "flags": {
+        "label": "Alertas para revisión",
+        "value": "lista priorizada"
+      },
+      "report": {
+        "label": "Reporte ejecutivo",
+        "value": "PDF · HTML"
+      }
+    },
+    "flow": {
+      "title": "El ciclo analítico completo, paso a paso",
+      "ingest": {
+        "title": "Carga y perfilado",
+        "body": "Detecta formato, codificación e idioma; mapea encabezados; mide la calidad."
+      },
+      "clean": {
+        "title": "Limpieza guiada",
+        "body": "Decides cada corrección y ves su impacto en los KPI antes de aplicarla."
+      },
+      "sql": {
+        "title": "Modelado SQL",
+        "body": "Un esquema estrella y consultas guiadas responden preguntas reales del negocio."
+      },
+      "ml": {
+        "title": "Apoyo a decisiones",
+        "body": "Modelos explicables señalan anomalías y pronostican el gasto."
+      },
+      "report": {
+        "title": "Reporte y API",
+        "body": "Tablero, reporte en un clic y el mismo flujo vía REST."
+      }
+    },
+    "samples": {
+      "title": "Empieza con un conjunto de ejemplo",
+      "use": "Usar este conjunto →",
+      "useFor": "({name})",
+      "secop_co": {
+        "name": "Colombia · Contratos públicos",
+        "body": "Extracto de contratos de SECOP II. Montos en COP, encabezados en español."
+      },
+      "contracts_ca": {
+        "name": "Canadá · Contratos federales",
+        "body": "Divulgación proactiva de contratos. Encabezados bilingües, montos en CAD."
+      },
+      "contracts_qc": {
+        "name": "Quebec · Contratos públicos",
+        "body": "Avisos de contratos en francés, JSON anidado, fechas en formatos mixtos."
+      }
+    },
+    "footer": {
+      "builtBy": "Hecho por María Alejandra Boada · Analista de datos",
+      "github": "GitHub",
+      "licenses": "Licencias de los datos",
+      "design": "Sistema de diseño"
+    }
   },
   "design": {
     "metaTitle": "Sistema de diseño · CivicLens",

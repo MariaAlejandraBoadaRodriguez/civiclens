@@ -9,7 +9,7 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const BASE = process.argv[2] || "http://localhost:3000";
-const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc", "/en/datasets/contracts_ca/clean", "/es/datasets/secop_co/clean", "/en/datasets/secop_co/sql", "/es/datasets/contracts_ca/sql", "/en/datasets/contracts_qc/ml", "/es/datasets/secop_co/ml", "/en/admin", "/es/admin"];
+const PAGES = ["/en/design", "/es/design", "/en", "/es", "/en/datasets/secop_co", "/es/datasets/contracts_qc", "/en/datasets/contracts_ca/clean", "/es/datasets/secop_co/clean", "/en/datasets/secop_co/sql", "/es/datasets/contracts_ca/sql", "/en/datasets/contracts_qc/ml", "/es/datasets/secop_co/ml", "/en/admin", "/es/admin", "/en/datasets/secop_co/dashboard", "/es/datasets/contracts_ca/dashboard?scope=all&period=12m"];
 const AXE = path.join(__dirname, "..", "node_modules", "axe-core", "axe.min.js");
 
 (async () => {

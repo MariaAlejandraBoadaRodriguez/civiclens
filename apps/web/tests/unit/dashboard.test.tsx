@@ -98,3 +98,20 @@ describe("JurisdictionBars", () => {
     expect(rows[1]).toHaveTextContent("1.200 contratos");
   });
 });
+
+describe("DashboardFilters", () => {
+  it("keeps every filter when two change in quick succession", async () => {
+    const replace = vi.fn();
+    vi.doMock("@/i18n/routing", () => ({ usePathname: () => "/datasets/secop_co/dashboard", useRouter: () => ({ replace }) }));
+    vi.resetModules();
+    const { DashboardFilters } = await import("@/components/dashboard/DashboardFilters");
+    const { fireEvent } = await import("@testing-library/react");
+    renderIn(
+      "en",
+      <DashboardFilters scope="secop_co" scopes={[{ value: "secop_co", label: "Colombia" }, { value: "all", label: "All" }]} period="all" category="all" />,
+    );
+    fireEvent.change(screen.getByRole("combobox", { name: "Jurisdiction" }), { target: { value: "all" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Period" }), { target: { value: "12m" } });
+    expect(replace).toHaveBeenLastCalledWith("/datasets/secop_co/dashboard?scope=all&period=12m&category=all", { scroll: false });
+  });
+});
