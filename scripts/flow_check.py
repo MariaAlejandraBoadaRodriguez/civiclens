@@ -5,7 +5,8 @@ Standard library only, so it runs on a bare CI runner or a laptop.
 Modes:
   full   Every flow on the three seeds: upload + ingest of the dirty demo file, profile,
          issues, a recipe preview for every option of every issue, apply the recommended
-         recipe (job), star schema, the 12 guided queries, KPIs, both models (jobs).
+         recipe (job), star schema, the 12 guided queries, KPIs, both models (jobs), the
+         executive report in EN and ES.
          Used by CI against the Docker image limited to 512 MB.
   smoke  /health and one recipe preview per seed. Used after each production deploy.
 
@@ -153,7 +154,12 @@ def full(c: Client, files: Path | None) -> None:
             job = c.post(f"/api/v1/models/{model}/run", {"dataset_id": slug}, ok=(202,))
             c.wait_job(job, f"{model} {slug}")
             c.get(f"/api/v1/models/{model}/latest?dataset_id={slug}")
-        log(f"  {slug}: red flags + forecast OK ({time.perf_counter() - t0:.0f} s)")
+        log(f"  {slug}: red flags + forecast OK")
+        for lang in ("en", "es"):  # executive report, in each UI language
+            html = c.get(f"/api/v1/reports/{slug}?lang={lang}")
+            if f'<html lang="{lang}">'.encode() not in html:
+                raise FlowError(f"report {slug}: not rendered in {lang}")
+        log(f"  {slug}: executive report EN + ES OK ({time.perf_counter() - t0:.0f} s)")
 
 
 def smoke(c: Client) -> None:
