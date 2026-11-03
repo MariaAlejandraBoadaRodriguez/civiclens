@@ -3,6 +3,7 @@
 import logging
 import os
 import threading
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -21,6 +22,7 @@ from app.api.security import problem, security_middleware
 from app.api.v1 import dashboard, datasets, jobs, keys, models, recipes, reports, sql
 from app.config import settings
 from app.core import jobs as job_runner
+from app.core import observability as obs
 from app.i18n.loader import Translator, negotiate
 
 log = logging.getLogger(__name__)
@@ -28,6 +30,8 @@ log = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    if settings.json_logs:
+        obs.configure_logging()
     job_runner.start(settings.job_runner)  # before any thread exists: the job runner forks
     if settings.warm_seeds:
         from app.services.datasets import warm_seeds
@@ -39,7 +43,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(
     title="CivicLens API",
-    version="0.2.0",
+    version="1.0.0",
     description="Public-sector data analytics engine: ingest, clean, model, predict and report.",
     lifespan=lifespan,
 )
@@ -59,13 +63,27 @@ async def locale_middleware(request: Request, call_next):
     """Negotiate the language once per request (ADR-0007) and echo it back. An unexpected
     error becomes a localized 500 problem here, inside CORS (never a bare 500)."""
     request.state.t = Translator(negotiate(request.headers.get("accept-language")))
+    rid = obs.new_request_id(request.headers.get("x-request-id"))
+    request.state.request_id = rid
+    rid_token, locale_token = obs.request_id.set(rid), obs.request_locale.set(request.state.t.lang)
+    started = time.perf_counter()
     try:
-        response = await call_next(request)
-    except Exception:  # noqa: BLE001 — logged; the client gets a stable code
-        log.exception("unhandled error on %s %s", request.method, request.url.path)
-        response = problem(request, 500, "server.internal")
-    response.headers.setdefault("Content-Language", request.state.t.lang)
-    return response
+        try:
+            response = await call_next(request)
+        except Exception:  # noqa: BLE001 — logged; the client gets a stable code
+            log.exception("unhandled error on %s %s", request.method, request.url.path)
+            response = problem(request, 500, "server.internal")
+        response.headers.setdefault("Content-Language", request.state.t.lang)
+        response.headers["X-Request-ID"] = rid
+        for name, value in obs.SECURITY_HEADERS.items():
+            response.headers.setdefault(name, value)
+        if settings.environment == "production":
+            response.headers.setdefault("Strict-Transport-Security", obs.HSTS)
+        obs.log_access(request.method, request.url.path, response.status_code, started)
+        return response
+    finally:
+        obs.request_id.reset(rid_token)
+        obs.request_locale.reset(locale_token)
 
 
 app.add_middleware(
@@ -74,7 +92,13 @@ app.add_middleware(
     allow_origin_regex=settings.allowed_origin_regex,
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
-    expose_headers=["Content-Language", "Location", "Content-Disposition", "Retry-After"],
+    expose_headers=[
+        "Content-Language",
+        "Location",
+        "Content-Disposition",
+        "Retry-After",
+        "X-Request-ID",
+    ],
 )
 
 
@@ -98,3 +122,37 @@ def health() -> dict[str, str | None]:
         "version": app.version,
         "commit": os.environ.get("RENDER_GIT_COMMIT"),
     }
+
+
+@app.get("/ready", tags=["ops"], responses={503: {"description": "Not ready"}})
+def ready(request: Request):
+    """Readiness: the database answers and DuckDB can run a query. Unlike ``/health`` (the
+    process is up), a failure here means requests would fail."""
+    from sqlalchemy import text
+
+    from app.db.session import SessionLocal
+
+    checks: dict[str, str] = {}
+    try:
+        with SessionLocal() as session:
+            session.execute(text("SELECT 1"))
+        checks["database"] = "ok"
+    except Exception:  # noqa: BLE001 — reported, not raised
+        log.exception("readiness: database")
+        checks["database"] = "error"
+    try:
+        import duckdb
+
+        duckdb.connect(":memory:").execute("SELECT 1").fetchone()
+        checks["duckdb"] = "ok"
+    except Exception:  # noqa: BLE001
+        log.exception("readiness: duckdb")
+        checks["duckdb"] = "error"
+    if all(v == "ok" for v in checks.values()):
+        return {"status": "ready", "checks": checks}
+    return problem(
+        request,
+        503,
+        "server.not_ready",
+        checks=", ".join(k for k, v in checks.items() if v != "ok"),
+    )

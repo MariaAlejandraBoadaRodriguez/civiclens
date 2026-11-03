@@ -46,6 +46,9 @@ server:
   internal:
     title: Algo salió mal de nuestro lado
     detail: El error quedó registrado. Vuelve a intentarlo en un momento.
+  not_ready:
+    title: El servicio no está listo
+    detail: "Fallaron estas comprobaciones: {checks}. Inténtalo de nuevo en un momento."
 recipe:
   invalid:
     title: La receta no es válida

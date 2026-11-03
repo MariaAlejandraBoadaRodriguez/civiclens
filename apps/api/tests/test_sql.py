@@ -219,3 +219,23 @@ def test_kpis_api() -> None:
     for a, b in zip(en["items"], es["items"], strict=True):
         assert (a["kpi_id"], a["value"], a["unit"]) == (b["kpi_id"], b["value"], b["unit"])
         assert a["name"] != b["name"]
+
+
+def test_concurrent_requests_on_one_dataset() -> None:
+    """Regression (k6 load test): a second connection to a star schema already open in this
+    process failed with "the configuration has been locked", so concurrent users got 500s."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    with SessionLocal() as session:
+        path = svc.ensure_star(datasets_svc.resolve(session, "contracts_qc"))
+    first = engine.connect(path)  # held open, as during another request
+    try:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            statuses = list(
+                pool.map(lambda _: client.get("/api/v1/kpis/contracts_qc").status_code, range(16))
+            )
+        assert set(statuses) == {200}
+        with pytest.raises(Exception, match="locked"):
+            first.execute("SET enable_external_access = true")  # still locked down
+    finally:
+        first.close()

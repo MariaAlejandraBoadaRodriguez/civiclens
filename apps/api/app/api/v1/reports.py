@@ -12,6 +12,7 @@ from app.api.headers import content_disposition
 from app.api.problems import ProblemError
 from app.api.security import current_principal
 from app.api.v1.sql import ready_dataset
+from app.core.observability import REPORT_CSP
 from app.db.session import get_session
 from app.i18n.loader import SUPPORTED
 from app.services import reports
@@ -47,4 +48,5 @@ def get_report(
         )
     name = f"civiclens-report-{slug}-{language}.html"
     headers["Content-Disposition"] = content_disposition("inline", name)
+    headers["Content-Security-Policy"] = REPORT_CSP  # self-contained page: no scripts at all
     return HTMLResponse(reports.render_html(ds, language), headers=headers)

@@ -46,6 +46,9 @@ server:
   internal:
     title: Something went wrong on our side
     detail: The error was logged. Try again in a moment.
+  not_ready:
+    title: The service is not ready
+    detail: "These checks failed: {checks}. Try again in a moment."
 recipe:
   invalid:
     title: The recipe is not valid

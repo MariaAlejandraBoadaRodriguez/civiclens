@@ -41,7 +41,10 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest --cov=app --cov-report=term-missing
+      # Coverage gates (ROADMAP Phase 8): ≥ 75 % overall and ≥ 80 % on app/core. Measured at
+      # release v1.0.0: 94 % overall, 92 % app/core.
+      - run: pytest --cov=app --cov-report=term-missing --cov-fail-under=75
+      - run: coverage report --include="app/core/*" --fail-under=80
 
   web:
     name: Web · lint + typecheck + build
@@ -85,6 +88,20 @@ jobs:
           cache: pip
       - run: pip install -e "apps/api" "schemathesis==4.33.0"
       - run: scripts/contract_check.sh
+
+  audit:
+    name: Security · pip-audit (API dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: |
+          python -m venv /tmp/venv && /tmp/venv/bin/pip install ./apps/api pip-audit
+          /tmp/venv/bin/pip freeze --exclude civiclens-api > /tmp/requirements.txt
+          /tmp/venv/bin/pip-audit -r /tmp/requirements.txt --progress-spinner off
 
   i18n:
     name: i18n · EN/ES catalogs match
@@ -168,6 +185,17 @@ jobs:
           E2E_BASE_URL: http://localhost:3000
           E2E_API_URL: http://127.0.0.1:8000
         run: npm run test:e2e
+      - name: Light load test (k6, 20 VUs on /kpis + /query, p95 < 1.5 s) on a second 512 MB container
+        run: |
+          # Its own container: the anonymous rate limit (300/min per IP) would otherwise answer
+          # 429 to 20 users sharing the runner's IP. Same image, same memory limit.
+          docker run -d --name api-load --memory=512m --memory-swap=512m -p 8001:8000 \
+            -e RATE_LIMIT_ANONYMOUS=1000000 -e RATE_LIMIT_HEAVY_ANONYMOUS=1000000 civiclens-api
+          npx --yes wait-on@8.0.1 http-get://127.0.0.1:8001/health --timeout 120000 || (docker logs api-load; exit 1)
+      - uses: grafana/setup-k6-action@v1
+      - run: k6 run -e BASE=http://127.0.0.1:8001 --summary-trend-stats "avg,p(50),p(95),max" load/k6-kpis.js
+      - name: Load container not OOM-killed
+        run: test "$(docker inspect -f '{{.State.Running}} {{.State.OOMKilled}}' api-load)" = "true false"
       - name: No OOM kill, API still up
         run: |
           echo "memory.peak: $(docker exec api cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo n/a) bytes"
