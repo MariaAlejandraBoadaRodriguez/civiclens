@@ -3,6 +3,10 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Dependencies: 18 web minor/patch updates (Next.js tooling, Playwright 1.64, axe-core 4.14, TypeScript 5.9, Radix, next-auth 4.24.15); GitHub Actions on Node 24 (`checkout`, `setup-node`, `setup-python` v7, `gitleaks-action` v3).
+- Language switcher: the accessible name starts with the visible code ("EN English"), WCAG 2.5.3.
+
 ### Fixed
 - Dashboard filters changed in quick succession no longer drop the previous choice.
 - Intermittent API test failure: rate-limit windows are reset before every test.
