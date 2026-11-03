@@ -33,6 +33,15 @@ request:
   invalid:
     title: Invalid request
     detail: One or more fields are not valid.
+  not_found:
+    title: Not found
+    detail: There is no API route at this address. See /docs for the available routes.
+  method_not_allowed:
+    title: Method not allowed
+    detail: "This route does not accept {method}. The Allow header lists the methods it accepts."
+  malformed:
+    title: The request body could not be read
+    detail: Send valid JSON (or a multipart form for uploads).
 server:
   internal:
     title: Something went wrong on our side

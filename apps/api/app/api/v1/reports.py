@@ -37,7 +37,7 @@ def get_report(
         language = "en"
     ds = ready_dataset(session, dataset_id)
     if format == "pdf":
-        raise ProblemError(501, "report.pdf_unavailable")
+        raise ProblemError(406, "report.pdf_unavailable")
     html = reports.render_html(ds, language)
     name = f"civiclens-report-{ds.slug or ds.id}-{language}.html"
     return HTMLResponse(

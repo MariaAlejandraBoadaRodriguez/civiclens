@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
-from app.api.problems import ProblemError, problem_body
+from app.api.problems import ProblemError, iso_utc, problem_body
 from app.db.models import Job
 from app.db.session import get_session
 from app.i18n.loader import Translator
@@ -39,6 +39,6 @@ def get_job(
         "dataset_id": str(job.dataset_id) if job.dataset_id else None,
         "result": job.result_json,
         "error": error,
-        "created_at": job.created_at.isoformat() if job.created_at else None,
-        "finished_at": job.finished_at.isoformat() if job.finished_at else None,
+        "created_at": iso_utc(job.created_at),
+        "finished_at": iso_utc(job.finished_at),
     }

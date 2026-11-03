@@ -33,6 +33,15 @@ request:
   invalid:
     title: Solicitud no válida
     detail: Uno o más campos no son válidos.
+  not_found:
+    title: No encontrado
+    detail: No hay ninguna ruta de la API en esta dirección. Consulta /docs para ver las rutas disponibles.
+  method_not_allowed:
+    title: Método no permitido
+    detail: "Esta ruta no acepta {method}. El encabezado Allow indica los métodos que acepta."
+  malformed:
+    title: No pudimos leer el cuerpo de la solicitud
+    detail: Envía JSON válido (o un formulario multipart para las cargas de archivos).
 server:
   internal:
     title: Algo salió mal de nuestro lado

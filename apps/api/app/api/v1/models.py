@@ -23,7 +23,6 @@ from app.services import ml as svc
 router = APIRouter(prefix="/api/v1/models", tags=["models"])
 SessionDep = Annotated[Session, Depends(get_session)]
 TDep = Annotated[Translator, Depends(get_translator)]
-LATER = ("classifier", "segments")
 
 
 class RunRequest(BaseModel):
@@ -40,8 +39,7 @@ class ReviewRequest(BaseModel):
 def _model(model_type: str) -> str:
     if model_type in svc.MODELS:
         return model_type
-    if model_type in LATER:
-        raise ProblemError(501, "model.not_available", model_type=model_type)
+    # Planned models (classifier, segments) do not exist yet: 404, like an unknown model.
     raise ProblemError(404, "model.not_available", model_type=model_type)
 
 

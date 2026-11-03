@@ -9,8 +9,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.problems import ProblemError, problem_handler, validation_handler
+from app.api.problems import (
+    ProblemError,
+    http_error_handler,
+    problem_handler,
+    validation_handler,
+)
 from app.api.security import problem, security_middleware
 from app.api.v1 import datasets, jobs, keys, models, recipes, reports, sql
 from app.config import settings
@@ -40,6 +46,7 @@ app = FastAPI(
 
 app.add_exception_handler(ProblemError, problem_handler)
 app.add_exception_handler(RequestValidationError, validation_handler)
+app.add_exception_handler(StarletteHTTPException, http_error_handler)
 
 # Middleware order (Starlette: the last added is the outermost):
 #   CORS → locale + error guard → security (key, rate limit) → routes.

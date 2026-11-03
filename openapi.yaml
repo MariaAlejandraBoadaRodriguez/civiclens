@@ -44,6 +44,7 @@ tags:
     description: API-key management (admin only).
 
 paths:
+
   /health:
     get:
       tags: [ops]
@@ -91,16 +92,21 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Dataset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
         "429":
           $ref: "#/components/responses/TooManyRequests"
     post:
       tags: [datasets]
       operationId: uploadDataset
       summary: Upload a file
-      description: |
+      description: |-
         CSV, XLSX or JSON up to 50 MB, deleted after 24 h. Ingest + profile run as a job; poll
-        `GET /api/v1/jobs/{job_id}`. Anonymous uploads are allowed for the public demo (MVP);
-        agencies send `X-API-Key` (enforced with scopes in slice 5e).
+        `GET /api/v1/jobs/{job_id}`.
+
+        With an API key, the key needs the `datasets:write` scope. Anonymous calls are accepted only while the server allows anonymous writes (public demo).
       security: [{}, ApiKey: []]
       x-user-stories: [US-07, US-25]
       parameters:
@@ -145,6 +151,8 @@ paths:
           $ref: "#/components/responses/PayloadTooLarge"
         "415":
           $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
         "429":
           $ref: "#/components/responses/TooManyRequests"
 
@@ -169,8 +177,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Dataset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/datasets/{dataset_id}/profile:
     get:
@@ -193,10 +207,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Profile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/datasets/{dataset_id}/issues:
     get:
@@ -245,17 +265,23 @@ paths:
                     description: Localized names of recipe operations.
                     additionalProperties:
                       type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/datasets/{dataset_id}/recipes/apply:
     post:
       tags: [cleaning]
       operationId: applyRecipe
       summary: Apply a cleaning recipe
-      description: Replays a saved recipe (by id) or an inline recipe on the dataset. Deterministic output (same input + recipe → same hash).
+      description: "Replays a saved recipe (by id) or an inline recipe on the dataset. Deterministic output (same input + recipe → same hash).\n\nWith an API key, the key needs the `recipes:write` scope. Anonymous calls are accepted only while the server allows anonymous writes (public demo)."
       x-user-stories: [US-12, US-14, US-25]
       parameters:
         - $ref: "#/components/parameters/DatasetId"
@@ -284,10 +310,16 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "422":
           $ref: "#/components/responses/Unprocessable"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+
+      security:
+        - {}
+        - ApiKey: []
 
   /api/v1/datasets/{dataset_id}/schema:
     get:
@@ -309,17 +341,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StarSchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/recipes:
     post:
       tags: [cleaning]
       operationId: createRecipe
       summary: Save a recipe version
-      description: Saving with an existing name creates the next version.
+      description: "Saving with an existing name creates the next version.\n\nWith an API key, the key needs the `recipes:write` scope. Anonymous calls are accepted only while the server allows anonymous writes (public demo)."
       x-user-stories: [US-12]
       parameters:
         - $ref: "#/components/parameters/AcceptLanguage"
@@ -339,10 +377,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Recipe"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "422":
           $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+      security:
+        - {}
+        - ApiKey: []
 
   /api/v1/recipes/preview:
     post:
@@ -385,8 +432,14 @@ paths:
                     type: string
                   json:
                     type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "422":
           $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/recipes/{recipe_id}:
     get:
@@ -408,6 +461,13 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+      security:
+        - {}
+        - ApiKey: []
 
   /api/v1/recipes/{recipe_id}/export:
     get:
@@ -436,8 +496,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Recipe"
+            text/x-python:
+              schema:
+                type: string
+            application/sql:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/query:
     post:
@@ -467,10 +539,16 @@ paths:
                 $ref: "#/components/schemas/QueryResult"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "408":
           $ref: "#/components/responses/Timeout"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
         "429":
           $ref: "#/components/responses/TooManyRequests"
 
@@ -502,6 +580,10 @@ paths:
                       $ref: "#/components/schemas/GuidedQuery"
                   guardrails:
                     $ref: "#/components/schemas/Guardrails"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/kpis/{dataset_id}:
     get:
@@ -537,20 +619,28 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Kpi"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/models/{model_type}/run:
     post:
       tags: [models]
       operationId: runModel
       summary: Run a model
-      description: |
+      description: |-
         Trains and scores on the dataset's star schema (cleaned data). Fixed seed → reproducible
         output. The job result holds a summary; the full result and model card come from
-        `GET /api/v1/models/{model_type}/latest`. `classifier` and `segments` answer 501 for now.
+        `GET /api/v1/models/{model_type}/latest`. `classifier` and `segments` are not available yet and answer 404 (`model.not_available`).
+
+        With an API key, the key needs the `models:run` scope. Anonymous calls are accepted only while the server allows anonymous writes (public demo).
       x-user-stories: [US-18, US-19, US-20, US-21, US-25]
       parameters:
         - $ref: "#/components/parameters/ModelType"
@@ -580,16 +670,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JobRef"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
+      security:
+        - {}
+        - ApiKey: []
 
   /api/v1/models/{model_type}/latest:
     get:
@@ -624,17 +721,23 @@ paths:
                 oneOf:
                   - $ref: "#/components/schemas/RedFlagResult"
                   - $ref: "#/components/schemas/ForecastResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/models/red_flags/reviews:
     post:
       tags: [models]
       operationId: markReviewed
       summary: Mark a flagged contract as reviewed
-      description: Human-in-the-loop status, kept with the dataset across re-runs. `reviewed=false` undoes it.
+      description: "Human-in-the-loop status, kept with the dataset across re-runs. `reviewed=false` undoes it.\n\nWith an API key, the key needs the `models:run` scope. Anonymous calls are accepted only while the server allows anonymous writes (public demo)."
       security: [{}, ApiKey: []]
       x-user-stories: [US-18]
       requestBody:
@@ -647,8 +750,11 @@ paths:
               properties:
                 dataset_id:
                   type: string
+                  minLength: 1
                 contract_id:
                   type: string
+                  minLength: 1
+                  maxLength: 200
                 reviewed:
                   type: boolean
                   default: true
@@ -668,8 +774,20 @@ paths:
                     type: array
                     items:
                       type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/jobs/{job_id}:
     get:
@@ -698,15 +816,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Job"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/reports/{dataset_id}:
     get:
       tags: [reports]
       operationId: getReport
       summary: Executive report
-      description: HTML (or PDF, stretch) report in the requested language. `lang` wins over `Accept-Language`.
+      description: "HTML report in the requested language (`format=pdf` answers 406 until PDF is enabled). `lang` wins over `Accept-Language`.\n\nWith an API key, the key needs the `reports:read` scope."
       security: [{}, ApiKey: []]
       x-user-stories: [US-05]
       parameters:
@@ -738,8 +862,20 @@ paths:
               schema:
                 type: string
                 contentMediaType: application/pdf
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "406":
+          $ref: "#/components/responses/NotAcceptable"
 
   /api/v1/keys:
     get:
@@ -767,6 +903,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
     post:
       tags: [admin]
       operationId: createApiKey
@@ -786,10 +924,12 @@ paths:
                 name:
                   type: string
                   maxLength: 120
+                  minLength: 1
                 scopes:
                   type: array
                   items:
                     $ref: "#/components/schemas/Scope"
+                  minItems: 1
       responses:
         "201":
           description: Created.
@@ -797,10 +937,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiKeyCreated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /api/v1/keys/{key_id}:
     delete:
@@ -828,7 +974,10 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 components:
   securitySchemes:
     ApiKey:
@@ -861,7 +1010,7 @@ components:
       name: model_type
       in: path
       required: true
-      description: Which model. `classifier` and `segments` are stretch goals (501 for now).
+      description: Which model. `classifier` and `segments` are stretch goals (404 `model.not_available` for now).
       schema:
         type: string
         enum: [red_flags, forecast, classifier, segments]
@@ -917,12 +1066,6 @@ components:
         application/problem+json:
           schema:
             $ref: "#/components/schemas/Problem"
-    NotImplemented:
-      description: Planned but not available yet (e.g. `classifier`, `segments`).
-      content:
-        application/problem+json:
-          schema:
-            $ref: "#/components/schemas/Problem"
     PayloadTooLarge:
       description: File larger than 50 MB.
       content:
@@ -953,6 +1096,12 @@ components:
           schema:
             $ref: "#/components/schemas/Problem"
 
+    NotAcceptable:
+      description: The requested format is not available (e.g. PDF before it is enabled).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   schemas:
     UiLanguage:
       type: string
@@ -1301,9 +1450,7 @@ components:
           example: mixed_currency:currency
         issue_type:
           type: string
-          enum:
-            [header_mapping, pii, duplicates, missing_values, time_zone, date_format,
-             number_locale, mixed_currency, text_variants, category_labels, outliers, type_casting]
+          enum: [header_mapping, pii, duplicates, missing_values, time_zone, date_format, number_locale, mixed_currency, text_variants, category_labels, outliers, type_casting]
         category:
           type: string
           enum: [completeness, uniqueness, validity, consistency]
@@ -1384,6 +1531,7 @@ components:
         name:
           type: string
           maxLength: 120
+          minLength: 1
         dataset_id:
           type: [string, "null"]
           format: uuid

@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.problems import ProblemError
+from app.api.problems import ProblemError, iso_utc
 from app.api.security import forget_key, require_admin
 from app.core import keys
 from app.db.models import ApiKey, AuditLog
@@ -29,7 +29,7 @@ class KeyInput(BaseModel):
 
 
 def key_out(row: ApiKey) -> dict[str, Any]:
-    iso = lambda d: d.isoformat() if d else None  # noqa: E731
+    iso = iso_utc
     return {
         "id": str(row.id),
         "name": row.name,

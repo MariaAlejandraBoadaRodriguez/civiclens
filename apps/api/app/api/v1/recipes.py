@@ -7,10 +7,11 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.api.problems import ProblemError
+from app.api.problems import ProblemError, iso_utc
 from app.api.security import require_scope
 from app.core.cleaning.recipe import RecipeError, validate_steps
 from app.db.models import Recipe
@@ -54,7 +55,7 @@ def recipe_out(recipe: Recipe) -> dict[str, Any]:
         "version": recipe.version,
         "dataset_id": str(recipe.dataset_id) if recipe.dataset_id else None,
         "steps": recipe.steps_json,
-        "created_at": recipe.created_at.isoformat() if recipe.created_at else None,
+        "created_at": iso_utc(recipe.created_at),
     }
 
 
@@ -63,6 +64,12 @@ def create_recipe(body: RecipeInput, session: SessionDep) -> dict[str, Any]:
     steps = validated(body.steps)
     recipe = cleaning.save_recipe(session, body.name, steps, body.dataset_id)
     return recipe_out(recipe)
+
+
+@router.get("/preview", include_in_schema=False)
+def preview_wrong_method() -> None:
+    """Only POST exists here; without this, GET would read "preview" as a recipe id."""
+    raise StarletteHTTPException(405)
 
 
 @router.post("/preview")

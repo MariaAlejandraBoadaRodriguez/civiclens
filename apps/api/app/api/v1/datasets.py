@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse
@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
-from app.api.problems import ProblemError
+from app.api.problems import ProblemError, iso_utc
 from app.api.security import Principal, require_scope
 from app.api.v1.recipes import RecipeInput, validated
 from app.config import settings
@@ -48,8 +48,8 @@ def dataset_out(ds: Dataset, t: TDep) -> dict[str, Any]:
         "license": seed.license if seed else None,
         "source_url": seed.source_url if seed else None,
         "jurisdiction": seed.jurisdiction if seed else None,
-        "created_at": ds.created_at.isoformat() if ds.created_at else None,
-        "expires_at": ds.expires_at.isoformat() if ds.expires_at else None,
+        "created_at": iso_utc(ds.created_at),
+        "expires_at": iso_utc(ds.expires_at),
     }
 
 
@@ -58,7 +58,9 @@ def job_ref(job: Job) -> dict[str, str]:
 
 
 @router.get("")
-def list_datasets(session: SessionDep, t: TDep, source: str | None = None) -> dict:
+def list_datasets(
+    session: SessionDep, t: TDep, source: Literal["seed", "upload"] | None = None
+) -> dict:
     items = [dataset_out(d, t) for d in svc.list_datasets(session)]
     if source:
         items = [i for i in items if i["source"] == source]
