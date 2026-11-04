@@ -5,8 +5,9 @@ id: banking
 order: 2
 engine: generic
 detect:
-  require_any: [loan_amount, balance, days_past_due, default_flag]
-  min_score: 0.35
+  # A credit file has a default flag or days past due; amounts alone (sales) are not enough.
+  require_any: [days_past_due, default_flag]
+  min_score: 0.5
 roles:
   - id: client_id
     kinds: [identifier, category, integer]

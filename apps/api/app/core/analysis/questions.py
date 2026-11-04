@@ -77,6 +77,22 @@ def positive_expr(meta: ColumnMeta, positive: str | None = None) -> str:
     return f"{col} = (SELECT MAX({col}) FROM data)"
 
 
+def _zero_one(meta: ColumnMeta) -> bool:
+    values = {str(t["value"]) for t in meta.top}
+    return values in ({"0", "1"}, {"0.0", "1.0"})
+
+
+def year_like(meta: ColumnMeta) -> bool:
+    """Whole numbers between 1500 and 2100 (election cycle, year founded): a time label, not a
+    quantity to average or sum."""
+    return (
+        meta.kind == "integer"
+        and meta.min is not None
+        and 1500 <= float(meta.min)
+        and float(meta.max) <= 2100
+    )
+
+
 def pick(metas: list[ColumnMeta]) -> Picks:
     cats = [
         m for m in metas if m.kind == "category" and 2 <= m.distinct <= 60 and m.null_share < 0.6
@@ -85,12 +101,18 @@ def pick(metas: list[ColumnMeta]) -> Picks:
     nums = [
         m
         for m in metas
-        if m.kind in NUMERIC_KINDS and not m.binary and m.distinct > 2 and m.null_share < 0.8
+        if m.kind in NUMERIC_KINDS
+        and not m.binary
+        and m.distinct > 2
+        and m.null_share < 0.8
+        and not year_like(m)
     ]
     nums.sort(key=lambda m: (m.null_share > 0.2, -min(m.distinct, 1000)))
     binaries = [m for m in metas if m.binary and m.distinct == 2]
     named = [m for m in binaries if TARGET_HINT.search(m.name)]
-    target = named[-1] if named else (binaries[-1] if binaries else None)
+    # Unnamed: only yes/no or 0/1 flags (two station altitudes are not an outcome).
+    flags = [m for m in binaries if m.kind == "boolean" or _zero_one(m)]
+    target = named[-1] if named else (flags[-1] if flags else None)
     dates = [m for m in metas if m.kind in TEMPORAL_KINDS and m.distinct > 1]
     return Picks(cats, nums, target, dates)
 
@@ -122,8 +144,17 @@ def generate(metas: list[ColumnMeta], rows: int) -> list[Question]:
             )
         )
 
+    # Labels with many values (sub-industry, city) still answer "which are the most frequent?"
+    # when the file has few low-cardinality categories (mostly text files).
+    wide = [
+        m
+        for m in metas
+        if m.kind == "category" and m not in p.categories and m.distinct >= 2 and m.null_share < 0.6
+    ]
+    labels = p.categories + wide
+
     # 2. Counts and shares per category.
-    for m in p.categories[:2]:
+    for m in labels[:2]:
         out.append(
             Question(
                 f"counts_{m.name}",
@@ -220,8 +251,8 @@ def generate(metas: list[ColumnMeta], rows: int) -> list[Question]:
                     ["GROUP BY ALL", "HAVING"],
                 )
             )
-    elif len(p.categories) >= 2:
-        a, b = p.categories[0], p.categories[1]
+    elif len(labels) >= 2:
+        a, b = labels[0], labels[1]
         out.append(
             Question(
                 f"cross_{a.name}_{b.name}",
@@ -305,8 +336,11 @@ def generate(metas: list[ColumnMeta], rows: int) -> list[Question]:
             Question(
                 f"duplicates_{m.name}",
                 "identifier_duplicates",
-                f"SELECT {q(m.name)}, COUNT(*) AS rows\nFROM data\nWHERE {q(m.name)} IS NOT NULL\n"
-                f"GROUP BY 1\nHAVING COUNT(*) > 1\nORDER BY rows DESC\nLIMIT 20",
+                f"SELECT COUNT({q(m.name)}) AS filled, COUNT(DISTINCT {q(m.name)}) AS distinct_values,\n"
+                f"       COUNT({q(m.name)}) - COUNT(DISTINCT {q(m.name)}) AS repeated,\n"
+                f"       (SELECT ARG_MAX({q(m.name)}, n) FROM (SELECT {q(m.name)}, COUNT(*) AS n FROM data\n"
+                f"         WHERE {q(m.name)} IS NOT NULL GROUP BY 1 HAVING COUNT(*) > 1)) AS most_repeated\n"
+                f"FROM data",
                 {"column": _label(m)},
                 ["HAVING"],
             )

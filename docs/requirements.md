@@ -176,6 +176,18 @@ As a visitor, I want to know the engine is waking up so that I don't think the s
 As a visitor, I want to see where each sample dataset comes from and its license so that the demo is legally and ethically sound.
 - **Given** the footer link "Dataset licenses", **then** each seed dataset shows publisher, URL, license and date pulled, matching `data/seed/README.md`.
 
+### Any dataset (owner requirement, generic core)
+
+#### US-28 · Analyze any table — **Must** · PS, RC, AI · Generic core (PR 2–4)
+As an analyst, I want to upload any tabular file (banking, elections, budgets, sales …) and get a meaningful analysis so that CivicLens is useful beyond public procurement.
+- **Given** a CSV, XLSX or flat JSON up to 50 MB, **then** the SQL Lab shows a typed table `data` with safe names, kinds and examples, and questions generated from its columns (counts, rates, summaries, distributions, segments, trends, outliers, correlations) in the UI language.
+- **Given** any acceptance fixture in `data/fixtures`, **then** every stage returns non-empty output and never a 500; views that need procurement data answer 409 with a clear message.
+
+#### US-29 · Choose a domain and map column roles — **Must** · PS · Generic core (PR 2)
+As an analyst, I want CivicLens to suggest a domain (Government, Banking, General …), an analysis goal and which column plays each role, so that I get domain KPIs and questions and can correct the guess.
+- **Given** an uploaded file, **then** the suggested pack, its fit score and each role's column with a confidence are shown; I can confirm or change pack, goal and roles in EN or ES.
+- **Given** a role is not mapped, **then** the pack items that need it disappear and the generic analysis stays.
+
 ## 4. "Must" → phase traceability
 
 | Story | Phase / slice |
@@ -188,6 +200,7 @@ As a visitor, I want to see where each sample dataset comes from and its license
 | US-04, US-05, US-24, US-25 | 5e (+ 7 integration) |
 | US-06, US-22, US-27 | 6 (seed data from 1) |
 | US-26 | 3 (component), 7 (wiring) |
+| US-28, US-29 | Generic core (PR 2–4, after release v1) |
 
 Every **Must** story is delivered by at least one phase; Phase 8 adds the automated tests that enforce the acceptance criteria (i18n diff, E2E in EN + ES, axe).
 

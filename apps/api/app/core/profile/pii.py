@@ -26,6 +26,7 @@ EMAIL = re.compile(r"^[\w.+-]+@[\w-]+(\.[\w-]+)+$")
 PHONE = re.compile(r"^\+?[\d\s().-]{7,20}$")
 ID_NUMBER = re.compile(r"^\d{6,12}$")
 DATE_LIKE = re.compile(r"^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}")
+AMOUNT_LIKE = re.compile(r"^-?\d+[.,]\d{1,2}$")  # 7548345900.00: a budget line, not a phone
 
 PHONE_HINTS = ("tel", "telefono", "phone", "celular", "movil", "mobile", "telephone", "cellulaire")
 ID_HINTS = (
@@ -71,6 +72,8 @@ def _phone_like(value: str) -> bool:
     if not PHONE.match(v) or sum(c.isdigit() for c in v) < 7:
         return False
     if not (v.startswith("+") or any(sep in v for sep in " ()-.")):
+        return False
+    if AMOUNT_LIKE.match(v):
         return False
     return parse_date(v) is None and not DATE_LIKE.match(v)
 

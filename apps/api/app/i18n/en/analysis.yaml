@@ -62,9 +62,9 @@ questions:
     question: Which pairs of {columns} move together?
     explanation: Pearson correlation of every pair, strongest first (+1 together, −1 opposite, 0 unrelated). Correlation is not causation.
   identifier_duplicates:
-    title: Repeated values of {column}
+    title: Is {column} unique?
     question: Does any value of {column} appear more than once?
-    explanation: An identifier should be unique; repeated values may be duplicated rows or a column that is not really an identifier.
+    explanation: Compares filled and distinct values and shows the most repeated one. An identifier should be unique; repeats may be duplicated rows or a column that is not really an identifier.
 kpis:
   rows:
     name: Rows
@@ -81,6 +81,9 @@ kpis:
   mean:
     name: Average {column}
     definition: Mean of {column} over the rows that have a value.
+  distinct:
+    name: Distinct {column} values
+    definition: Number of different values of {column}.
   rate:
     name: "{column} rate"
     definition: Share of rows where {column} takes its positive value.

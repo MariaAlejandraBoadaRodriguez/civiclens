@@ -294,13 +294,42 @@ def generic_kpis(ds: Dataset, t: Translator) -> list[dict[str, Any]]:
                 "number",
                 t,
                 column=m.source,
+                column_id=m.name,
                 formula=f"SELECT AVG({q(m.name)}) FROM data",
+            )
+        )
+    label = next(
+        (m for m in p.categories + [m for m in metas if m.kind == "category" and m.distinct > 1]),
+        None,
+    )
+    if label is not None:
+        sql = f"SELECT COUNT(DISTINCT {q(label.name)}) FROM data"
+        value = engine.run(path, sql, timeout_s=5).rows[0][0]
+        out.append(
+            _kpi(
+                "distinct",
+                value,
+                "count",
+                t,
+                column=label.source,
+                column_id=label.name,
+                formula=sql,
             )
         )
     if p.target is not None:
         sql = f"SELECT AVG(CASE WHEN {positive_expr(p.target)} THEN 1.0 ELSE 0.0 END) FROM data WHERE {q(p.target.name)} IS NOT NULL"  # noqa: S608
         value = engine.run(path, sql, timeout_s=5).rows[0][0]
-        out.append(_kpi("rate", value, "ratio", t, column=p.target.source, formula=sql))
+        out.append(
+            _kpi(
+                "rate",
+                value,
+                "ratio",
+                t,
+                column=p.target.source,
+                column_id=p.target.name,
+                formula=sql,
+            )
+        )
     return out
 
 
@@ -310,10 +339,11 @@ def _kpi(
     unit: str,
     t: Translator,
     column: str | None = None,
+    column_id: str | None = None,
     formula: str | None = None,
 ) -> dict[str, Any]:
     return {
-        "kpi_id": f"generic.{kind}" + (f".{column}" if column else ""),
+        "kpi_id": f"generic.{kind}" + (f".{column_id}" if column_id else ""),
         "value": None if value is None else round(float(value), 6),
         "unit": unit,
         "currency": None,

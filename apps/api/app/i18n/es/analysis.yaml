@@ -62,9 +62,9 @@ questions:
     question: ¿Qué pares de {columns} se mueven juntos?
     explanation: Correlación de Pearson de cada par, de la más fuerte a la más débil (+1 juntos, −1 opuestos, 0 sin relación). Correlación no es causalidad.
   identifier_duplicates:
-    title: Valores repetidos de {column}
+    title: ¿{column} es único?
     question: ¿Algún valor de {column} aparece más de una vez?
-    explanation: Un identificador debería ser único; los repetidos pueden ser filas duplicadas o una columna que en realidad no identifica.
+    explanation: Compara los valores presentes con los distintos y muestra el más repetido. Un identificador debería ser único; los repetidos pueden ser filas duplicadas o una columna que en realidad no identifica.
 kpis:
   rows:
     name: Filas
@@ -81,6 +81,9 @@ kpis:
   mean:
     name: Promedio de {column}
     definition: Media de {column} sobre las filas que tienen un valor.
+  distinct:
+    name: Valores distintos de {column}
+    definition: Número de valores diferentes de {column}.
   rate:
     name: Tasa de {column}
     definition: Porcentaje de filas en que {column} toma su valor positivo.
