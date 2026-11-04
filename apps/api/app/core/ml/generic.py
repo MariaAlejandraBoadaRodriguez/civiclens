@@ -32,7 +32,6 @@ MAX_CATEGORIES = 60  # categories with more labels are left out as features
 MAX_FEATURES = 40
 IMPORTANCE_ROWS = 2_000
 SILHOUETTE_ROWS = 1_500
-WORKING_MEMORY_MB = 32  # sklearn chunked computations (pairwise distances)
 LEAK_STRONG = 0.95  # one feature alone predicts the target almost perfectly
 LEAK_HINTED = 0.75  # …or strongly, and its name says it is known only after the outcome
 LEAK_HINT = re.compile(
@@ -491,11 +490,53 @@ def anomalies(frame: pd.DataFrame, metas: list[ColumnMeta], top: int = 20) -> di
 # --------------------------------------------------------------------------- segments
 
 
-def segments(frame: pd.DataFrame, metas: list[ColumnMeta]) -> dict[str, Any]:
-    from sklearn import config_context
-    from sklearn.cluster import KMeans
-    from sklearn.metrics import silhouette_score
+def kmeans(z: np.ndarray, k: int, n_init: int = 4, max_iter: int = 100) -> np.ndarray:
+    """Lloyd's k-means with k-means++ seeding, best of ``n_init`` (fixed seed). Plain NumPy:
+    importing sklearn.cluster (scipy) alone costs ~90 MB in the 512 MB job process."""
+    rng = np.random.default_rng(SEED)
+    best, best_inertia = np.zeros(len(z), dtype=int), np.inf
+    sq = (z**2).sum(axis=1)
+    for _ in range(n_init):
+        centers = [z[rng.integers(len(z))]]
+        for _ in range(1, k):
+            d2 = np.min([((z - c) ** 2).sum(axis=1) for c in centers], axis=0)
+            total = d2.sum()
+            pick = rng.choice(len(z), p=d2 / total) if total > 0 else rng.integers(len(z))
+            centers.append(z[pick])
+        c = np.array(centers)
+        labels = np.zeros(len(z), dtype=int)
+        for _ in range(max_iter):
+            dist = sq[:, None] - 2 * z @ c.T + (c**2).sum(axis=1)[None, :]
+            new = dist.argmin(axis=1)
+            if (new == labels).all() and _ > 0:
+                break
+            labels = new
+            for j in range(k):
+                members = z[labels == j]
+                if len(members):
+                    c[j] = members.mean(axis=0)
+        inertia = float(np.take_along_axis(dist, labels[:, None], axis=1).sum())
+        if inertia < best_inertia:
+            best, best_inertia = labels.copy(), inertia
+    return best
 
+
+def silhouette(z: np.ndarray, labels: np.ndarray) -> float:
+    """Mean silhouette coefficient (Rousseeuw 1987) on a small sample."""
+    sq = (z**2).sum(axis=1)
+    d = np.sqrt(np.maximum(sq[:, None] - 2 * z @ z.T + sq[None, :], 0.0))
+    groups = np.unique(labels)
+    mean_to = np.stack([d[:, labels == g].mean(axis=1) for g in groups], axis=1)
+    own = np.searchsorted(groups, labels)
+    sizes = np.array([(labels == g).sum() for g in groups])[own]
+    a = mean_to[np.arange(len(z)), own] * sizes / np.maximum(sizes - 1, 1)  # exclude self
+    mean_to[np.arange(len(z)), own] = np.inf
+    b = mean_to.min(axis=1)
+    s = np.where(sizes > 1, (b - a) / np.maximum(a, b), 0.0)
+    return float(np.nan_to_num(s).mean())
+
+
+def segments(frame: pd.DataFrame, metas: list[ColumnMeta]) -> dict[str, Any]:
     nums = _numbers(metas)[:8]
     cats = [
         m for m in metas if m.kind == "category" and 2 <= m.distinct <= 12 and m.null_share < 0.5
@@ -514,21 +555,19 @@ def segments(frame: pd.DataFrame, metas: list[ColumnMeta]) -> dict[str, Any]:
     for m in cats:
         parts.append(pd.get_dummies(labels(data[m.name]), prefix=m.name, dtype="float64") * 0.7)
     z = pd.concat(parts, axis=1).fillna(0.0).to_numpy()
-    # Silhouette needs pairwise distances: score k on 1,500 rows with sklearn's working memory
-    # capped (its 1 GB default alone would break the 512 MB budget).
+    # Silhouette needs pairwise distances: score k on a 1,500-row sample (18 MB).
     probe = z[np.random.default_rng(SEED).permutation(len(z))[:SILHOUETTE_ROWS]]
     best_k, best_s = 2, -1.0
     for k in range(2, 7):
         if len(probe) <= k:
             break
-        assigned = KMeans(n_clusters=k, n_init=4, random_state=SEED).fit_predict(probe)
+        assigned = kmeans(probe, k)
         if len(set(assigned)) < 2:
             continue
-        with config_context(working_memory=WORKING_MEMORY_MB):
-            s = float(silhouette_score(probe, assigned, random_state=SEED))
+        s = silhouette(probe, assigned)
         if s > best_s + 0.01:
             best_k, best_s = k, s
-    assigned = KMeans(n_clusters=best_k, n_init=4, random_state=SEED).fit_predict(z)
+    assigned = kmeans(z, best_k)
 
     out = []
     for k in range(best_k):

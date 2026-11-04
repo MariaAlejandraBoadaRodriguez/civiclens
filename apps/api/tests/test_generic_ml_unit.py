@@ -56,3 +56,18 @@ def test_large_tables_are_sampled_and_say_so(monkeypatch) -> None:
 
 def test_whole_number_labels_have_no_decimals() -> None:
     assert generic.labels(pd.Series([8204.0, 20385.0, None])).tolist()[:2] == ["8204", "20385"]
+
+
+def test_numpy_kmeans_and_silhouette_match_sklearn() -> None:
+    """Segments avoid importing sklearn.cluster (~90 MB in the job process); the NumPy
+    versions must give the same answers."""
+    from sklearn.metrics import silhouette_score
+
+    rng = np.random.default_rng(1)
+    z = np.vstack(
+        [rng.normal(0, 1, (300, 3)), rng.normal(6, 1, (200, 3)), rng.normal((0, 8, 0), 1, (100, 3))]
+    )
+    labels = generic.kmeans(z, 3)
+    assert sorted(np.bincount(labels).tolist()) == [100, 200, 300]
+    assert abs(generic.silhouette(z, labels) - silhouette_score(z, labels)) < 1e-9
+    assert (generic.kmeans(z, 3) == labels).all()  # fixed seed: same segments every run
