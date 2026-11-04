@@ -9,8 +9,9 @@ Modes:
          executive report (HTML EN + ES, PDF), the BI export and the dashboard (one dataset and
          all three, every period). With --fixtures, also every acceptance fixture (any kind of
          table): upload, ingest, apply the recommended recipe, the table `data`, every generated
-         question (each must return rows), KPIs, the domain step and BI export; procurement-only
-         views must answer 409, never 5xx.
+         question (each must return rows), KPIs, the domain step, the four generic models (target
+         model, anomalies, segments, forecast) and BI export; procurement-only views must answer
+         409, never 5xx.
          Used by CI against the Docker image limited to 512 MB.
   smoke  /health and one recipe preview per seed. Used after each production deploy.
 
@@ -215,13 +216,23 @@ def any_dataset(c: Client, folder: Path) -> None:
         if len(kpis) < 5 or any(k["value"] is None for k in kpis):
             raise FlowError(f"{path.name}: KPIs missing or empty")
         domain = c.get(f"/api/v1/datasets/{ds}/domain")
+        verdicts = []
+        for model in ("target_model", "anomalies", "segments", "forecast"):
+            job = c.post(f"/api/v1/models/{model}/run", {"dataset_id": ds}, ok=(202,))
+            c.wait_job(job, f"{model} {path.name}")
+            result = c.get(f"/api/v1/models/{model}/latest?dataset_id={ds}")
+            if not result["card"].get("verdict") and result.get("status") != "ok":
+                raise FlowError(f"{path.name}: {model} gave no result and no explanation")
+            verdicts.append(f"{model}={result.get('status')}")
         if not c.get(f"/api/v1/datasets/{ds}/export?format=parquet").startswith(b"PK"):
             raise FlowError(f"export {path.name}: zip expected")
         if domain["pack"] != "government":  # views not generic yet: a clear 409, not a 5xx
             c.get(f"/api/v1/dashboard?dataset_id={ds}", ok=(409,))
             c.get(f"/api/v1/reports/{ds}", ok=(409,))
+            c.post("/api/v1/models/red_flags/run", {"dataset_id": ds}, ok=(409,))
         log(f"  {path.name}: {len(schema['data_columns'])} columns, {len(guided)} questions, "
-            f"{len(kpis)} KPIs, domain {domain['pack']} ({time.perf_counter() - t0:.0f} s)")
+            f"{len(kpis)} KPIs, domain {domain['pack']}, {' '.join(verdicts)} "
+            f"({time.perf_counter() - t0:.0f} s)")
 
 
 def smoke(c: Client) -> None:

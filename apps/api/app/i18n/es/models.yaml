@@ -56,4 +56,94 @@ forecast:
 classifier:
   name: Clasificador de categorías
 segments:
-  name: Segmentos de proveedores
+  name: Segmentos
+  question: ¿Qué grupos de filas parecidas contiene la tabla y qué distingue a cada uno?
+  method: k-means sobre las cantidades y las categorías principales
+  method_detail: "k-means (semilla fija {seed}) sobre las cantidades estandarizadas (recortadas en los percentiles 5 y 95) y las categorías principales; {k} segmentos elegidos por el coeficiente de silueta ({silhouette})."
+  warning: Los segmentos describen los datos, no los explican. Otras columnas u otro número de segmentos dan grupos distintos.
+  limitations:
+    l1: k-means busca grupos redondos de tamaño parecido; puede no ver grupos alargados o muy pequeños.
+    l2: Solo se usan cantidades y categorías de hasta 12 valores; el texto libre y los identificadores quedan fuera.
+    l3: Las tablas grandes se muestrean, así que los segmentos pequeños pueden cambiar entre corridas con otros datos.
+  profile: "Segmento {n} ({share} de las filas): {traits}"
+  typical: cerca de los valores típicos de la tabla
+  trait_higher: "{column} más alto (mediana {value} vs {overall})"
+  trait_lower: "{column} más bajo (mediana {value} vs {overall})"
+  trait_category: "más a menudo {column} = {value} ({share} vs {overall})"
+target_model:
+  name: Modelo de predicción
+  question: ¿Qué filas probablemente tendrán el resultado que eliges y qué lo explica?
+  questions:
+    binary: "¿Qué filas probablemente tendrán {target} = sí y qué lo explica?"
+    multiclass: "¿Qué {target} tendrá cada fila y qué lo explica?"
+    regression: "¿Qué valor de {target} esperar en cada fila y qué lo explica?"
+  method: Gradient boosting frente a una línea base ingenua
+  method_detail: "Gradient boosting por histogramas (semilla fija {seed}) entrenado con {train} filas y evaluado con {test} filas que no vio (partición estratificada). Línea base: {baseline}. Importancia: cuánto baja el puntaje de prueba cuando se desordena una columna (importancia por permutación)."
+  baselines:
+    majority_class: predecir siempre el valor más común
+    mean: predecir siempre el promedio
+  warning: Un modelo encuentra patrones, no causas. Revisa las alertas de fuga de información y la revisión de equidad antes de usar predicciones sobre personas.
+  verdict_beats: "El modelo supera a la línea base: {metric} {model} vs {baseline}."
+  verdict_loses: "El modelo no supera a la línea base ({metric} {model} vs {baseline}). Las columnas no predicen bien este resultado."
+  positive: "Valor positivo de {target}: {value}"
+  metrics:
+    roc_auc: AUC ROC
+    average_precision: Precisión promedio
+    accuracy: Exactitud
+    precision: Precisión
+    recall: Sensibilidad
+    threshold: Umbral del puntaje
+    positive_rate: Proporción de positivos
+    f1_macro: F1 (macro)
+    mae: Error absoluto medio
+    rmse: Raíz del error cuadrático medio
+    r2: R²
+  leakage:
+    too_strong: "Posible fuga de información: {column} por sí sola predice el resultado casi perfectamente (fuerza {strength}). Verifica que se conozca antes del resultado; si no, quítala."
+    name_and_strength: "Posible fuga de información: {column} parece medirse después del resultado y lo predice con fuerza (fuerza {strength}). Quítala para tener un modelo que sirva por adelantado."
+  sensitive_excluded: "Atributos sensibles excluidos de las entradas: {columns}. Se usan solo para la revisión de equidad."
+  fairness:
+    passes: "Equidad según {column}: la proporción de filas marcadas del grupo más bajo es {ratio} × la del más alto (≥ 0,8 cumple la regla de los cuatro quintos)."
+    fails: "Alerta de equidad según {column}: la proporción de filas marcadas del grupo más bajo es solo {ratio} × la del más alto (< 0,8). Revísalo antes de usar el modelo para decidir sobre personas."
+  limitations:
+    l1: El puntaje de prueba sale de una sola partición de este archivo; los datos nuevos pueden comportarse distinto.
+    l2: Las categorías con más de 60 valores, el texto libre y los identificadores no se usan como entradas.
+    l3: La importancia muestra en qué se apoya el modelo, no qué causa el resultado.
+anomalies:
+  name: Filas inusuales
+  question: ¿Qué filas no se parecen al resto y merecen una segunda mirada?
+  method: Isolation Forest sobre las cantidades
+  method_detail: "Un Isolation Forest (150 árboles, semilla fija {seed}) mide qué tan fácil es aislar cada fila de las demás; se nombra la columna más inusual de la fila (puntaje z robusto frente a la mediana)."
+  warning: Inusual no es incorrecto. Una fila marcada puede ser un error de datos, un caso raro pero válido o la fila más interesante de la tabla.
+  verdict: "{flagged} filas ({share}) se ven inusuales."
+  why_high: "{column} = {value}, muy por encima de lo usual ({median})"
+  why_low: "{column} = {value}, muy por debajo de lo usual ({median})"
+  limitations:
+    l1: Solo se usan cantidades; una combinación inusual de categorías no se detecta.
+    l2: Los valores faltantes se reemplazan por la mediana antes de calcular el puntaje.
+    l3: La proporción de filas marcadas la elige el modelo; lee el orden, no el conteo.
+forecast_any:
+  name: Pronóstico
+  question: ¿Qué viene para la cantidad principal en el tiempo y podemos confiar en la estimación?
+  method: Gradient boosting frente a una línea base estacional ingenua
+  method_detail: "Totales mensuales de {metric} por {date}. Gradient boosting (semilla fija {seed}) con rezagos de 1, 2, 3 y 12 meses, una media de 3 meses y el mes del año. La línea base repite el mismo mes del año anterior. Ambos se evalúan en los últimos {test} meses que no vieron."
+  rows: el número de filas
+  warning: Un pronóstico es un rango de valores plausibles, no una promesa.
+  limitations:
+    l1: Necesita al menos 24 meses completos; los datos más cortos o más finos no se pronostican.
+    l2: El MAPE crece rápido cuando los valores reales son pequeños.
+    l3: El pronóstico supone que los próximos meses se parecerán al pasado reciente.
+generic:
+  sampled: "Entrenado con una muestra aleatoria de {rows} de {total} filas para caber en memoria (semilla fija)."
+  sensitive:
+    age: Edad
+    sex: Sexo / género
+    marital_status: Estado civil
+    nationality: Nacionalidad
+  status:
+    no_target: "Esta tabla no tiene una columna sí/no para predecir. Elige una columna objetivo para entrenar un modelo."
+    unsupported_target: Esta columna no se puede predecir (texto libre, identificadores o un solo valor). Elige una marca, una categoría de hasta 20 valores o una cantidad.
+    no_features: No hay columnas de entrada utilizables además del objetivo.
+    single_class: El objetivo tiene un solo valor en las filas que lo tienen; no hay nada que predecir.
+    no_numbers: La tabla no tiene cantidades que evaluar; las filas inusuales necesitan al menos una columna numérica.
+    no_date: La tabla no tiene una columna de fecha, así que no hay nada que pronosticar.

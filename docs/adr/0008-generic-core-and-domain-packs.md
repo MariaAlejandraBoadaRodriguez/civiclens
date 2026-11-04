@@ -13,7 +13,12 @@ The owner requires the whole pipeline (Ingest → Clean → SQL → ML → Dashb
 5. **The user decides.** The suggestion is stored only when the user confirms it (`PUT /datasets/{id}/domain`, kept in `profile_json.domain`); until then the best suggestion above 0.3 applies. Roles that are not mapped drop the pack items that need them; the generic analysis always stays. A target's "positive" value is a yes-like word, else the minority value (events are the rarer case), and the user can change it.
 6. **Procurement is the Government pack** (engine `procurement_star`): its roles are the canonical fields mapped at ingest, and only this pack builds the star schema. Switching to or from it rebuilds the model in a background job. Sample datasets keep their pack (they are shared).
 7. **Sensitive attributes** (age, sex/gender, marital status, nationality) are pack roles flagged `sensitive`: shown with a badge, excluded from the pack fit score, used only for fairness checks — never as model inputs.
-8. **No 500 while views catch up.** Views not yet generic (dashboard, report, procurement models) answer 409 `domain.procurement_only` with a localized message pointing to the SQL Lab, until PRs 3–4 make them generic.
+8. **Generic models (PR 3)** on the table `data`, each with an EN/ES model card:
+   - *target model*: the task follows from the target's kind (flag → binary, ≤ 20 labels → multiclass, quantity → regression); histogram gradient boosting vs a naive baseline (majority class or mean) on a stratified 75/25 split; permutation importance; **leakage warnings** when one column alone predicts the target almost perfectly (≥ 0.95) or strongly (≥ 0.75) with an "after the outcome" name (`duration`, `status`, `paid` …);
+   - **sensitive attributes** (pack roles, else header hints) are never inputs; a **fairness check** compares each group's share of positive predictions (four-fifths rule) and shows actual rates and true-positive rates next to it;
+   - *anomalies* (Isolation Forest, naming the most unusual value), *segments* (k-means, k by silhouette, plain-language profiles), *forecast* on any date + quantity (the existing honest forecast, needs 24 months);
+   - more than 20,000 rows are sampled with a fixed seed, and the card says so. Red flags stay procurement-only (409 otherwise).
+9. **No 500 while views catch up.** Views not yet generic (dashboard, report, procurement models) answer 409 `domain.procurement_only` with a localized message pointing to the SQL Lab, until PRs 3–4 make them generic.
 
 ## Consequences
 - ✅ Every acceptance fixture (`data/fixtures`) gets a typed table, ≥ 5 working questions with rows and KPIs with values; CI runs them end to end in the 512 MB image.

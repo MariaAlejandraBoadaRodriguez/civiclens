@@ -56,6 +56,23 @@ for (const lang of LANGS) {
       await expect(page.locator("#query-results table tbody tr").first()).toBeVisible();
     });
 
+    test("any dataset: bank marketing → ML lab predicts y, warns about duration, segments", async ({ page }) => {
+      await page.goto(`/${lang}/datasets/secop_co`);
+      await page.locator("input[type=file]").setInputFiles(path.join(FIXTURES, "bank_marketing.csv"));
+      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/[0-9a-f-]{36}\\?ready=1$`), { timeout: 120_000 });
+      const id = new URL(page.url()).pathname.split("/").pop();
+      await page.goto(`/${lang}/datasets/${id}/ml`);
+      // The prediction tab trains on first view: verdict vs the baseline, leakage, fairness.
+      await expect(page.getByTestId("model-verdict")).toBeVisible({ timeout: 120_000 });
+      await expect(page.getByTestId("card-notes")).toContainText("duration");
+      await expect(page.getByRole("heading", { level: 3, name: m.ml.generic.target.importance })).toBeVisible();
+      await expect(page.getByTestId("fairness").first()).toBeVisible();
+      await page.getByRole("tab", { name: m.ml.tabs.segmentsAny }).click();
+      await expect(page.getByTestId("segments").locator("li").first()).toBeVisible({ timeout: 120_000 });
+      await page.getByRole("tab", { name: m.ml.tabs.anomalies }).click();
+      await expect(page.getByRole("heading", { level: 2, name: m.ml.generic.anomalies.title })).toBeVisible({ timeout: 120_000 });
+    });
+
     test("cleaning studio → recipe preview → apply", async ({ page }) => {
       await page.goto(`/${lang}/datasets/contracts_ca/clean`);
       await expect(page.getByRole("heading", { level: 1, name: m.clean.title })).toBeVisible();

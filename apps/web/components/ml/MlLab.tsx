@@ -16,17 +16,21 @@ import { apiRequest, waitForJob, type ApiFailure } from "@/lib/apiClient";
 import { cn } from "@/lib/cn";
 import { formatCurrency, formatDate, formatNumber, formatPercent } from "@/lib/format";
 
-type ModelType = "red_flags" | "forecast";
-type Status = { state: "idle" | "running" } | { state: "error"; error: ApiFailure };
+export type ModelType = "red_flags" | "forecast" | "target_model" | "anomalies" | "segments";
+export type Status = { state: "idle" | "running" } | { state: "error"; error: ApiFailure };
 
-/** Run a model as a job, poll it, then load the localized latest result. */
-function useModel<T>(model: ModelType, datasetRef: string, initial: T | null) {
+/** Run a model as a job, poll it, then load the localized latest result. `autoRun` trains on
+ * first view when no result is stored yet. */
+export function useModel<T>(model: ModelType, datasetRef: string, initial: T | null, autoRun = true) {
   const locale = useLocale();
   const [result, setResult] = useState<T | null>(initial);
   const [status, setStatus] = useState<Status>({ state: "idle" });
-  const run = useCallback(async () => {
+  const run = useCallback(async (params?: Record<string, string>) => {
     setStatus({ state: "running" });
-    const accepted = await apiRequest<Job>(`/api/v1/models/${model}/run`, { locale, json: { dataset_id: datasetRef } });
+    const accepted = await apiRequest<Job>(`/api/v1/models/${model}/run`, {
+      locale,
+      json: { dataset_id: datasetRef, ...(params ? { params } : {}) },
+    });
     const job = accepted.ok ? await waitForJob(accepted.data.id, locale) : accepted;
     const latest = job.ok
       ? await apiRequest<T>(`/api/v1/models/${model}/latest?dataset_id=${encodeURIComponent(datasetRef)}`, { locale })
@@ -37,13 +41,13 @@ function useModel<T>(model: ModelType, datasetRef: string, initial: T | null) {
   }, [model, datasetRef, locale]);
 
   useEffect(() => {
-    if (initial === null) void run();
-  }, [initial, run]);
+    if (initial === null && autoRun) void run();
+  }, [initial, run, autoRun]);
 
   return { result, status, run };
 }
 
-function RunButton({ status, onRun }: { status: Status; onRun: () => void }) {
+export function RunButton({ status, onRun }: { status: Status; onRun: () => void }) {
   const t = useTranslations("ml");
   return (
     <Button variant="secondary" onClick={onRun} disabled={status.state === "running"}>
@@ -52,7 +56,7 @@ function RunButton({ status, onRun }: { status: Status; onRun: () => void }) {
   );
 }
 
-function StatusMessage({ status, onRetry }: { status: Status; onRetry: () => void }) {
+export function StatusMessage({ status, onRetry }: { status: Status; onRetry: () => void }) {
   if (status.state !== "error") return null;
   return <ApiErrorNotice error={status.error} onRetry={onRetry} />;
 }
@@ -102,7 +106,7 @@ function RedFlags({ datasetRef, initial }: { datasetRef: string; initial: RedFla
         id="card-red-flags"
         actions={
           <div className="flex flex-col gap-2">
-            <RunButton status={status} onRun={run} />
+            <RunButton status={status} onRun={() => void run()} />
             <StatusMessage status={status} onRetry={() => void run()} />
           </div>
         }
@@ -210,7 +214,7 @@ function RedFlags({ datasetRef, initial }: { datasetRef: string; initial: RedFla
   );
 }
 
-function Forecast({ datasetRef, initial }: { datasetRef: string; initial: ForecastResult | null }) {
+export function Forecast({ datasetRef, initial }: { datasetRef: string; initial: ForecastResult | null }) {
   const t = useTranslations("ml.forecast");
   const locale = useLocale();
   const { result, status, run } = useModel<ForecastResult>("forecast", datasetRef, initial);
@@ -234,7 +238,7 @@ function Forecast({ datasetRef, initial }: { datasetRef: string; initial: Foreca
         id="card-forecast"
         actions={
           <div className="flex flex-col gap-2">
-            <RunButton status={status} onRun={run} />
+            <RunButton status={status} onRun={() => void run()} />
             <StatusMessage status={status} onRetry={() => void run()} />
           </div>
         }
@@ -242,10 +246,10 @@ function Forecast({ datasetRef, initial }: { datasetRef: string; initial: Foreca
       <section aria-labelledby="forecast" className="flex min-w-0 flex-[2_1_520px] flex-col gap-4">
         <div className="flex flex-col gap-4 rounded-card border border-line bg-surface p-[18px]">
           <h2 id="forecast" className="m-0 text-lg font-semibold text-ink">
-            {t("title")}
+            {result.generic ? t("titleAny", { metric: result.metric_column ?? t("rows") }) : t("title")}
           </h2>
           {result.card.verdict && (
-            <Alert variant={m.beats_baseline ? "info" : "warning"}>
+            <Alert variant={result.status === "ok" && m.beats_baseline ? "info" : "warning"}>
               <p className="m-0 font-medium">{result.card.verdict}</p>
             </Alert>
           )}
@@ -260,7 +264,11 @@ function Forecast({ datasetRef, initial }: { datasetRef: string; initial: Foreca
                   note={t("windowNote", { months: result.months })}
                 />
               </div>
-              <ForecastChart points={result.series} testStart={result.test_start} />
+              <ForecastChart
+                points={result.series}
+                testStart={result.test_start}
+                title={result.generic ? t("titleAny", { metric: result.metric_column ?? t("rows") }) : undefined}
+              />
             </>
           )}
           {result.card.dropped && <p className="m-0 text-[13px] text-muted">{result.card.dropped}</p>}

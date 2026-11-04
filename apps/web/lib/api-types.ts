@@ -290,6 +290,10 @@ export type ModelCard = {
   flagged_rule?: string;
   verdict?: string;
   dropped?: string;
+  /** Generic models: sampling, leakage warnings, sensitive attributes left out. */
+  notes?: string[];
+  positive?: string;
+  metric_labels?: Record<string, string>;
 };
 
 export type RedFlagItem = {
@@ -325,7 +329,11 @@ export type ForecastPoint = { month: string; actual: number | null; model?: numb
 
 export type ForecastResult = {
   model_type: "forecast";
-  status: "ok" | "insufficient_history";
+  status: "ok" | "insufficient_history" | "no_date";
+  /** true on any dataset: monthly totals of `metric_column` (null = rows) by `date_column`. */
+  generic?: boolean;
+  date_column?: string | null;
+  metric_column?: string | null;
   seed: number;
   months: number;
   min_months: number;
@@ -335,6 +343,67 @@ export type ForecastResult = {
   metrics: { mape_model?: number | null; mape_baseline?: number | null; beats_baseline?: boolean };
   series: ForecastPoint[];
   origin: StarOrigin;
+  card: ModelCard;
+};
+
+export type GenericStatus =
+  | "ok"
+  | "no_target"
+  | "unsupported_target"
+  | "no_features"
+  | "single_class"
+  | "no_numbers";
+
+export type FairnessCheck = {
+  attribute: "age" | "sex" | "marital_status" | "nationality";
+  column: string;
+  label: string;
+  verdict: string;
+  disparity_ratio: number | null;
+  passes: boolean;
+  groups: {
+    group: string;
+    rows: number;
+    actual_rate: number;
+    flagged_rate: number;
+    true_positive_rate: number | null;
+    false_positive_rate: number | null;
+  }[];
+};
+
+export type TargetModelResult = {
+  model_type: "target_model";
+  status: GenericStatus;
+  task?: "binary" | "multiclass" | "regression";
+  target?: string;
+  positive?: string | null;
+  rows?: number;
+  rows_used?: number;
+  sampled?: boolean;
+  metrics?: Record<string, number>;
+  baseline_metrics?: Record<string, number>;
+  beats_baseline?: boolean;
+  importance?: { feature: string; label: string; importance: number; share: number }[];
+  leakage?: { feature: string; strength: number; reason: string }[];
+  fairness?: FairnessCheck[];
+  card: ModelCard;
+};
+
+export type AnomaliesResult = {
+  model_type: "anomalies";
+  status: GenericStatus;
+  flagged?: number;
+  flagged_share?: number;
+  top?: { row: number; score: number; feature: string; label: string; z: number; why: string; labels: Record<string, string | null> }[];
+  card: ModelCard;
+};
+
+export type SegmentsResult = {
+  model_type: "segments";
+  status: GenericStatus;
+  k?: number;
+  silhouette?: number;
+  segments?: { segment: number; rows: number; share: number; profile: string }[];
   card: ModelCard;
 };
 

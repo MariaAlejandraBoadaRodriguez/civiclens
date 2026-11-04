@@ -85,6 +85,9 @@ sql:
     title: La consulta tardó demasiado
     detail: "Las consultas se detienen a los {seconds} segundos. Agrega filtros o agrega antes de unir tablas."
 model:
+  unknown_target:
+    title: Columna objetivo desconocida
+    detail: "La tabla data no tiene una columna llamada {target}. Elige una de las columnas que lista el SQL Lab."
   not_available:
     title: Este modelo aún no está disponible
     detail: "{model_type} está previsto para una versión posterior. Disponibles ahora: red_flags, forecast."

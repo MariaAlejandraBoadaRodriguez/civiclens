@@ -18,7 +18,16 @@ const SERIES: { key: Key; stroke: string; dash?: string }[] = [
 
 /** Monthly spend: actual history, then model and seasonal-naive baseline on the test window
  * and the next six months. The table below the chart holds the same numbers. */
-export function ForecastChart({ points, testStart }: { points: ForecastPoint[]; testStart?: string }) {
+export function ForecastChart({
+  points,
+  testStart,
+  title,
+}: {
+  points: ForecastPoint[];
+  testStart?: string;
+  /** Overrides "Monthly spend in CAD" for a forecast on any table. */
+  title?: string;
+}) {
   const t = useTranslations("ml.forecast.chart");
   const locale = useLocale();
   const values = points.flatMap((p) => [p.actual, p.model, p.baseline]).filter((v): v is number => v != null);
@@ -57,7 +66,7 @@ export function ForecastChart({ points, testStart }: { points: ForecastPoint[]; 
         ))}
       </ul>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="forecast-chart-title" className="h-auto w-full">
-        <title id="forecast-chart-title">{t("title")}</title>
+        <title id="forecast-chart-title">{title ?? t("title")}</title>
         {futureStart > 0 && (
           <rect
             x={x(futureStart)}
@@ -118,7 +127,7 @@ export function ForecastChart({ points, testStart }: { points: ForecastPoint[]; 
       <details className="text-sm">
         <summary className="min-h-touch cursor-pointer content-center text-primary">{t("table")}</summary>
         <DataTable
-          caption={t("title")}
+          caption={title ?? t("title")}
           captionHidden
           minWidth={420}
           rows={points}
