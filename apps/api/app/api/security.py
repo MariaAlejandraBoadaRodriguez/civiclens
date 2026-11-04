@@ -46,6 +46,7 @@ HEAVY = (
     ("POST", "/api/v1/datasets"),
     ("POST", "/api/v1/datasets/", "/recipes/apply"),
     ("POST", "/api/v1/models/", "/run"),
+    ("PUT", "/api/v1/datasets/", "/domain"),  # may rebuild the model
 )
 
 

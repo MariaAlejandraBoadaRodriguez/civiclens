@@ -118,3 +118,28 @@ rate_limit:
   exceeded:
     title: Too many requests
     detail: "Wait {retry_after} seconds and try again."
+domain:
+  seed_fixed:
+    title: The sample datasets keep their domain
+    detail: The samples are shared by everyone. Upload your own file to choose its domain and roles.
+  unknown_pack:
+    title: Unknown domain
+    detail: "There is no domain pack called {pack}."
+  not_applicable:
+    title: This domain does not fit the file
+    detail: "The {pack} pack needs columns this file does not have (for procurement: an amount, a supplier and a buyer or a date)."
+  unknown_goal:
+    title: Unknown analysis goal
+    detail: "This domain has no goal called {goal}."
+  unknown_role:
+    title: Unknown column role
+    detail: "This domain has no role called {role}."
+  unknown_column:
+    title: Unknown column
+    detail: "Table data has no column called {column}."
+  column_reused:
+    title: A column is mapped to two roles
+    detail: Each column can play only one role. Pick a different column for one of them.
+  procurement_only:
+    title: Available for procurement data only
+    detail: This view needs the procurement star schema (contracts, suppliers, buyers). For this file use the SQL Lab, which works on any table.

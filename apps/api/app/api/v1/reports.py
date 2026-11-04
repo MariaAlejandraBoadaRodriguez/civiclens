@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.api.headers import content_disposition
 from app.api.problems import ProblemError
 from app.api.security import current_principal
-from app.api.v1.sql import ready_dataset
+from app.api.v1.sql import procurement_dataset
 from app.core.observability import REPORT_CSP
 from app.db.session import get_session
 from app.i18n.loader import SUPPORTED
@@ -37,7 +37,7 @@ def get_report(
     language = lang or request.state.t.lang
     if language not in SUPPORTED:
         language = "en"
-    ds = ready_dataset(session, dataset_id)
+    ds = procurement_dataset(session, dataset_id)
     slug = ds.slug or ds.id
     headers = {"Content-Language": language}
     if format == "pdf":

@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_translator
 from app.api.problems import ProblemError
 from app.api.security import Principal, require_scope
-from app.api.v1.sql import ready_dataset
+from app.api.v1.sql import procurement_dataset
 from app.core import jobs
 from app.db.models import Job, JobStatus, JobType
 from app.db.session import get_session
@@ -59,7 +59,7 @@ def run_model(
     caller: Annotated[Principal, Depends(require_scope("models:run"))],
 ) -> JSONResponse:
     model = _model(model_type)
-    ds = ready_dataset(session, body.dataset_id)
+    ds = procurement_dataset(session, body.dataset_id)
     params = {"entity_id": body.params.entity_id} if body.params.entity_id else {}
     job = Job(
         type=JobType.MODEL_RUN,
@@ -82,7 +82,7 @@ def run_model(
 def latest(model_type: str, dataset_id: str, session: SessionDep, t: TDep) -> dict[str, Any]:
     """Latest stored result with its model card in the UI language."""
     model = _model(model_type)
-    ds = ready_dataset(session, dataset_id)
+    ds = procurement_dataset(session, dataset_id)
     result = svc.load_result(ds, model)
     if result is None or "model_type" not in result:
         raise ProblemError(404, "model.not_run", model_type=model)
@@ -92,7 +92,7 @@ def latest(model_type: str, dataset_id: str, session: SessionDep, t: TDep) -> di
 @router.post("/red_flags/reviews", dependencies=[Depends(require_scope("models:run"))])
 def review(body: ReviewRequest, session: SessionDep) -> dict[str, Any]:
     """Human-in-the-loop: mark a flagged contract as reviewed (or undo it)."""
-    ds = ready_dataset(session, body.dataset_id)
+    ds = procurement_dataset(session, body.dataset_id)
     return {
         "dataset_id": str(ds.id),
         "reviewed": svc.set_reviewed(ds, body.contract_id, body.reviewed),

@@ -222,6 +222,7 @@ INGEST = (
 )
 APPLY_RECIPE = ("app.services.cleaning:run_apply_job", "app.services.sql:run_star_phase")
 MODEL_RUN = ("app.services.ml:run_model_job",)
+BUILD_SCHEMA = ("app.services.sql:run_star_phase",)
 
 
 def run(phases: tuple[str, ...], job_id: uuid.UUID) -> None:

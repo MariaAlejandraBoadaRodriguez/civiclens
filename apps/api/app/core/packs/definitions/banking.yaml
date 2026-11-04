@@ -1,0 +1,159 @@
+# Banking: credit portfolios and applications. Roles are matched on header names (EN/ES/FR) and
+# column kinds; the user confirms or edits the mapping. SQL templates use {role} for the quoted
+# column and {positive:role} for "the flag's positive value" (e.g. default = yes).
+id: banking
+order: 2
+engine: generic
+detect:
+  require_any: [loan_amount, balance, days_past_due, default_flag]
+  min_score: 0.35
+roles:
+  - id: client_id
+    kinds: [identifier, category, integer]
+    synonyms: [client_id, customer_id, client, customer, cliente, id_cliente, account, cuenta, borrower, prestatario]
+  - id: loan_amount
+    kinds: [number, integer]
+    key: true
+    synonyms: [loan_amount, credit_amount, amount, loan, principal, monto, monto_credito, valor_credito, importe, montant, credit]
+  - id: balance
+    kinds: [number, integer]
+    key: true
+    synonyms: [balance, outstanding, saldo, saldo_capital, solde, exposure, exposicion]
+  - id: days_past_due
+    kinds: [number, integer]
+    key: true
+    synonyms: [days_past_due, dpd, past_due, dias_mora, dias_de_mora, mora, arrears, delinquency, retard]
+  - id: default_flag
+    kinds: [boolean, binary]
+    key: true
+    target: true
+    synonyms: [default, defaulted, credit_risk, risk, bad, bad_loan, target, incumplimiento, impago, delinquent, defaut, credit_status]
+  - id: product
+    kinds: [category]
+    synonyms: [product, purpose, loan_type, credit_type, producto, proposito, tipo_credito, linea, produit]
+  - id: duration
+    kinds: [number, integer]
+    synonyms: [duration, term, tenor, months, plazo, duree, cuotas]
+  - id: income
+    kinds: [number, integer]
+    synonyms: [income, salary, ingresos, ingreso, salario, revenu]
+  - id: date
+    kinds: [date, datetime]
+    synonyms: [date, fecha, opened, open_date, disbursement, desembolso, origination, fecha_desembolso]
+  - id: age
+    kinds: [integer, number]
+    sensitive: true
+    synonyms: [age, edad, client_age]
+  - id: sex
+    kinds: [category, boolean]
+    sensitive: true
+    synonyms: [sex, gender, sexo, genero, personal_status_sex, sexe]
+  - id: marital_status
+    kinds: [category]
+    sensitive: true
+    synonyms: [marital, marital_status, civil_status, estado_civil, personal_status, etat_civil]
+  - id: nationality
+    kinds: [category, boolean]
+    sensitive: true
+    synonyms: [nationality, foreign, foreign_worker, nacionalidad, extranjero, citizenship, nationalite]
+goals:
+  - {id: credit_risk, default: true}
+  - {id: portfolio}
+  - {id: credit_profiling}
+kpis:
+  - id: default_rate
+    requires: [default_flag]
+    unit: ratio
+    sql: "SELECT AVG(CASE WHEN {positive:default_flag} THEN 1.0 ELSE 0.0 END) FROM data WHERE {default_flag} IS NOT NULL"
+  - id: total_exposure
+    requires_any: [balance, loan_amount]
+    unit: amount
+    sql: "SELECT SUM({balance|loan_amount}) FROM data"
+  - id: avg_loan
+    requires: [loan_amount]
+    unit: amount
+    sql: "SELECT AVG({loan_amount}) FROM data"
+  - id: avg_duration
+    requires: [duration]
+    unit: number
+    sql: "SELECT AVG({duration}) FROM data"
+  - id: past_due_share
+    requires: [days_past_due]
+    unit: ratio
+    sql: "SELECT AVG(CASE WHEN {days_past_due} > 30 THEN 1.0 ELSE 0.0 END) FROM data WHERE {days_past_due} IS NOT NULL"
+  - id: clients
+    requires: [client_id]
+    unit: count
+    sql: "SELECT COUNT(DISTINCT {client_id}) FROM data"
+questions:
+  - id: default_rate_by_product
+    requires: [default_flag, product]
+    goals: [credit_risk, portfolio]
+    sql: |
+      SELECT {product}, COUNT(*) AS loans,
+             ROUND(100.0 * AVG(CASE WHEN {positive:default_flag} THEN 1 ELSE 0 END), 1) AS default_rate_pct
+      FROM data
+      GROUP BY 1
+      ORDER BY default_rate_pct DESC
+  - id: default_rate_by_amount_band
+    requires: [default_flag, loan_amount]
+    goals: [credit_risk]
+    sql: |
+      WITH b AS (SELECT NTILE(5) OVER (ORDER BY {loan_amount}) AS band, {loan_amount} AS amount,
+                        CASE WHEN {positive:default_flag} THEN 1 ELSE 0 END AS bad
+                 FROM data WHERE {loan_amount} IS NOT NULL)
+      SELECT band, MIN(amount) AS from_amount, MAX(amount) AS to_amount, COUNT(*) AS loans,
+             ROUND(100.0 * AVG(bad), 1) AS default_rate_pct
+      FROM b GROUP BY band ORDER BY band
+  - id: default_rate_by_duration_band
+    requires: [default_flag, duration]
+    goals: [credit_risk, credit_profiling]
+    sql: |
+      WITH b AS (SELECT NTILE(4) OVER (ORDER BY {duration}) AS band, {duration} AS d,
+                        CASE WHEN {positive:default_flag} THEN 1 ELSE 0 END AS bad
+                 FROM data WHERE {duration} IS NOT NULL)
+      SELECT band, MIN(d) AS from_value, MAX(d) AS to_value, COUNT(*) AS loans,
+             ROUND(100.0 * AVG(bad), 1) AS default_rate_pct
+      FROM b GROUP BY band ORDER BY band
+  - id: exposure_by_product
+    requires: [product, loan_amount]
+    goals: [portfolio]
+    sql: |
+      SELECT {product}, COUNT(*) AS loans, ROUND(SUM({loan_amount}), 2) AS exposure,
+             ROUND(100.0 * SUM({loan_amount}) / SUM(SUM({loan_amount})) OVER (), 1) AS share_pct
+      FROM data GROUP BY 1 ORDER BY exposure DESC
+  - id: past_due_buckets
+    requires: [days_past_due]
+    goals: [portfolio, credit_risk]
+    sql: |
+      SELECT CASE WHEN {days_past_due} <= 0 THEN '0 current'
+                  WHEN {days_past_due} <= 30 THEN '1-30'
+                  WHEN {days_past_due} <= 60 THEN '31-60'
+                  WHEN {days_past_due} <= 90 THEN '61-90'
+                  ELSE '90+' END AS bucket,
+             COUNT(*) AS loans
+      FROM data WHERE {days_past_due} IS NOT NULL GROUP BY 1 ORDER BY 1
+  - id: default_rate_by_age_band
+    requires: [default_flag, age]
+    goals: [credit_profiling, credit_risk]
+    sql: |
+      SELECT CASE WHEN {age} < 25 THEN 'under 25' WHEN {age} < 35 THEN '25-34'
+                  WHEN {age} < 50 THEN '35-49' WHEN {age} < 65 THEN '50-64' ELSE '65+' END AS age_band,
+             COUNT(*) AS clients,
+             ROUND(100.0 * AVG(CASE WHEN {positive:default_flag} THEN 1 ELSE 0 END), 1) AS default_rate_pct
+      FROM data WHERE {age} IS NOT NULL GROUP BY 1 ORDER BY 1
+  - id: default_rate_by_sex
+    requires: [default_flag, sex]
+    goals: [credit_profiling]
+    sql: |
+      SELECT {sex}, COUNT(*) AS clients,
+             ROUND(100.0 * AVG(CASE WHEN {positive:default_flag} THEN 1 ELSE 0 END), 1) AS default_rate_pct
+      FROM data GROUP BY 1 ORDER BY clients DESC
+ml:
+  - {objective: target_model, target_role: default_flag, name: default_probability, goals: [credit_risk, credit_profiling]}
+  - {objective: segments, name: risk_segments, goals: [credit_profiling, portfolio]}
+  - {objective: anomalies, goals: [portfolio]}
+  - {objective: forecast, goals: [portfolio]}
+layout:
+  kpis: [default_rate, total_exposure, avg_loan, avg_duration, past_due_share, clients]
+  sections: [rate_by_product, quality, distributions, drivers, segments, trends, outliers]

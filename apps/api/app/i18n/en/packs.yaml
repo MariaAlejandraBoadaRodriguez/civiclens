@@ -1,0 +1,93 @@
+# Domain packs: names, goals, semantic roles, KPIs and curated questions (app/core/packs).
+# Question texts take the mapped columns' headers as {role} parameters.
+general:
+  name: General
+  description: Any table. The analysis is generated from the columns themselves.
+  goals:
+    explore: Explore the data
+  roles: {}
+government:
+  name: Government / public procurement
+  description: Contracts with a buyer, a supplier, an amount and dates. Adds the procurement star schema, red flags and spend KPIs.
+  goals:
+    spend_overview: Spend overview
+    integrity: Integrity and red flags
+    concentration: Supplier concentration
+  roles:
+    contract_id: Contract ID
+    entity_name: Buying entity
+    supplier_name: Supplier
+    signed_date: Signature date
+    amount_original: Contract amount
+    currency: Currency
+    award_type: Award type
+    n_bidders: Number of bidders
+banking:
+  name: Banking / credit
+  description: Loans or clients with amounts, terms and a default (bad credit) flag. Adds credit-risk KPIs, questions and a fairness check.
+  goals:
+    credit_risk: Credit risk
+    portfolio: Portfolio
+    credit_profiling: Credit profiling
+  roles:
+    client_id: Client ID
+    loan_amount: Loan amount
+    balance: Balance / exposure
+    days_past_due: Days past due
+    default_flag: Default flag (target)
+    product: Product / purpose
+    duration: Term / duration
+    income: Income
+    date: Date
+    age: Age (sensitive)
+    sex: Sex / gender (sensitive)
+    marital_status: Marital status (sensitive)
+    nationality: Nationality (sensitive)
+  kpis:
+    default_rate:
+      name: Default rate
+      definition: Share of loans whose default flag takes its positive (bad) value.
+    total_exposure:
+      name: Total exposure
+      definition: Sum of the balance (or of the loan amount when there is no balance).
+    avg_loan:
+      name: Average loan
+      definition: Mean loan amount.
+    avg_duration:
+      name: Average term
+      definition: Mean term or duration of the loans, in the file's unit.
+    past_due_share:
+      name: More than 30 days past due
+      definition: Share of loans more than 30 days past due.
+    clients:
+      name: Clients
+      definition: Number of distinct client IDs.
+  questions:
+    default_rate_by_product:
+      title: Default rate by {product}
+      question: Which {product} values default the most?
+      explanation: Loans and default rate ({default_flag}) per {product}, highest rate first.
+    default_rate_by_amount_band:
+      title: Default rate by {loan_amount} band
+      question: Do larger loans default more often?
+      explanation: Splits {loan_amount} into five equal-sized bands (quintiles) and shows the default rate of each.
+    default_rate_by_duration_band:
+      title: Default rate by {duration} band
+      question: Do longer terms default more often?
+      explanation: Splits {duration} into four equal-sized bands (quartiles) and shows the default rate of each.
+    exposure_by_product:
+      title: Exposure by {product}
+      question: Where is the money lent?
+      explanation: Total {loan_amount} and its share per {product}.
+    past_due_buckets:
+      title: Past-due buckets
+      question: How late are the payments?
+      explanation: Loans per bucket of {days_past_due} (current, 1–30, 31–60, 61–90, 90+ days).
+    default_rate_by_age_band:
+      title: Default rate by age band
+      question: Does the default rate differ by {age}?
+      explanation: Default rate per age band. Age is a sensitive attribute; use this to check fairness, not to decide on a person.
+    default_rate_by_sex:
+      title: Default rate by {sex}
+      question: Does the default rate differ by {sex}?
+      explanation: Default rate per group. Sex/gender is a sensitive attribute; differences call for a fairness review, not for using it in decisions.

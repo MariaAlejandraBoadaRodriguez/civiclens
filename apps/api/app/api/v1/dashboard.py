@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
-from app.api.v1.sql import ready_dataset
+from app.api.v1.sql import procurement_dataset
 from app.db.session import get_session
 from app.i18n.loader import Translator
 from app.services import dashboard as svc
@@ -31,5 +31,5 @@ def get_dashboard(
     category: svc.Category = "all",
 ) -> dict[str, Any]:
     refs = list(dict.fromkeys(dataset_id))  # keep order, drop repeats
-    datasets = [ready_dataset(session, ref) for ref in refs]
+    datasets = [procurement_dataset(session, ref) for ref in refs]
     return svc.build(datasets, t, period, category)

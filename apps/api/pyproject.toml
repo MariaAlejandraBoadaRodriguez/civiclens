@@ -63,5 +63,9 @@ ignore = ["S101"]
 # SQL kept as readable multi-line text for the SQL Lab.
 "app/core/sql/guided.py" = ["E501"]
 "app/core/sql/kpi_catalog.py" = ["E501"]
+# Generated questions: SQL text built only from safe column names quoted by q() and literals
+# escaped by lit(); executed through the read-only guard. Long SQL reads better unwrapped.
+"app/core/analysis/questions.py" = ["S608", "E501"]
+"app/services/analysis.py" = ["S608", "E501"]
 # Tests run the exported script / SQL on temp files they create themselves.
 "tests/**" = ["S603", "S608", "S311"]  # S311: seeded random test data

@@ -1,0 +1,35 @@
+# Government / public procurement: the original CivicLens analysis (star schema in CAD, 12 guided
+# questions, KPI catalog, red flags, spend forecast). Its roles are the canonical procurement
+# fields of app/core/ingest/headers_map.py, mapped at ingest; the engine is the star schema.
+id: government
+order: 1
+engine: procurement_star
+detect:
+  # Suggested when the header mapping found an amount, a supplier and a buyer or a date.
+  canonical_all: [amount_original]
+  canonical_any_supplier: [supplier_name, supplier_id]
+  canonical_any_context: [entity_name, entity_id, signed_date, contract_id]
+  score: 0.9
+roles:
+  - {id: contract_id, kinds: [identifier, category, integer], canonical: contract_id}
+  - {id: entity_name, kinds: [category, identifier, text], canonical: entity_name}
+  - {id: supplier_name, kinds: [category, identifier, text], canonical: supplier_name}
+  - {id: signed_date, kinds: [date, datetime], canonical: signed_date}
+  - {id: amount_original, kinds: [number, integer], canonical: amount_original, key: true}
+  - {id: currency, kinds: [category], canonical: currency}
+  - {id: award_type, kinds: [category], canonical: award_type}
+  - {id: n_bidders, kinds: [integer, number], canonical: n_bidders}
+goals:
+  - {id: spend_overview, default: true}
+  - {id: integrity}
+  - {id: concentration}
+kpis: []
+questions: []
+ml:
+  - {objective: red_flags, goals: [integrity, spend_overview]}
+  - {objective: forecast, goals: [spend_overview]}
+  - {objective: anomalies, goals: [integrity]}
+  - {objective: segments, goals: [concentration]}
+layout:
+  kpis: [total_spend, contract_count, avg_value, direct_award_share, hhi, quality_score]
+  sections: [procurement_monthly, procurement_jurisdictions]
