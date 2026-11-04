@@ -1,4 +1,8 @@
+import path from "node:path";
 import { MESSAGES, expect, test, type Lang } from "./fixtures";
+
+/** Acceptance fixtures (data/fixtures/README.md): public, non-procurement files. */
+const FIXTURES = path.resolve(__dirname, "../../../data/fixtures");
 
 const LANGS: Lang[] = ["en", "es"];
 
@@ -28,6 +32,28 @@ for (const lang of LANGS) {
       const banner = page.getByTestId("banner-success");
       await expect(banner).toContainText(m.ingest.ready.title.replace("{name}", `contratos-${lang}.csv`));
       await expect(banner.getByRole("link", { name: m.ingest.ready.next })).toBeVisible();
+    });
+
+    test("any dataset: credit file → banking domain suggested and confirmed → generic SQL lab", async ({ page }) => {
+      await page.goto(`/${lang}/datasets/secop_co`);
+      await page.locator("input[type=file]").setInputFiles(path.join(FIXTURES, "german_credit.csv"));
+      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/[0-9a-f-]{36}\\?ready=1$`), { timeout: 120_000 });
+      // The domain step suggests Banking and maps the target with a confidence.
+      const step = page.locator("section", { has: page.getByRole("heading", { name: m.domain.title }) });
+      await expect(step.getByText(m.domain.suggested.replace("{name}", ""), { exact: false })).toBeVisible();
+      await expect(step.getByRole("radio", { checked: true })).toHaveValue("banking");
+      await expect(step.getByTestId("role-mapping")).toContainText("credit_risk");
+      await step.getByRole("button", { name: m.domain.confirm }).click();
+      const saved = step.getByTestId("banner-success");
+      await expect(saved).toBeVisible({ timeout: 60_000 });
+      await saved.getByRole("link", { name: m.domain.openSql }).click();
+      // SQL lab: the table data with its columns, no star schema, and results for the first question.
+      await expect(page.getByRole("heading", { level: 2, name: new RegExp(m.sql.data.title.split(" <")[0]) })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 2, name: m.sql.schema.title })).toHaveCount(0);
+      await expect(page.getByTestId("active-domain")).toContainText(m.sql.domainChip.replace("{pack}", ""));
+      const results = m.sql.results.title.split(" · ")[0];
+      await expect(page.getByRole("heading", { level: 3, name: new RegExp(`^${results}`) })).toBeVisible();
+      await expect(page.locator("#query-results table tbody tr").first()).toBeVisible();
     });
 
     test("cleaning studio → recipe preview → apply", async ({ page }) => {

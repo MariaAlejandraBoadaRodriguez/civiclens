@@ -560,9 +560,25 @@
         "procurement": "Compras",
         "data": "Equipo de datos",
         "audit": "Auditoría"
-      }
+      },
+      "subtitleAny": "Una definición compartida por KPI, calculada en SQL sobre la tabla data: primero los KPI del paquete de dominio y luego los de la propia tabla."
     },
-    "continue": "Continuar al laboratorio de ML →"
+    "continue": "Continuar al laboratorio de ML →",
+    "subtitleAny": "Tus datos limpios como la tabla data, con preguntas generadas a partir de sus propias columnas. Empieza con una pregunta guiada o escribe tu propia consulta.",
+    "domainChip": "Dominio: {pack}",
+    "goalChip": "Objetivo: {goal}",
+    "changeDomain": "Cambiar el dominio o los roles de las columnas",
+    "data": {
+      "title": "Tabla de análisis <code>data</code>",
+      "summary": "{rows} filas · {columns} columnas",
+      "hint": "Cada columna de tu archivo limpio, con su tipo y un nombre SQL seguro. Consúltala como data; los encabezados se conservan como están en el archivo.",
+      "caption": "Columnas de la tabla data",
+      "name": "Nombre SQL",
+      "source": "Encabezado en el archivo",
+      "kind": "Tipo",
+      "examples": "Valores más frecuentes",
+      "missing": "Faltantes"
+    }
   },
   "ml": {
     "metaTitle": "Laboratorio de ML · CivicLens",
@@ -636,7 +652,8 @@
         "month": "Mes"
       }
     },
-    "continue": "Continuar al tablero →"
+    "continue": "Continuar al tablero →",
+    "openSql": "Abrir el SQL Lab"
   },
   "admin": {
     "metaTitle": "Claves de API · Administración de CivicLens",
@@ -782,5 +799,40 @@
       "step2": "2. Aplica la misma receta de limpieza (un trabajo)",
       "step3": "3. Obtén los KPI, en CAD"
     }
+  },
+  "domain": {
+    "title": "Dominio y objetivo del análisis",
+    "intro": "CivicLens sugiere un dominio a partir de tus columnas. Confírmalo o elige otro: un dominio agrega sus propias preguntas, KPI y modelos, y el análisis general de tus columnas siempre se mantiene.",
+    "confirmed": "Confirmado por ti",
+    "suggested": "Sugerido: {name}",
+    "packLegend": "Dominio",
+    "fit": "ajuste {score}",
+    "notApplicable": "Necesita columnas de contratación (un valor, un proveedor y una entidad o una fecha).",
+    "goal": "Objetivo del análisis",
+    "roles": {
+      "title": "¿Qué columna cumple cada rol?",
+      "hint": "Sugerido a partir de los encabezados y los tipos de columna, con qué tan segura es la coincidencia. Un rol vacío solo oculta los elementos que lo necesitan.",
+      "caption": "Rol de cada columna",
+      "role": "Rol",
+      "column": "Columna",
+      "confidence": "Confianza",
+      "positive": "Valor que significa “sí”",
+      "target": "Objetivo",
+      "sensitive": "Sensible",
+      "none": "Sin asignar",
+      "byYou": "Elegido por ti",
+      "auto": "Automático",
+      "positiveLabel": "Valor de {role} que significa sí",
+      "sensitiveNote": "Los atributos sensibles (edad, sexo/género, estado civil, nacionalidad) se usan solo para revisar que los resultados sean justos entre grupos, nunca como entradas del modelo para decidir sobre una persona."
+    },
+    "procurementNote": "El dominio de contratación usa el mapeo de encabezados de arriba (valor, proveedor, entidad, fechas) y construye el modelo estrella.",
+    "sampleNote": "Los conjuntos de ejemplo conservan su dominio. Sube tu propio archivo para elegir su dominio y sus roles.",
+    "confirm": "Confirmar este dominio",
+    "save": "Guardar el dominio",
+    "saveHint": "Los cambios se aplican al SQL Lab, los KPI y los modelos.",
+    "saving": "Guardando el dominio",
+    "savedTitle": "Dominio guardado: {name}",
+    "savedBody": "El SQL Lab ahora muestra las preguntas y los KPI de este dominio para tu archivo.",
+    "openSql": "Abrir el SQL Lab"
   }
 }

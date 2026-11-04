@@ -222,7 +222,12 @@ def _describe(name: str, source: str, typed: pd.Series, kind: str, n_rows: int) 
     elif kind in NUMERIC_KINDS and ID_HINT.search(name):
         # Numeric codes (CIK, station id, sector code): labels, not quantities.
         kind = "identifier" if _share(distinct, len(non_null)) >= 0.8 else "category"
-    counts = non_null.astype(str).value_counts().head(5) if len(non_null) else pd.Series(dtype=int)
+    shown = non_null
+    if kind == "integer" or (kind in ("identifier", "category") and sql_type == "BIGINT"):
+        # Whole numbers read as floats (NaN forces float64): show 24, not 24.0, so the values
+        # match what DuckDB prints for the BIGINT column (target positives compare as text).
+        shown = non_null.astype("int64")
+    counts = shown.astype(str).value_counts().head(5) if len(non_null) else pd.Series(dtype=int)
     meta = ColumnMeta(
         name=name,
         source=source,

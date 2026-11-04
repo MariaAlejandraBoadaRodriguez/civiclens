@@ -11,3 +11,4 @@ Format: [Michael Nygard](https://cognitect.com/blog/2011/11/15/documenting-archi
 | [0005](0005-hosting-zero-cost.md) | $0 hosting: Vercel + Render + Neon | Accepted |
 | [0006](0006-canonical-schema-and-recipes.md) | Canonical schema, star schema and replayable cleaning recipes | Accepted |
 | [0007](0007-internationalization.md) | Internationalization: UI EN/ES, data EN/FR/ES, localized API text | Accepted |
+| [0008](0008-generic-core-and-domain-packs.md) | Generic analysis core and declarative domain packs | Accepted |

@@ -34,15 +34,15 @@ banking:
     loan_amount: Loan amount
     balance: Balance / exposure
     days_past_due: Days past due
-    default_flag: Default flag (target)
+    default_flag: Default flag
     product: Product / purpose
     duration: Term / duration
     income: Income
     date: Date
-    age: Age (sensitive)
-    sex: Sex / gender (sensitive)
-    marital_status: Marital status (sensitive)
-    nationality: Nationality (sensitive)
+    age: Age
+    sex: Sex / gender
+    marital_status: Marital status
+    nationality: Nationality
   kpis:
     default_rate:
       name: Default rate

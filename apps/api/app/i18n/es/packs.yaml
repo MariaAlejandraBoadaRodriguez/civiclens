@@ -34,15 +34,15 @@ banking:
     loan_amount: Monto del préstamo
     balance: Saldo / exposición
     days_past_due: Días de mora
-    default_flag: Marca de incumplimiento (objetivo)
+    default_flag: Marca de incumplimiento
     product: Producto / propósito
     duration: Plazo / duración
     income: Ingresos
     date: Fecha
-    age: Edad (sensible)
-    sex: Sexo / género (sensible)
-    marital_status: Estado civil (sensible)
-    nationality: Nacionalidad (sensible)
+    age: Edad
+    sex: Sexo / género
+    marital_status: Estado civil
+    nationality: Nacionalidad
   kpis:
     default_rate:
       name: Tasa de incumplimiento

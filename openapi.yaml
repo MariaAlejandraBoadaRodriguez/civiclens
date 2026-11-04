@@ -2266,8 +2266,10 @@ components:
                       type: string
                     kinds:
                       type: array
+                      description: Column kinds the role accepts; `binary` means any two-valued column.
                       items:
-                        $ref: "#/components/schemas/ColumnKind"
+                        type: string
+                        enum: [number, integer, boolean, date, datetime, category, text, identifier, binary]
                     key:
                       type: boolean
                     target:
@@ -2279,8 +2281,10 @@ components:
           type: array
           items:
             type: object
-            required: [name, source, kind, kind_label, examples, top]
+            required: [name, source, kind, kind_label, binary, examples, top]
             properties:
+              binary:
+                type: boolean
               name:
                 type: string
               source:

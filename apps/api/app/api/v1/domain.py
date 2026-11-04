@@ -79,6 +79,7 @@ def domain_out(ds: Dataset, t: Translator) -> dict[str, Any]:
                 "source": c["source"],
                 "kind": c["kind"],
                 "kind_label": t(f"analysis.kinds.{c['kind']}"),
+                "binary": bool(c["binary"]) and c["distinct"] == 2,
                 "examples": c["examples"],
                 "top": [v["value"] for v in c.get("top", [])],
             }
@@ -128,14 +129,17 @@ def put_domain(
                 raise ProblemError(422, "domain.unknown_role", role=role_id)
             if choice.column not in columns:
                 raise ProblemError(422, "domain.unknown_column", column=choice.column)
-            roles[role_id] = {"column": choice.column, "confidence": 1.0}
+            suggested = ((suggestion or {}).get("roles", {}).get(role_id)) or {}
+            # Confirming the suggested column keeps its confidence; another column is the user's.
+            same = suggested.get("column") == choice.column
+            roles[role_id] = {
+                "column": choice.column,
+                "confidence": suggested.get("confidence", 1.0) if same else 1.0,
+            }
             if choice.positive is not None:
                 roles[role_id]["positive"] = choice.positive
-            elif pack.role(role_id).target:
-                guessed = ((suggestion or {}).get("roles", {}).get(role_id) or {}).get("positive")
-                same = ((suggestion or {}).get("roles", {}).get(role_id) or {}).get("column")
-                if guessed is not None and same == choice.column:
-                    roles[role_id]["positive"] = guessed
+            elif pack.role(role_id).target and same and suggested.get("positive") is not None:
+                roles[role_id]["positive"] = suggested["positive"]
         if len({e["column"] for e in roles.values()}) < len(roles):
             raise ProblemError(422, "domain.column_reused")
     had_star = sql_svc.has_star(ds)

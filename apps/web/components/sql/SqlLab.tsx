@@ -17,6 +17,7 @@ const FIRST_GUIDED = 6;
 const NUMERIC = /^(TINYINT|SMALLINT|INTEGER|BIGINT|HUGEINT|UBIGINT|UINTEGER|DOUBLE|FLOAT|REAL|DECIMAL)/i;
 /** Result columns holding a 0–1 ratio, shown as a percentage (display only; the value is unchanged). */
 const RATIO = /(share|_ratio|^hhi)$/;
+const CONCEPTS = new Set(["join", "cte", "window_function", "aggregation", "subquery"]);
 
 type Run =
   | { state: "idle" }
@@ -237,7 +238,8 @@ export function SqlLab({
               <ul aria-label={t("concepts.label")} className="m-0 flex list-none flex-wrap gap-1.5 p-0">
                 {query.concepts.map((c) => (
                   <li key={c}>
-                    <Badge variant="format">{t(`concepts.${c}`)}</Badge>
+                    {/* Procurement questions use translated concept keys; generated ones name SQL. */}
+                    <Badge variant="format">{CONCEPTS.has(c) ? t(`concepts.${c}`) : c}</Badge>
                   </li>
                 ))}
               </ul>

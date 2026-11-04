@@ -11,13 +11,28 @@ function value(locale: string, kpi: Kpi): string {
       return formatPercent(locale, kpi.value);
     case "index":
       return formatNumber(locale, kpi.value, 3);
+    case "amount":
+      return formatCompact(locale, kpi.value);
+    case "number":
+      return formatNumber(locale, kpi.value, Number.isInteger(kpi.value) ? 0 : 2);
     default:
       return formatNumber(locale, kpi.value, 0);
   }
 }
 
-/** KPI catalog: one definition per KPI (name + definition localized, SQL shared). */
-export function KpiCatalog({ items }: { items: Kpi[] }) {
+const TEAMS = new Set(["finance", "procurement", "data", "audit"]);
+
+/** KPI catalog: one definition per KPI (name + definition localized, SQL shared). The owner is
+ * a team (procurement catalog, table KPIs) or the domain pack that defines the KPI. */
+export function KpiCatalog({
+  items,
+  procurement = true,
+  packNames = {},
+}: {
+  items: Kpi[];
+  procurement?: boolean;
+  packNames?: Record<string, string>;
+}) {
   const t = useTranslations("sql.kpis");
   const locale = useLocale();
   return (
@@ -26,7 +41,7 @@ export function KpiCatalog({ items }: { items: Kpi[] }) {
         <h2 id="kpis" className="m-0 text-lg font-semibold text-ink">
           {t("title")}
         </h2>
-        <p className="m-0 text-sm text-muted">{t("subtitle")}</p>
+        <p className="m-0 text-sm text-muted">{procurement ? t("subtitle") : t("subtitleAny")}</p>
       </div>
       <ul className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((kpi) => (
@@ -35,7 +50,7 @@ export function KpiCatalog({ items }: { items: Kpi[] }) {
             <span className="font-mono text-xl font-medium text-ink">{value(locale, kpi)}</span>
             <span className="text-[13px] leading-relaxed text-text">{kpi.definition}</span>
             <span className="text-xs text-muted">
-              {t("owner", { owner: t(`owners.${kpi.owner}`) })} · <code className="font-mono">{kpi.kpi_id}</code>
+              {t("owner", { owner: TEAMS.has(kpi.owner) ? t(`owners.${kpi.owner}`) : packNames[kpi.owner] ?? kpi.owner })} · <code className="font-mono">{kpi.kpi_id}</code>
             </span>
             {kpi.formula_sql && (
               <details className="text-xs">

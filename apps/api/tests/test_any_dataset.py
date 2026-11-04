@@ -196,3 +196,33 @@ def test_domain_choice_is_validated(body: dict, status: int, code: str) -> None:
 def test_sample_datasets_keep_their_domain() -> None:
     r = client.put("/api/v1/datasets/contracts_qc/domain", json={"pack": "general"})
     assert r.status_code == 409 and r.json()["code"] == "domain.seed_fixed"
+
+
+def test_browser_may_put_the_domain_choice() -> None:
+    """The web app saves the domain with PUT from another origin: the CORS preflight allows it."""
+    r = client.options(
+        "/api/v1/datasets/any/domain",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "PUT",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert r.status_code == 200
+    assert "PUT" in r.headers["access-control-allow-methods"]
+
+
+def test_confirming_the_suggested_roles_keeps_their_confidence() -> None:
+    ds = uploaded("german_credit.csv")
+    suggested = client.get(f"/api/v1/datasets/{ds}/domain").json()["roles"]
+    roles = {r: {"column": e["column"]} for r, e in suggested.items() if r != "age"}
+    roles["income"] = {"column": "installment_rate"}  # the user's own choice
+    body = client.put(
+        f"/api/v1/datasets/{ds}/domain", json={"pack": "banking", "roles": roles}
+    ).json()
+    assert body["confirmed"] and "age" not in body["roles"]
+    assert body["roles"]["loan_amount"]["confidence"] == suggested["loan_amount"]["confidence"]
+    assert body["roles"]["default_flag"]["positive"] == "False"  # the guessed value is kept
+    assert body["roles"]["income"]["confidence"] == 1.0
+    # Undo, so other tests see the suggestion again.
+    client.put(f"/api/v1/datasets/{ds}/domain", json={"pack": "banking"})

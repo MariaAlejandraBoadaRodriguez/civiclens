@@ -150,3 +150,18 @@ def test_budget_amounts_are_not_phone_numbers() -> None:
     amounts = ["7548345900.00", "1739786250.00", "5442786808.00", "3499838774.50"]
     assert detect_pii("apropiacion_vigente", amounts) is None
     assert detect_pii("telefono", ["514.555.1234", "300-123-4567"]) == PiiKind.PHONE
+
+
+def test_whole_numbers_show_without_decimals_and_their_positive_value_matches() -> None:
+    """A 0/1 target with a gap is read as floats; its values must still read 0 and 1, so the
+    guessed positive value compares equal to the BIGINT column in SQL."""
+    frame = pd.DataFrame({"risk": [0.0] * 3 + [1.0] * 7 + [None], "n": [24.0] * 11})
+    typed, metas = build_table(frame)
+    by = {m.name: m for m in metas}
+    assert by["n"].examples == ["24"] and {t["value"] for t in by["risk"].top} == {"0", "1"}
+    positive = packs.guess_positive(by["risk"])
+    assert positive == "0"
+    con = duckdb.connect()
+    con.register("d", for_duckdb(typed, metas))
+    sql = f"SELECT COUNT(*) FROM d WHERE {positive_expr(by['risk'], positive)}"
+    assert con.sql(sql).fetchall()[0][0] == 3

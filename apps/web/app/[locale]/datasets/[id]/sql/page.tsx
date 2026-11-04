@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DatasetPicker, SAMPLE_SLUGS } from "@/components/ingest/DatasetPicker";
+import { DataColumns } from "@/components/sql/DataColumns";
 import { KpiCatalog } from "@/components/sql/KpiCatalog";
 import { SqlLab } from "@/components/sql/SqlLab";
 import { StarSchema } from "@/components/sql/StarSchema";
@@ -12,7 +13,7 @@ import { SkeletonGroup } from "@/components/ui/Skeleton";
 import { WakingUp } from "@/components/ui/WakingUp";
 import { Link } from "@/i18n/routing";
 import { apiGet } from "@/lib/api";
-import type { GuidedQueriesResponse, KpisResponse, StarSchemaResponse } from "@/lib/api-types";
+import type { DomainResponse, GuidedQueriesResponse, KpisResponse, StarSchemaResponse } from "@/lib/api-types";
 
 export const dynamic = "force-dynamic";
 
@@ -27,18 +28,19 @@ export default async function SqlPage({ params: { locale, id } }: Params) {
   setRequestLocale(locale);
   const t = await getTranslations("sql");
   const ref = encodeURIComponent(id);
-  // The schema call builds the star schema on first use; KPIs reuse it.
+  // The schema call builds the model on first use; questions, KPIs and the domain reuse it.
   const schema = await apiGet<StarSchemaResponse>(`/api/v1/datasets/${ref}/schema`, locale, 60_000);
-  const [guided, kpis] = await Promise.all([
-    apiGet<GuidedQueriesResponse>("/api/v1/guided-queries", locale),
+  const [guided, kpis, domain] = await Promise.all([
+    apiGet<GuidedQueriesResponse>(`/api/v1/guided-queries?dataset_id=${ref}`, locale, 30_000),
     schema.ok ? apiGet<KpisResponse>(`/api/v1/kpis/${ref}`, locale, 30_000) : Promise.resolve(null),
+    schema.ok ? apiGet<DomainResponse>(`/api/v1/datasets/${ref}/domain`, locale) : Promise.resolve(null),
   ]);
 
   const heading = (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="flex flex-col gap-1.5">
         <h1 className="m-0 text-[30px] font-semibold text-ink">{t("title")}</h1>
-        <p className="m-0 text-base text-muted">{t("subtitle")}</p>
+        <p className="m-0 text-base text-muted">{t("subtitleAny")}</p>
       </div>
       <Badge variant="format" className="px-2.5 py-1.5 text-xs">
         {t("engineChip")}
@@ -75,6 +77,11 @@ export default async function SqlPage({ params: { locale, id } }: Params) {
   }
 
   const datasetRef = (SAMPLE_SLUGS as readonly string[]).includes(id) ? id : schema.data.dataset_id;
+  const star = schema.data.tables.some((table) => table.role === "fact");
+  const dataTable = schema.data.tables.find((table) => table.role === "data");
+  const packNames = Object.fromEntries((domain?.ok ? domain.data.packs : []).map((p) => [p.id, p.name]));
+  const activePack = domain?.ok ? domain.data.packs.find((p) => p.id === domain.data.pack) : undefined;
+  const activeGoal = activePack?.goals.find((g) => domain?.ok && g.id === domain.data.goal);
   return (
     <main id="main" className="mx-auto flex max-w-container flex-col gap-6 px-6 pb-12 pt-8">
       {heading}
@@ -90,9 +97,19 @@ export default async function SqlPage({ params: { locale, id } }: Params) {
           })}
         </p>
       )}
-      <StarSchema tables={schema.data.tables} />
+      {activePack && (
+        <p className="m-0 flex flex-wrap items-center gap-2 text-sm text-text" data-testid="active-domain">
+          <Badge variant="info">{t("domainChip", { pack: activePack.name })}</Badge>
+          {activeGoal && <span className="text-muted">{t("goalChip", { goal: activeGoal.name })}</span>}
+          <Link href={{ pathname: `/datasets/${datasetRef}`, hash: "domain" }} className="underline underline-offset-2">
+            {t("changeDomain")}
+          </Link>
+        </p>
+      )}
+      <DataColumns columns={schema.data.data_columns} rows={dataTable?.rows ?? 0} />
+      {star && <StarSchema tables={schema.data.tables} />}
       <SqlLab datasetRef={datasetRef} guided={guided.data.items} guardrails={schema.data.guardrails} />
-      {kpis?.ok && <KpiCatalog items={kpis.data.items} />}
+      {kpis?.ok && <KpiCatalog items={kpis.data.items} procurement={star} packNames={packNames} />}
       <div className="flex justify-end">
         <ButtonLink href={`/datasets/${datasetRef}/ml`}>{t("continue")}</ButtonLink>
       </div>

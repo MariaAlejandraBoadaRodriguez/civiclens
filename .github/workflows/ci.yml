@@ -163,6 +163,8 @@ jobs:
           python scripts/make_dirty.py --out /tmp/demo
       - name: Full flow on the three seeds (uploads, every preview, apply, SQL, models)
         run: python scripts/flow_check.py --base "$API_URL" --mode full --files /tmp/demo --origin "$WEB_ORIGIN"
+      - name: Full flow on every acceptance fixture (any kind of table, data/fixtures)
+        run: python scripts/flow_check.py --base "$API_URL" --mode full --fixtures data/fixtures --origin "$WEB_ORIGIN"
       - name: Build and start the web against that API
         working-directory: apps/web
         env:
