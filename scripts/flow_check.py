@@ -10,7 +10,8 @@ Modes:
          all three, every period). With --fixtures, also every acceptance fixture (any kind of
          table): upload, ingest, apply the recommended recipe, the table `data`, every generated
          question (each must return rows), KPIs, the domain step, the four generic models (target
-         model, anomalies, segments, forecast) and BI export; procurement-only views must answer
+         model, anomalies, segments, forecast), the dashboard overview with its findings, a custom
+         chart, the report (HTML EN + ES, PDF) and BI export; procurement-only views must answer
          409, never 5xx.
          Used by CI against the Docker image limited to 512 MB.
   smoke  /health and one recipe preview per seed. Used after each production deploy.
@@ -226,9 +227,18 @@ def any_dataset(c: Client, folder: Path) -> None:
             verdicts.append(f"{model}={result.get('status')}")
         if not c.get(f"/api/v1/datasets/{ds}/export?format=parquet").startswith(b"PK"):
             raise FlowError(f"export {path.name}: zip expected")
-        if domain["pack"] != "government":  # views not generic yet: a clear 409, not a 5xx
+        overview = c.get(f"/api/v1/datasets/{ds}/overview")
+        if len(overview["sections"]) < 2 or not all(x["finding"] for x in overview["sections"]):
+            raise FlowError(f"{path.name}: dashboard overview without findings")
+        dim = overview["dimensions"][0]["name"]
+        c.post(f"/api/v1/datasets/{ds}/chart", {"dimension": dim})
+        for lang in ("en", "es"):
+            if f'<html lang="{lang}">'.encode() not in c.get(f"/api/v1/reports/{ds}?lang={lang}"):
+                raise FlowError(f"report {path.name}: not rendered in {lang}")
+        if not c.get(f"/api/v1/reports/{ds}?lang=es&format=pdf").startswith(b"%PDF"):
+            raise FlowError(f"report {path.name}: PDF expected")
+        if domain["pack"] != "government":  # the procurement dashboard: a clear 409
             c.get(f"/api/v1/dashboard?dataset_id={ds}", ok=(409,))
-            c.get(f"/api/v1/reports/{ds}", ok=(409,))
             c.post("/api/v1/models/red_flags/run", {"dataset_id": ds}, ok=(409,))
         log(f"  {path.name}: {len(schema['data_columns'])} columns, {len(guided)} questions, "
             f"{len(kpis)} KPIs, domain {domain['pack']}, {' '.join(verdicts)} "

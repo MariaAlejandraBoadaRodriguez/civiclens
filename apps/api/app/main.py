@@ -19,7 +19,18 @@ from app.api.problems import (
     validation_handler,
 )
 from app.api.security import problem, security_middleware
-from app.api.v1 import dashboard, datasets, domain, jobs, keys, models, recipes, reports, sql
+from app.api.v1 import (
+    dashboard,
+    datasets,
+    domain,
+    jobs,
+    keys,
+    models,
+    overview,
+    recipes,
+    reports,
+    sql,
+)
 from app.config import settings
 from app.core import jobs as job_runner
 from app.core import observability as obs
@@ -110,6 +121,7 @@ app.include_router(sql.router)
 app.include_router(models.router)
 app.include_router(reports.router)
 app.include_router(dashboard.router)
+app.include_router(overview.router)
 app.include_router(keys.router)
 
 

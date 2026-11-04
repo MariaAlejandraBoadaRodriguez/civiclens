@@ -1,0 +1,26 @@
+# Dashboard for any table: section titles and the written finding under each chart.
+rows: rows
+share: share
+rate: "{target} rate"
+together: together
+opposite: in opposite directions
+sections:
+  distribution: "How {column} is distributed"
+  counts: "Most common values of {column}"
+  segments: "{metric} by {column}"
+  drivers: "{target} rate by {column}"
+  correlations: Which quantities move together
+  trend: "{metric} over time ({date})"
+  outliers: Unusual values per column
+  model: "What predicts {target}"
+findings:
+  distribution: "{share} of rows have {column} between {low} and {high}; the median is {median}."
+  counts: "{value} is the most common {column}: {share} of rows (top {n} shown)."
+  segments: "{value} accounts for {share} of all {metric} — the largest {column}."
+  drivers: "{column} = {value} has the highest {target} rate: {rate} vs {overall} overall."
+  correlation: "{a} and {b} move {direction} most strongly (r = {r}). Correlation is not causation."
+  trend: "Highest {grain}: {peak} ({value}). From {first} to {last} {metric} changed by {change}."
+  outliers: "{column} has the most unusual values: {n} rows ({share}) outside the usual range (1.5 × IQR)."
+  no_outliers: No column has values outside the usual range (1.5 × IQR).
+  model: "The prediction model for {target} relies most on {column} ({share} of its importance)."
+  model_leak: "Careful: {columns} may only be known after the outcome."

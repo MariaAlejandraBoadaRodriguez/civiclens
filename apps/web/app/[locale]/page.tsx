@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
+import { TryAnyData } from "@/components/ingest/TryAnyData";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Link } from "@/i18n/routing";
@@ -17,6 +18,7 @@ const STEPS = [
 const OUTPUTS = ["quality", "recipe", "star", "flags", "report"] as const;
 
 // Data language and file format are machine values: shown as codes in both UI languages.
+const ANY_FORMAT = "CSV";
 const SAMPLES = [
   { slug: "secop_co", lang: "ES", format: "CSV" },
   { slug: "contracts_ca", lang: "EN / FR", format: "XLSX" },
@@ -81,7 +83,7 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
           <h2 id="samples" className="m-0 text-2xl font-semibold text-ink">
             {t("samples.title")}
           </h2>
-          <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
+          <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-2 xl:grid-cols-4">
             {SAMPLES.map((s) => (
               <li key={s.slug} className="flex flex-col gap-3 rounded-card border border-line bg-surface p-[22px]">
                 <div className="flex flex-wrap gap-2">
@@ -96,6 +98,16 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
                 </Link>
               </li>
             ))}
+            <li className="flex flex-col gap-3 rounded-card border-2 border-primary bg-primary-soft p-[22px]" data-testid="any-data-card">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="info">{t("samples.anyData.badge")}</Badge>
+                <Badge>{ANY_FORMAT}</Badge>
+              </div>
+              <h3 className="m-0 text-lg font-semibold text-ink">{t("samples.anyData.name")}</h3>
+              <p className="m-0 text-sm leading-normal text-muted">{t("samples.anyData.body")}</p>
+              <p className="m-0 text-xs text-muted">{t("samples.anyData.license")}</p>
+              <TryAnyData />
+            </li>
           </ul>
         </section>
       </main>

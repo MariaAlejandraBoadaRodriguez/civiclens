@@ -72,9 +72,8 @@ def test_sql_lab_works_for_any_dataset(name: str) -> None:
 @pytest.mark.parametrize("name", sorted(CASES))
 def test_procurement_only_views_answer_409_not_500(name: str) -> None:
     ds = uploaded(name)
-    for path in (
+    for path in (  # the report and the dashboard overview are generic since PR 4
         f"/api/v1/dashboard?dataset_id={ds}",
-        f"/api/v1/reports/{ds}",
         f"/api/v1/models/red_flags/latest?dataset_id={ds}",
     ):
         r = client.get(path, headers={"Accept-Language": "es"})

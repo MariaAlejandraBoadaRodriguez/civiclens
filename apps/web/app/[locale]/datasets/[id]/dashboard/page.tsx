@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ApiBlock } from "@/components/dashboard/ApiBlock";
 import { DashboardFilters, type ScopeOption } from "@/components/dashboard/DashboardFilters";
+import { GenericDashboard } from "@/components/dashboard/GenericDashboard";
 import { JurisdictionBars } from "@/components/dashboard/JurisdictionBars";
 import { kpiTile } from "@/components/dashboard/kpiTiles";
 import { MonthlyChart } from "@/components/dashboard/MonthlyChart";
@@ -15,7 +16,15 @@ import { SkeletonGroup } from "@/components/ui/Skeleton";
 import { WakingUp } from "@/components/ui/WakingUp";
 import { PUBLIC_API_URL, apiGet } from "@/lib/api";
 import { ROUTE_UNAVAILABLE } from "@/lib/routeUnavailable";
-import { CATEGORIES, PERIODS, type Category, type Dashboard, type Dataset, type Period } from "@/lib/api-types";
+import {
+  CATEGORIES,
+  PERIODS,
+  type Category,
+  type Dashboard,
+  type Dataset,
+  type Overview,
+  type Period,
+} from "@/lib/api-types";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +91,11 @@ export default async function DashboardPage({ params: { locale, id }, searchPara
   ]);
 
   const notReady = !main.ok && main.kind === "problem" && main.problem.code === "dataset.not_ready";
+  // Not procurement data: the dashboard for any table (KPIs, findings, chart builder).
+  const generic = !main.ok && main.kind === "problem" && main.problem.code === "domain.procurement_only";
+  const overview = generic
+    ? await apiGet<Overview>(`/api/v1/datasets/${encodeURIComponent(ref)}/overview`, locale, 60_000)
+    : null;
   const reportUrl = `${PUBLIC_API_URL}/api/v1/reports/${encodeURIComponent(ref)}?lang=${locale}`;
   const exportUrl = `${PUBLIC_API_URL}/api/v1/datasets/${encodeURIComponent(ref)}/export?format=parquet`;
   const current = main.ok ? main.data.by_jurisdiction.find((j) => j.dataset_id === dataset.data.id) : undefined;
@@ -112,7 +126,7 @@ export default async function DashboardPage({ params: { locale, id }, searchPara
           </Badge>
         )}
       </div>
-      <DashboardFilters scope={scope} scopes={scopes} period={period} category={category} />
+      {!generic && <DashboardFilters scope={scope} scopes={scopes} period={period} category={category} />}
 
       {!main.ok && main.kind === "unreachable" && <WakingUp />}
       {notReady && (
@@ -122,7 +136,12 @@ export default async function DashboardPage({ params: { locale, id }, searchPara
           <AutoRefresh seconds={3} />
         </Card>
       )}
-      {!main.ok && main.kind === "problem" && !notReady && (
+      {overview?.ok && <GenericDashboard overview={overview.data} datasetRef={ref} />}
+      {overview && !overview.ok && overview.kind === "problem" && (
+        <EmptyState title={overview.problem.title} body={overview.problem.detail} />
+      )}
+      {overview && !overview.ok && overview.kind === "unreachable" && <WakingUp />}
+      {!main.ok && main.kind === "problem" && !notReady && !generic && (
         main.problem.code === ROUTE_UNAVAILABLE ? (
           <EmptyState title={tc("routeTitle")} body={tc("routeBody")} />
         ) : (
