@@ -4,13 +4,15 @@ import { useId, useRef, useState, type DragEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { Dataset, Job } from "@/lib/api-types";
-import { apiRequest, waitForJob, type ApiFailure } from "@/lib/apiClient";
+import { uploadWithProgress, waitForJob, type ApiFailure } from "@/lib/apiClient";
 import { cn } from "@/lib/cn";
 
 type State =
   | { step: "idle" }
-  | { step: "uploading" | "processing"; name: string }
+  | { step: "uploading"; name: string; percent: number }
+  | { step: "processing"; name: string; percent: number; label: string | null }
   | { step: "error"; error: ApiFailure; file?: File };
 
 const MAX_MB = 50;
@@ -39,22 +41,31 @@ export function Dropzone() {
       setState({ step: "error", error: { kind: "problem", problem } });
       return;
     }
-    setState({ step: "uploading", name: file.name });
+    setState({ step: "uploading", name: file.name, percent: 0 });
     const body = new FormData();
     body.append("file", file);
-    const accepted = await apiRequest<{ dataset: Dataset; job: Pick<Job, "id" | "status"> }>("/api/v1/datasets", { locale, form: body });
+    const accepted = await uploadWithProgress<{ dataset: Dataset; job: Pick<Job, "id" | "status"> }>(
+      "/api/v1/datasets",
+      body,
+      locale,
+      (percent) => setState({ step: "uploading", name: file.name, percent }),
+    );
     if (!accepted.ok) {
       setState({ step: "error", error: accepted.error, file });
       return;
     }
-    setState({ step: "processing", name: file.name });
-    const job = await waitForJob(accepted.data.job.id, locale);
+    setState({ step: "processing", name: file.name, percent: 0, label: null });
+    const job = await waitForJob(accepted.data.job.id, locale, {
+      onProgress: (j) =>
+        setState({ step: "processing", name: file.name, percent: j.progress ?? 0, label: j.phase_label ?? null }),
+    });
     if (!job.ok) {
       // A file the engine could not read is final; a lost connection can be retried.
       setState({ step: "error", error: job.error, file: job.error.kind === "unavailable" ? file : undefined });
       return;
     }
-    router.push(`/datasets/${accepted.data.dataset.id}`);
+    // The profile page shows the success banner (?ready=1) and takes focus.
+    router.push(`/datasets/${accepted.data.dataset.id}?ready=1`);
   }
 
   function onDrop(e: DragEvent<HTMLLabelElement>) {
@@ -100,9 +111,17 @@ export function Dropzone() {
           }}
         />
       </label>
-      <div id={statusId} role="status" aria-live="polite" className="min-h-5 text-[13px]">
-        {state.step === "uploading" && <span className="text-muted">{t("uploading", { name: state.name })}</span>}
-        {state.step === "processing" && <span className="text-muted">{t("processing", { name: state.name })}</span>}
+      <div id={statusId} aria-live="polite" className="min-h-5 text-[13px]">
+        {state.step === "uploading" && (
+          <ProgressBar label={t("uploading", { name: state.name })} value={state.percent} detail={t("uploadingDetail")} />
+        )}
+        {state.step === "processing" && (
+          <ProgressBar
+            label={t("processing", { name: state.name })}
+            value={state.percent}
+            detail={state.label ?? t("processingDetail")}
+          />
+        )}
       </div>
       {state.step === "error" && (
         <ApiErrorNotice error={state.error} onRetry={state.file ? () => void send(state.file as File) : undefined} />

@@ -22,8 +22,12 @@ for (const lang of LANGS) {
         mimeType: "text/csv",
         buffer: Buffer.from(["id_contrato;entidad;proveedor;fecha_firma;valor", ...rows].join("\n")),
       });
-      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/[0-9a-f-]{36}$`), { timeout: 120_000 });
+      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/[0-9a-f-]{36}\\?ready=1$`), { timeout: 120_000 });
       await expect(page.getByRole("heading", { level: 1, name: m.ingest.title })).toBeVisible();
+      // The finished upload is announced with the large green banner.
+      const banner = page.getByTestId("banner-success");
+      await expect(banner).toContainText(m.ingest.ready.title.replace("{name}", `contratos-${lang}.csv`));
+      await expect(banner.getByRole("link", { name: m.ingest.ready.next })).toBeVisible();
     });
 
     test("cleaning studio → recipe preview → apply", async ({ page }) => {
@@ -36,6 +40,27 @@ for (const lang of LANGS) {
       for (let n = 0; n < 20 && (await decide.isVisible()); n += 1) await decide.click();
       await page.getByRole("button", { name: m.clean.run.apply }).click();
       await expect(page.getByText(m.clean.run.quality)).toBeVisible({ timeout: 150_000 });
+      // Success banner with the downloads: the cleaned data and the recipe.
+      const banner = page.getByTestId("banner-success");
+      await expect(banner).toBeVisible();
+      const csv = await banner.getByRole("link", { name: m.clean.run.downloadCsv }).getAttribute("href");
+      const res = await page.request.get(csv as string);
+      expect(res.status()).toBe(200);
+      expect(res.headers()["x-civiclens-origin"]).toBe("clean");
+      expect((await res.text()).split("\n")[0].length).toBeGreaterThan(0);
+      for (const f of ["json", "pandas", "sql"] as const) {
+        await expect(banner.getByRole("link", { name: m.clean.run.downloadRecipe[f] })).toBeVisible();
+      }
+    });
+
+    test("continue with unsaved cleaning decisions asks to apply first", async ({ page }) => {
+      await page.goto(`/${lang}/datasets/secop_co/clean`);
+      // The first issues (header mapping, personal data, duplicates) add recipe steps.
+      for (let n = 0; n < 3; n += 1) await page.getByRole("button", { name: m.clean.issue.apply }).click();
+      await page.getByRole("button", { name: m.clean.run.continue }).click();
+      await expect(page.getByRole("alertdialog")).toBeVisible();
+      await page.getByRole("button", { name: m.clean.run.unsaved.skip }).click();
+      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/secop_co/sql$`));
     });
 
     test("SQL lab → guided query results and a rejected query", async ({ page, browserConsole }) => {

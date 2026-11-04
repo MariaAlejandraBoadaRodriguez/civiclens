@@ -37,16 +37,83 @@ describe("ML lab", () => {
   });
 });
 
+/** A minimal XMLHttpRequest: each send() answers with the next scripted response. */
+function fakeXhr(responses: { status: number; body: string }[]) {
+  const sent: FormData[] = [];
+  class FakeXhr {
+    upload: { onprogress?: (e: { lengthComputable: boolean; loaded: number; total: number }) => void } = {};
+    status = 0;
+    responseText = "";
+    onload?: () => void;
+    onerror?: () => void;
+    open() {}
+    setRequestHeader() {}
+    send(form: FormData) {
+      sent.push(form);
+      const next = responses[Math.min(sent.length - 1, responses.length - 1)];
+      setTimeout(() => {
+        this.upload.onprogress?.({ lengthComputable: true, loaded: 50, total: 100 });
+        this.status = next.status;
+        this.responseText = next.body;
+        this.onload?.();
+      }, 0);
+    }
+  }
+  vi.stubGlobal("XMLHttpRequest", FakeXhr);
+  return sent;
+}
+
 describe("Upload", () => {
   it("a 502 on upload shows the message and Retry sends the file again", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(badGateway());
-    vi.stubGlobal("fetch", fetchMock);
+    const sent = fakeXhr([{ status: 502, body: "<html>502</html>" }]);
     const { container } = renderIn("en", <Dropzone />);
     const input = container.querySelector("input[type=file]") as HTMLInputElement;
     fireEvent.change(input, { target: { files: [new File(["a,b\n1,2\n"], "data.csv", { type: "text/csv" })] } });
     expect(await screen.findByRole("alert")).toHaveTextContent("The engine did not answer");
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(sent).toHaveLength(2));
+  });
+
+  it("shows upload %, then the server phases with %, in Spanish", async () => {
+    fakeXhr([{ status: 202, body: JSON.stringify({ dataset: { id: "d9" }, job: { id: "j9", status: "queued" } }) }]);
+    const running = { id: "j9", type: "ingest", status: "running", dataset_id: "d9", result: null, error: null, phase: "profiling", phase_label: "Perfilando las columnas", progress: 30 };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(json(running)).mockImplementation(() => new Promise(() => {})));
+    const { container } = renderIn("es", <Dropzone />);
+    const input = container.querySelector("input[type=file]") as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(["a;b\n1;2\n"], "banco.csv", { type: "text/csv" })] } });
+    const bar = await screen.findByRole("progressbar", { name: /Leyendo y perfilando banco.csv/ });
+    await waitFor(() => expect(bar).toHaveAttribute("aria-valuenow", "30"));
+    expect(screen.getByText("Perfilando las columnas")).toBeInTheDocument();
+  });
+});
+
+describe("Upload client", () => {
+  it("reports upload progress and returns the API's problem on a 4xx", async () => {
+    const { uploadWithProgress } = await import("@/lib/apiClient");
+    const problem = { type: "x", title: "Archivo demasiado grande", status: 413, code: "ingest.too_large" };
+    fakeXhr([{ status: 413, body: JSON.stringify(problem) }]);
+    const seen: number[] = [];
+    const res = await uploadWithProgress("/api/v1/datasets", new FormData(), "es", (p) => seen.push(p));
+    expect(seen).toEqual([50]);
+    expect(res).toEqual({ ok: false, error: { kind: "problem", problem } });
+  });
+});
+
+describe("Banners and progress", () => {
+  it("a success banner is a focused live region; an error banner is an alert", async () => {
+    const { StatusBanner } = await import("@/components/ui/StatusBanner");
+    renderIn("en", <StatusBanner variant="success" title="Done">body</StatusBanner>);
+    const ok = screen.getByRole("status");
+    expect(ok).toHaveTextContent("Done");
+    expect(document.activeElement).toBe(ok);
+  });
+
+  it("the progress bar clamps and exposes its value", async () => {
+    const { ProgressBar } = await import("@/components/ui/ProgressBar");
+    renderIn("en", <ProgressBar label="Uploading" value={140} detail="almost" />);
+    const bar = screen.getByRole("progressbar", { name: "Uploading" });
+    expect(bar).toHaveAttribute("aria-valuenow", "100");
+    expect(bar).toHaveAttribute("aria-valuetext", "almost");
   });
 });
 
@@ -94,5 +161,19 @@ describe("Cleaning studio", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     await waitFor(() => expect(screen.queryByRole("alert")).toBeNull(), { timeout: 3000 });
     expect(fetchMock.mock.calls.every(([url]) => String(url).endsWith("/api/v1/recipes/preview"))).toBe(true);
+  });
+
+  it("explains Save and apply vs Continue, and Continue with unsaved decisions asks to apply first", async () => {
+    const code = { pandas: "df", sql: "SELECT 1", json: "{}" };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(code)));
+    renderIn("es", <CleaningStudio data={issuesResponse} datasetRef="secop_co" />);
+    expect(screen.getByTestId("run-explain")).toHaveTextContent("Guardar y aplicar");
+    expect(screen.getByTestId("run-explain")).toHaveTextContent("Continuar: va al laboratorio SQL");
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar decisión" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar al laboratorio SQL →" }));
+    const dialog = screen.getByRole("alertdialog");
+    expect(dialog).toHaveTextContent("1 paso de limpieza aún no está aplicado");
+    expect(screen.getByRole("button", { name: "Aplicar y continuar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continuar sin aplicar" })).toBeInTheDocument();
   });
 });

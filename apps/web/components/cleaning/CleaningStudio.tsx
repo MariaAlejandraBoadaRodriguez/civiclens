@@ -5,10 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { BeforeAfter } from "@/components/ui/BeforeAfter";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { Button, buttonClass } from "@/components/ui/Button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { IssueCard } from "@/components/ui/IssueCard";
 import { OptionRadio } from "@/components/ui/OptionRadio";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { StatusBanner } from "@/components/ui/StatusBanner";
 import { SkeletonGroup } from "@/components/ui/Skeleton";
 import { Tabs } from "@/components/ui/Tabs";
 import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
@@ -23,8 +25,9 @@ type Status = "done" | "skipped";
 type Code = { pandas: string; sql: string; json: string };
 type Run =
   | { state: "idle" }
-  | { state: "saving" | "applying" }
-  | { state: "done"; result: ApplyResult; version: number }
+  | { state: "saving" }
+  | { state: "applying"; percent: number; label: string | null }
+  | { state: "done"; result: ApplyResult; version: number; recipeId: string }
   | { state: "error"; error: ApiFailure; retry: () => void };
 
 const FORMATS = ["pandas", "sql", "json"] as const;
@@ -55,6 +58,8 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
   const [previewError, setPreviewError] = useState<ApiFailure | null>(null);
   const [previewAttempt, setPreviewAttempt] = useState(0);
   const [run, setRun] = useState<Run>({ state: "idle" });
+  const [confirmContinue, setConfirmContinue] = useState(false);
+  const sqlHref = `/datasets/${datasetRef}/sql`;
 
   const issue: Issue | undefined = issues[current];
   const option = issue?.options.find((o) => o.option_id === choices[issue.issue_id]) ?? issue?.options[0];
@@ -126,23 +131,35 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
     return res.data;
   }
 
-  async function saveAndApply() {
-    const retry = () => void saveAndApply();
+  async function saveAndApply(thenContinue = false) {
+    const retry = () => void saveAndApply(thenContinue);
+    setConfirmContinue(false);
     setRun({ state: "saving" });
     const recipe = await saveRecipe(retry);
     if (!recipe) return;
-    setRun({ state: "applying" });
+    setRun({ state: "applying", percent: 0, label: null });
     const accepted = await apiRequest<{ id: string }>(`/api/v1/datasets/${datasetRef}/recipes/apply`, {
       locale,
       json: { recipe_id: recipe.id },
     });
-    const job = accepted.ok ? await waitForJob(accepted.data.id, locale) : accepted;
+    const job = accepted.ok
+      ? await waitForJob(accepted.data.id, locale, {
+          onProgress: (j) => setRun({ state: "applying", percent: j.progress ?? 0, label: j.phase_label ?? null }),
+        })
+      : accepted;
     if (!job.ok) {
       setRun({ state: "error", error: job.error, retry });
       return;
     }
-    setRun({ state: "done", result: job.data.result as unknown as ApplyResult, version: recipe.version });
-    router.refresh(); // header chip: "Quality before → after"
+    setRun({ state: "done", result: job.data.result as unknown as ApplyResult, version: recipe.version, recipeId: recipe.id });
+    if (thenContinue) router.push(sqlHref);
+    else router.refresh(); // header chip: "Quality before → after"
+  }
+
+  /** "Continue" with decisions not yet applied would leave the next steps on the old data. */
+  function onContinue() {
+    if (decided.length > 0 && run.state !== "done") setConfirmContinue(true);
+    else router.push(sqlHref);
   }
 
   async function exportCode(format: (typeof FORMATS)[number]) {
@@ -341,9 +358,44 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
         <p className="m-0 text-[15px] text-muted">
           {t("run.summary", { done: resolved, total: issues.length, steps: decided.length })}
         </p>
-        <div role="status" aria-live="polite" className="flex flex-col gap-2 text-[15px]">
-          {(run.state === "saving" || run.state === "applying") && <span className="text-muted">{t(`run.${run.state}`)}</span>}
+        <ul className="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-text" data-testid="run-explain">
+          <li>{t("run.explainApply")}</li>
+          <li>{t("run.explainContinue")}</li>
+        </ul>
+        <div aria-live="polite" className="flex flex-col gap-2 text-[15px]">
+          {run.state === "saving" && <span className="text-muted">{t("run.saving")}</span>}
+          {run.state === "applying" && (
+            <ProgressBar label={t("run.applying")} value={run.percent} detail={run.label ?? undefined} />
+          )}
           {run.state === "error" && <ApiErrorNotice error={run.error} onRetry={run.retry} />}
+          {run.state === "done" && (
+            <StatusBanner
+              variant="success"
+              title={t("run.doneTitle", { version: run.version })}
+              actions={
+                <>
+                  <a className={buttonClass("primary")} href={`${PUBLIC_API_URL}/api/v1/datasets/${datasetRef}/download?format=csv`} download>
+                    {t("run.downloadCsv")}
+                  </a>
+                  <a className={buttonClass("secondary")} href={`${PUBLIC_API_URL}/api/v1/datasets/${datasetRef}/download?format=parquet`} download>
+                    {t("run.downloadParquet")}
+                  </a>
+                  {FORMATS.map((f) => (
+                    <a
+                      key={f}
+                      className={buttonClass("secondary")}
+                      href={`${PUBLIC_API_URL}/api/v1/recipes/${run.recipeId}/export?format=${f}`}
+                      download
+                    >
+                      {t(`run.downloadRecipe.${f}`)}
+                    </a>
+                  ))}
+                </>
+              }
+            >
+              {t("run.doneBody")}
+            </StatusBanner>
+          )}
           {run.state === "done" && (
             <dl className="m-0 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
               <div className="flex flex-col">
@@ -365,13 +417,27 @@ export function CleaningStudio({ data, datasetRef }: { data: IssuesResponse; dat
             </dl>
           )}
         </div>
+        {confirmContinue && (
+          <div role="alertdialog" aria-labelledby="unsaved-title" className="flex flex-col gap-3 rounded-card border border-flag-border bg-flag-tint p-4 text-flag-text">
+            <p id="unsaved-title" className="m-0 font-semibold">
+              {t("run.unsaved.title", { steps: decided.length })}
+            </p>
+            <p className="m-0 text-sm text-text">{t("run.unsaved.body")}</p>
+            <div className="flex flex-wrap gap-2.5">
+              <Button onClick={() => void saveAndApply(true)}>{t("run.unsaved.apply")}</Button>
+              <Button variant="secondary" onClick={() => router.push(sqlHref)}>
+                {t("run.unsaved.skip")}
+              </Button>
+            </div>
+          </div>
+        )}
         <div className="flex flex-wrap gap-3">
           <Button onClick={() => void saveAndApply()} disabled={decided.length === 0 || run.state === "saving" || run.state === "applying"}>
             {t("run.apply")}
           </Button>
-          <ButtonLink href={`/datasets/${datasetRef}/sql`} variant={run.state === "done" ? "primary" : "secondary"}>
+          <Button variant={run.state === "done" ? "primary" : "secondary"} onClick={onContinue}>
             {t("run.continue")}
-          </ButtonLink>
+          </Button>
         </div>
       </section>
     </div>

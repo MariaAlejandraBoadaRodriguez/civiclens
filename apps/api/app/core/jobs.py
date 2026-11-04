@@ -142,6 +142,7 @@ def run_phase(
             work(session, job, ds)
             if finish:
                 job.status, job.finished_at = JobStatus.SUCCEEDED, now()
+                job.phase, job.progress = "done", 100
         except Exception:  # noqa: BLE001 — stable code for the client; details in the log
             log.exception("job %s phase failed", job_id)
             session.rollback()
@@ -151,6 +152,33 @@ def run_phase(
                 session.get(Dataset, job.dataset_id).status = DatasetStatus.FAILED
         session.commit()
     memory.release()
+
+
+# Phase → (start %, end %) of the whole job, per job type. The web app shows the phase name
+# and a progress bar; a phase moves the bar to its start when it begins.
+PROGRESS = {
+    "ingest": {"reading": 5, "profiling": 30, "detecting_issues": 55, "building_model": 80},
+    "apply_recipe": {"applying_recipe": 10, "profiling": 45, "building_model": 75},
+    "build_schema": {"building_model": 20},
+    "model_run": {"training": 15},
+}
+
+
+def report_progress(job_id: uuid.UUID, phase: str) -> None:
+    """Record that ``job_id`` entered ``phase`` (never fails the job if the write fails)."""
+    from app.db.models import Job
+    from app.db.session import SessionLocal
+
+    try:
+        with SessionLocal() as session:
+            job = session.get(Job, job_id)
+            if job is None:
+                return
+            job.phase = phase
+            job.progress = PROGRESS.get(job.type.value, {}).get(phase, job.progress or 0)
+            session.commit()
+    except Exception:  # noqa: BLE001 — progress is informative only
+        log.warning("could not record progress %s for job %s", phase, job_id)
 
 
 def mark_failed(job_id: uuid.UUID, code: str) -> None:

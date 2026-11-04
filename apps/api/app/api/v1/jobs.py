@@ -38,6 +38,11 @@ def get_job(
         "status": job.status.value,
         "dataset_id": str(job.dataset_id) if job.dataset_id else None,
         "result": job.result_json,
+        "phase": job.phase,
+        "phase_label": t(f"jobs.phases.{job.phase}") if job.phase else None,
+        "progress": job.progress
+        if job.progress is not None
+        else (100 if job.status.value == "succeeded" else 0),
         "error": error,
         "created_at": iso_utc(job.created_at),
         "finished_at": iso_utc(job.finished_at),

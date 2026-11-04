@@ -322,7 +322,9 @@
       "uploading": "Cargando {name}…",
       "processing": "Leyendo y perfilando {name}…",
       "tooLargeTitle": "Archivo demasiado grande",
-      "tooLargeDetail": "El límite es de {mb} MB por archivo."
+      "tooLargeDetail": "El límite es de {mb} MB por archivo.",
+      "uploadingDetail": "Enviando el archivo al motor…",
+      "processingDetail": "Esperando al motor…"
     },
     "source": {
       "title": "Origen"
@@ -406,6 +408,11 @@
     "footer": {
       "summary": "<strong>{count, plural, one {# columna requiere} other {# columnas requieren}} atención</strong> de {total}: listo para el estudio de limpieza.",
       "continue": "Continuar a la limpieza →"
+    },
+    "ready": {
+      "title": "«{name}» está listo",
+      "body": "Se leyeron y perfilaron {rows} filas y {columns} columnas. Puntaje de calidad de datos: {score}/100.",
+      "next": "Continuar a la limpieza →"
     }
   },
   "clean": {
@@ -474,7 +481,24 @@
       "rows": "Filas",
       "rowsValue": "{before} → {after}",
       "hash": "Huella del resultado (SHA-256): la misma receta sobre el mismo archivo siempre da este valor",
-      "continue": "Continuar al laboratorio SQL →"
+      "continue": "Continuar al laboratorio SQL →",
+      "explainApply": "Guardar y aplicar: guarda tus decisiones como una receta versionada y la ejecuta en todas las filas. El SQL, los modelos y el tablero usan entonces los datos limpios.",
+      "explainContinue": "Continuar: va al laboratorio SQL sin cambiar los datos. Mientras no apliques, los pasos siguientes usan las opciones recomendadas.",
+      "doneTitle": "Receta v{version} aplicada: tus datos están limpios",
+      "doneBody": "Descarga los datos limpios o la receta, o continúa al laboratorio SQL.",
+      "downloadCsv": "Descargar datos limpios (CSV)",
+      "downloadParquet": "Descargar (Parquet)",
+      "downloadRecipe": {
+        "json": "Receta (JSON)",
+        "pandas": "Receta (pandas)",
+        "sql": "Receta (SQL)"
+      },
+      "unsaved": {
+        "title": "{steps, plural, one {# paso de limpieza aún no está aplicado} other {# pasos de limpieza aún no están aplicados}}",
+        "body": "Si continúas ahora, el laboratorio SQL, los modelos y el tablero usarán las opciones recomendadas en lugar de tus decisiones.",
+        "apply": "Aplicar y continuar",
+        "skip": "Continuar sin aplicar"
+      }
     }
   },
   "sql": {

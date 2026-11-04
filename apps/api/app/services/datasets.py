@@ -18,6 +18,7 @@ from app.core import memory
 from app.core.ingest.detect import UnsupportedFormatError
 from app.core.ingest.language import dominant
 from app.core.ingest.reader import EmptyFileError
+from app.core.jobs import PROGRESS, report_progress
 from app.core.seed.dirty import DIRTY_BUILDERS
 from app.core.seed.registry import SEEDS, Seed
 from app.db.models import (
@@ -196,11 +197,14 @@ def run_ingest_job(job_id: uuid.UUID) -> None:
             return
         ds = session.get(Dataset, job.dataset_id)
         job.status, job.started_at = JobStatus.RUNNING, now()
+        job.phase, job.progress = "reading", PROGRESS["ingest"]["reading"]
         session.commit()
         try:
             filename = (job.input_json or {}).get("filename", "upload")
             data = storage.original_path(ds.id, filename).read_bytes()
-            profile = ingest_bytes(ds.id, data, filename)
+            profile = ingest_bytes(
+                ds.id, data, filename, on_phase=lambda phase: report_progress(job_id, phase)
+            )
             _apply_profile(ds, profile)
             ds.status = DatasetStatus.UPLOADED  # usable once the issues and star schema exist
             # Still RUNNING: run_issues_phase and app.services.sql.run_star_phase finish it.
@@ -228,6 +232,7 @@ def run_issues_phase(job_id: uuid.UUID) -> None:
     """Second phase of an ingest job (own process in production): detect the data issues."""
     from app.core.jobs import run_phase
 
+    report_progress(job_id, "detecting_issues")
     run_phase(job_id, "ingest.unreadable", lambda session, job, ds: build_issues(ds))
 
 

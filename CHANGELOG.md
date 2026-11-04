@@ -3,6 +3,11 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Feedback: upload progress in %, then the server phases with % (reading, profiling, detecting issues, building the model) from `GET /api/v1/jobs/{id}` (`phase`, `phase_label`, `progress`); the same for applying a recipe and running a model. A large green banner (announced, focused) when a step finishes; a clear error banner otherwise.
+- Cleaning Studio explains *Save and apply* vs *Continue*; *Continue* with unapplied decisions asks to apply first.
+- Download the cleaned data (`GET /api/v1/datasets/{id}/download?format=csv|parquet`) and the recipe (JSON, pandas, SQL) after applying it.
+
 
 ## [1.0.0] — 2026-11-03
 

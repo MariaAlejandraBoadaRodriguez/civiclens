@@ -17,6 +17,7 @@ from app.core.cleaning.codegen import pandas_preview, pandas_script, sql_preview
 from app.core.cleaning.detectors import detect_issues
 from app.core.cleaning.ops import Context, FxTable
 from app.core.cleaning.recipe import RecipeError, document, replay, validate_steps
+from app.core.jobs import PROGRESS, report_progress
 from app.core.profile.profiler import profile_frame
 from app.core.seed.registry import SEEDS
 from app.db.models import AuditLog, Dataset, DatasetStatus, Job, JobStatus, Recipe
@@ -189,6 +190,7 @@ def run_apply_job(job_id: uuid.UUID) -> None:
             return
         ds = session.get(Dataset, job.dataset_id)
         job.status, job.started_at = JobStatus.RUNNING, now()
+        job.phase, job.progress = "applying_recipe", PROGRESS["apply_recipe"]["applying_recipe"]
         session.commit()
         try:
             steps = (job.input_json or {}).get("steps", [])
@@ -196,6 +198,7 @@ def run_apply_job(job_id: uuid.UUID) -> None:
             clean, stats, digest = replay(staged, steps, context())
             storage.write_parquet(clean, storage.clean_path(ds.id), as_text=False)
             # The star schema is rebuilt (atomically replaced) by the next phase.
+            report_progress(job_id, "profiling")
             after = profile_frame(clean)
             storage.write_json(after, storage.clean_profile_path(ds.id))
             before = (storage.read_json(storage.profile_path(ds.id)) or {}).get("quality", {})

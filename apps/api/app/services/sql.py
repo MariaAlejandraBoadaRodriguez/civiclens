@@ -125,6 +125,9 @@ def run_star_phase(job_id: uuid.UUID) -> None:
         if ds.status == DatasetStatus.UPLOADED:
             ds.status = DatasetStatus.PROFILED
 
+    from app.core.jobs import report_progress
+
+    report_progress(job_id, "building_model")
     run_phase(job_id, "job.crashed", work, finish=True)
 
 

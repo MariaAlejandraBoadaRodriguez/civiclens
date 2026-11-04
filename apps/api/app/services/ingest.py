@@ -8,6 +8,7 @@ schema. Parsing numbers/dates/currencies is a user decision in the Cleaning Stud
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from typing import Any
 
 import pandas as pd
@@ -31,10 +32,18 @@ def staged_frame(raw: pd.DataFrame, columns: list[dict[str, Any]]) -> pd.DataFra
     return raw.rename(columns=rename)
 
 
-def ingest_bytes(dataset_id: uuid.UUID, data: bytes, filename: str) -> dict[str, Any]:
-    """Run the full pipeline and persist its outputs. Returns the profile document."""
+def ingest_bytes(
+    dataset_id: uuid.UUID,
+    data: bytes,
+    filename: str,
+    on_phase: Callable[[str], None] | None = None,
+) -> dict[str, Any]:
+    """Run the full pipeline and persist its outputs. Returns the profile document.
+    ``on_phase`` is told when profiling starts (job progress)."""
     raw, info = read_any(data, filename)
     storage.write_parquet(raw, storage.raw_path(dataset_id))
+    if on_phase:
+        on_phase("profiling")
     profile = profile_frame(raw)
     staged = staged_frame(raw, profile["columns_profile"])
     storage.write_parquet(staged, storage.staged_path(dataset_id))

@@ -6,11 +6,12 @@ import uuid
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Request, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_translator
+from app.api.headers import content_disposition
 from app.api.problems import ProblemError, iso_utc
 from app.api.security import Principal, require_scope
 from app.api.v1.recipes import RecipeInput, validated
@@ -24,6 +25,7 @@ from app.db.session import get_session
 from app.i18n.loader import Translator
 from app.services import cleaning, storage
 from app.services import datasets as svc
+from app.services import exports as export_svc
 
 router = APIRouter(prefix="/api/v1/datasets", tags=["datasets"])
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -216,4 +218,30 @@ def apply_recipe(
         {"id": str(job.id), "status": job.status.value},
         status_code=202,
         headers={"Location": f"/api/v1/jobs/{job.id}"},
+    )
+
+
+@router.get("/{dataset_id}/download")
+def download_data(
+    dataset_id: str,
+    session: SessionDep,
+    format: Literal["csv", "parquet"] = "csv",  # noqa: A002 — public parameter name
+) -> FileResponse:
+    """The data with the cleaning decisions applied: the clean layer once a recipe was applied
+    ("cleaned"), otherwise the recommended options applied on the fly ("recommended"). The
+    ``X-CivicLens-Origin`` header says which."""
+    ds = _get(session, dataset_id)
+    if ds.status not in (DatasetStatus.PROFILED, DatasetStatus.CLEANED):
+        raise ProblemError(409, "dataset.not_ready")
+    path, origin = export_svc.cleaned_file(ds, format)
+    stem = ds.slug or (ds.name or "dataset").rsplit(".", 1)[0]
+    name = f"{stem}-{'cleaned' if origin == 'clean' else 'recommended'}.{format}"
+    media = "text/csv" if format == "csv" else "application/vnd.apache.parquet"
+    return FileResponse(
+        path,
+        media_type=media,
+        headers={
+            "Content-Disposition": content_disposition("attachment", name),
+            "X-CivicLens-Origin": origin,
+        },
     )
