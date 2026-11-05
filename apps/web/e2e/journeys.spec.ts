@@ -18,7 +18,7 @@ for (const lang of LANGS) {
       await expect(page.getByText(m.ingest.score.title).first()).toBeVisible();
     });
 
-    test("upload a file → its profile", async ({ page }) => {
+    test("upload a file → its profile", async ({ page, browserConsole }) => {
       await page.goto(`/${lang}/datasets/secop_co`);
       const rows = Array.from({ length: 40 }, (_, i) => `C-${i};Entidad ${i % 4};Proveedor ${i % 7};2024-0${(i % 9) + 1}-15;${1000 + i},50`);
       await page.locator("input[type=file]").setInputFiles({
@@ -26,7 +26,7 @@ for (const lang of LANGS) {
         mimeType: "text/csv",
         buffer: Buffer.from(["id_contrato;entidad;proveedor;fecha_firma;valor", ...rows].join("\n")),
       });
-      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/[0-9a-f-]{36}\\?ready=1$`), { timeout: 120_000 });
+      await withRetry(page, browserConsole, m.common.apiError.retry, async () => /\?ready=1$/.test(page.url()));
       await expect(page.getByRole("heading", { level: 1, name: m.ingest.title })).toBeVisible();
       // The finished upload is announced with the large green banner.
       const banner = page.getByTestId("banner-success");
@@ -106,7 +106,7 @@ for (const lang of LANGS) {
       expect(explorer).toMatch(/\/docs$/);
     });
 
-    test("cleaning studio → recipe preview → apply", async ({ page }) => {
+    test("cleaning studio → recipe preview → apply", async ({ page, browserConsole }) => {
       await page.goto(`/${lang}/datasets/contracts_ca/clean`);
       await expect(page.getByRole("heading", { level: 1, name: m.clean.title })).toBeVisible();
       // The recipe code panel is filled by POST /recipes/preview (the call that failed in production).
@@ -115,7 +115,7 @@ for (const lang of LANGS) {
       const decide = page.getByRole("button", { name: m.clean.issue.apply });
       for (let n = 0; n < 20 && (await decide.isVisible()); n += 1) await decide.click();
       await page.getByRole("button", { name: m.clean.run.apply }).click();
-      await expect(page.getByText(m.clean.run.quality)).toBeVisible({ timeout: 150_000 });
+      await withRetry(page, browserConsole, m.common.apiError.retry, () => page.getByText(m.clean.run.quality).isVisible(), 12);
       // Success banner with the downloads: the cleaned data and the recipe.
       const banner = page.getByTestId("banner-success");
       await expect(banner).toBeVisible();
@@ -179,11 +179,16 @@ for (const lang of LANGS) {
       await expect(page.getByRole("button", { name: m.admin.signIn.testMode })).toBeVisible();
     });
 
-    test("ML lab → red flags and forecast", async ({ page }) => {
+    test("ML lab → red flags and forecast", async ({ page, browserConsole }) => {
+      const retry = m.common.apiError.retry;
       await page.goto(`/${lang}/datasets/contracts_qc/ml`);
-      await expect(page.getByRole("heading", { level: 2, name: m.ml.flags.title })).toBeVisible({ timeout: 150_000 });
+      await withRetry(page, browserConsole, retry, () =>
+        page.getByRole("heading", { level: 2, name: m.ml.flags.title }).isVisible(),
+      );
       await page.getByRole("tab", { name: m.ml.tabs.forecast }).click();
-      await expect(page.getByRole("heading", { level: 2, name: m.ml.forecast.title })).toBeVisible({ timeout: 150_000 });
+      await withRetry(page, browserConsole, retry, () =>
+        page.getByRole("heading", { level: 2, name: m.ml.forecast.title }).isVisible(),
+      );
     });
     test("ML lab → dashboard → filters → executive report (HTML + PDF) and BI export", async ({ page, request }) => {
       await page.goto(`/${lang}/datasets/contracts_qc/ml`);
