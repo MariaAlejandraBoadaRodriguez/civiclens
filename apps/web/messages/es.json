@@ -122,6 +122,15 @@
       "contracts_qc": {
         "name": "Quebec · Contratos públicos",
         "body": "Avisos de contratos en francés, JSON anidado, fechas en formatos mixtos."
+      },
+      "anyData": {
+        "badge": "Cualquier dato",
+        "name": "Prueba cualquier dato: crédito alemán",
+        "body": "1.000 préstamos bancarios con montos, plazos y una marca de crédito malo. CivicLens sugiere el dominio Banca, genera sus propias preguntas SQL, entrena un modelo de riesgo de crédito con revisión de equidad y arma el tablero.",
+        "license": "South German Credit (UCI), CC BY 4.0.",
+        "button": "Prueba cualquier dato",
+        "loading": "Preparando el ejemplo…",
+        "uploading": "Subiendo el ejemplo"
       }
     },
     "footer": {
@@ -838,6 +847,39 @@
       "step1": "1. Sube el archivo del mes siguiente",
       "step2": "2. Aplica la misma receta de limpieza (un trabajo)",
       "step3": "3. Obtén los KPI, en CAD"
+    },
+    "any": {
+      "sql": "Ver el SQL",
+      "qualityAfter": "La calidad de los datos pasó de {before} a {after} con tu receta de limpieza.",
+      "qualityBefore": "Puntaje de calidad {before}. Aún no se aplicó una receta de limpieza: las cifras usan las opciones de limpieza recomendadas.",
+      "builder": {
+        "title": "Arma tu propio gráfico",
+        "hint": "Elige qué medir, cómo agruparlo y un filtro opcional. El SQL corre sobre la tabla data, en solo lectura.",
+        "aggregation": "Medida",
+        "metric": "De la columna",
+        "dimension": "Agrupado por",
+        "filterColumn": "Filtrar por",
+        "filterValue": "Igual a",
+        "noFilter": "Sin filtro",
+        "chartType": "Gráfico",
+        "draw": "Dibujar el gráfico",
+        "running": "Dibujando…",
+        "empty": "Ninguna fila cumple este filtro.",
+        "aggregations": {
+          "count": "Número de filas",
+          "sum": "Suma",
+          "avg": "Promedio",
+          "median": "Mediana",
+          "min": "Mínimo",
+          "max": "Máximo"
+        },
+        "types": {
+          "bar": "Barras",
+          "line": "Línea",
+          "table": "Tabla"
+        }
+      },
+      "range": "{min} – {max}"
     }
   },
   "domain": {

@@ -146,3 +146,19 @@ domain:
   procurement_only:
     title: Disponible solo para datos de contratación
     detail: Esta vista necesita el modelo estrella de contratación (contratos, proveedores, entidades). Para este archivo usa el SQL Lab, que funciona con cualquier tabla.
+chart:
+  unknown_column:
+    title: Columna desconocida
+    detail: "La tabla data no tiene una columna llamada {column} (campo {field})."
+  unknown_aggregation:
+    title: Agregación desconocida
+    detail: "Usa count, sum, avg, median, min o max (llegó {aggregation})."
+  metric_not_numeric:
+    title: La métrica debe ser un número
+    detail: "{column} no es numérica. Elige una columna numérica o cuenta filas."
+  unknown_grain:
+    title: Granularidad de tiempo desconocida
+    detail: "Usa year, month o day (llegó {grain})."
+  bad_filter:
+    title: Filtro no válido
+    detail: "El filtro sobre {column} necesita un valor del tipo correcto."

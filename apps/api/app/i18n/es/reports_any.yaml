@@ -1,0 +1,6 @@
+# Reporte ejecutivo para cualquier tabla (núcleo genérico).
+title: Reporte de datos
+subtitle: "{dataset} · dominio {domain} · {date}"
+summary: "La tabla tiene {rows} filas y {columns} columnas. A continuación: las cifras clave y {sections} hallazgos, cada uno calculado con SQL sobre los datos limpios."
+findings: Hallazgos
+values: Los valores se muestran tal como están en el archivo; los encabezados y etiquetas nunca se traducen.

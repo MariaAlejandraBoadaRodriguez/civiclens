@@ -76,6 +76,24 @@ for (const lang of LANGS) {
       );
     });
 
+    test("landing → try any data → dashboard with findings, custom chart and report", async ({ page, request, browserConsole }) => {
+      await page.goto(`/${lang}`);
+      await page.getByTestId("try-any-data").click();
+      await withRetry(page, browserConsole, m.common.apiError.retry, async () => /\?ready=1$/.test(page.url()));
+      const id = new URL(page.url()).pathname.split("/").pop();
+      await page.goto(`/${lang}/datasets/${id}/dashboard`);
+      await expect(page.getByTestId("kpi-tile").first()).toBeVisible({ timeout: 60_000 });
+      const sections = page.getByTestId("overview-section");
+      expect(await sections.count()).toBeGreaterThanOrEqual(3);
+      await expect(page.getByTestId("finding").first()).not.toBeEmpty();
+      await page.getByRole("button", { name: m.dashboard.any.builder.draw }).click();
+      await expect(page.getByTestId("custom-chart").locator("figure")).toBeVisible();
+      const report = page.getByRole("link", { name: new RegExp(m.dashboard.actions.report) });
+      const res = await request.get((await report.getAttribute("href")) as string);
+      expect(res.status()).toBe(200);
+      expect(await res.text()).toContain(`<html lang="${lang}">`);
+    });
+
     test("cleaning studio → recipe preview → apply", async ({ page }) => {
       await page.goto(`/${lang}/datasets/contracts_ca/clean`);
       await expect(page.getByRole("heading", { level: 1, name: m.clean.title })).toBeVisible();

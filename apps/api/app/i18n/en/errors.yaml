@@ -146,3 +146,19 @@ domain:
   procurement_only:
     title: Available for procurement data only
     detail: This view needs the procurement star schema (contracts, suppliers, buyers). For this file use the SQL Lab, which works on any table.
+chart:
+  unknown_column:
+    title: Unknown column
+    detail: "Table data has no column called {column} (field {field})."
+  unknown_aggregation:
+    title: Unknown aggregation
+    detail: "Use count, sum, avg, median, min or max (got {aggregation})."
+  metric_not_numeric:
+    title: The metric must be a number
+    detail: "{column} is not numeric. Pick a numeric column, or count rows."
+  unknown_grain:
+    title: Unknown time grain
+    detail: "Use year, month or day (got {grain})."
+  bad_filter:
+    title: Invalid filter
+    detail: "The filter on {column} needs a value of the right type."

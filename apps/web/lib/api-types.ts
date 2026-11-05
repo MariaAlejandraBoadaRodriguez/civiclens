@@ -346,6 +346,40 @@ export type ForecastResult = {
   card: ModelCard;
 };
 
+export type OverviewSection = {
+  id: string;
+  chart: "bar" | "histogram" | "line" | "table";
+  unit: "count" | "amount" | "ratio" | "r";
+  title: string;
+  finding: string;
+  x_label: string;
+  y_label: string;
+  rows: { label: string; value: number | null }[];
+  sql: string;
+};
+
+export type Overview = {
+  dataset_id: string;
+  origin: StarOrigin;
+  domain: { pack: string; goal: string; name: string };
+  rows: number;
+  columns: number;
+  quality: { before: number | null; after: number | null };
+  kpis: Kpi[];
+  sections: OverviewSection[];
+  dimensions: { name: string; source: string; kind: ColumnKind }[];
+  metrics: { name: string; source: string }[];
+};
+
+export type ChartResult = {
+  sql: string;
+  chart: "bar" | "line" | "table";
+  rows: { label: string; value: number | null }[];
+  dimension: string;
+  aggregation: string;
+  metric: string | null;
+};
+
 export type GenericStatus =
   | "ok"
   | "no_target"

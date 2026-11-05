@@ -440,6 +440,88 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
 
+  /api/v1/datasets/{dataset_id}/overview:
+    get:
+      tags: [dashboard]
+      operationId: getOverview
+      summary: Dashboard for any table
+      description: |
+        The strong default dashboard for any dataset: KPI tiles (the domain pack's first, in its
+        layout order, then the table's own), quality before → after, and chart sections that
+        each come with a written finding in the UI language — distribution of the main
+        quantity, most common values, top segments, drivers (target rate by category, else the
+        strongest correlation), trend over time, unusual values (IQR) and what the prediction
+        model relies on (once trained). Each section returns its SQL. `dimensions` and
+        `metrics` list the columns the chart builder accepts.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-22, US-28]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+      responses:
+        "200":
+          description: Overview.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Overview"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/v1/datasets/{dataset_id}/chart:
+    post:
+      tags: [dashboard]
+      operationId: buildChart
+      summary: A chart the user configures
+      description: |
+        Groups table `data` by `dimension` (dates by `grain`) and aggregates `metric` (or counts
+        rows), with up to 5 filters. Column names are checked against the table and values are
+        escaped literals; the SQL runs through the read-only guard and is returned. At most 50
+        groups.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-22, US-28]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChartSpec"
+      responses:
+        "200":
+          description: The chart data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChartResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "408":
+          $ref: "#/components/responses/Timeout"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
   /api/v1/recipes:
     post:
       tags: [cleaning]
@@ -1105,9 +1187,9 @@ paths:
       tags: [reports]
       operationId: getReport
       summary: Executive report
-      description: "Self-contained HTML or A4 PDF report in the requested language. `lang` wins over `Accept-Language`.\n\nWith an API key, the key needs the `reports:read` scope."
+      description: "Self-contained HTML or A4 PDF report in the requested language. Procurement data gets the spend report; any other table the data report (summary, KPIs and the dashboard's written findings). `lang` wins over `Accept-Language`.\n\nWith an API key, the key needs the `reports:read` scope."
       security: [{}, ApiKey: []]
-      x-user-stories: [US-05]
+      x-user-stories: [US-05, US-28]
       parameters:
         - $ref: "#/components/parameters/DatasetId"
         - $ref: "#/components/parameters/AcceptLanguage"
@@ -2589,6 +2671,183 @@ components:
                   type: object
         card:
           $ref: "#/components/schemas/ModelCard"
+
+    OverviewSection:
+      type: object
+      required: [id, chart, unit, title, finding, rows, sql]
+      properties:
+        id:
+          type: string
+          enum: [distribution, counts, counts_2, segments, drivers, trend, outliers, model]
+        chart:
+          type: string
+          enum: [bar, histogram, line, table]
+        unit:
+          type: string
+          enum: [count, amount, ratio, r]
+          description: How the values read (rows, a quantity, a 0–1 rate, a correlation).
+        title:
+          type: string
+        finding:
+          type: string
+          description: The written finding under the chart, in the UI language.
+        x_label:
+          type: string
+        y_label:
+          type: string
+        rows:
+          type: array
+          items:
+            type: object
+            required: [label, value]
+            properties:
+              label:
+                type: string
+                description: Data value as written in the file (histogram bins are formatted ranges).
+              value:
+                type: [number, "null"]
+              from:
+                type: number
+              to:
+                type: number
+              share:
+                type: [number, "null"]
+              rows:
+                type: integer
+        sql:
+          type: string
+
+    Overview:
+      type: object
+      required: [dataset_id, origin, domain, rows, columns, quality, kpis, sections, dimensions, metrics]
+      properties:
+        dataset_id:
+          type: string
+          format: uuid
+        origin:
+          $ref: "#/components/schemas/StarOrigin"
+        domain:
+          type: object
+          required: [pack, goal, name]
+          properties:
+            pack:
+              type: string
+            goal:
+              type: string
+            name:
+              type: string
+        rows:
+          type: integer
+        columns:
+          type: integer
+        quality:
+          type: object
+          properties:
+            before:
+              type: [number, "null"]
+            after:
+              type: [number, "null"]
+        kpis:
+          type: array
+          items:
+            $ref: "#/components/schemas/Kpi"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/OverviewSection"
+        dimensions:
+          type: array
+          items:
+            type: object
+            required: [name, source, kind]
+            properties:
+              name:
+                type: string
+              source:
+                type: string
+              kind:
+                $ref: "#/components/schemas/ColumnKind"
+        metrics:
+          type: array
+          items:
+            type: object
+            required: [name, source]
+            properties:
+              name:
+                type: string
+              source:
+                type: string
+
+    ChartSpec:
+      type: object
+      additionalProperties: false
+      required: [dimension]
+      properties:
+        dimension:
+          type: string
+          minLength: 1
+          maxLength: 200
+        aggregation:
+          type: string
+          enum: [count, sum, avg, median, min, max]
+          default: count
+        metric:
+          type: [string, "null"]
+          maxLength: 200
+        grain:
+          type: [string, "null"]
+          enum: [year, month, day, null]
+        chart_type:
+          type: string
+          enum: [bar, line, table]
+          default: bar
+        filters:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            additionalProperties: false
+            required: [column]
+            properties:
+              column:
+                type: string
+                minLength: 1
+                maxLength: 200
+              op:
+                type: string
+                enum: [eq, ne, gte, lte, in]
+                default: eq
+              values:
+                type: array
+                maxItems: 50
+                items:
+                  type: [string, number]
+
+    ChartResult:
+      type: object
+      required: [sql, chart, rows, dimension, aggregation]
+      properties:
+        sql:
+          type: string
+        chart:
+          type: string
+          enum: [bar, line, table]
+        dimension:
+          type: string
+        aggregation:
+          type: string
+        metric:
+          type: [string, "null"]
+        rows:
+          type: array
+          items:
+            type: object
+            required: [label, value]
+            properties:
+              label:
+                type: string
+              value:
+                type: [number, "null"]
 
     RedFlagRule:
       type: string

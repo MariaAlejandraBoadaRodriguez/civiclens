@@ -1,0 +1,6 @@
+# Executive report for any table (generic core).
+title: Data report
+subtitle: "{dataset} · domain {domain} · {date}"
+summary: "The table has {rows} rows and {columns} columns. Below: the key figures and {sections} findings, each from SQL on the cleaned data."
+findings: Findings
+values: Values are shown exactly as in the file; headers and labels are never translated.

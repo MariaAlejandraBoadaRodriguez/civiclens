@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.api.headers import content_disposition
 from app.api.problems import ProblemError
 from app.api.security import current_principal
-from app.api.v1.sql import procurement_dataset
+from app.api.v1.sql import ready_dataset
 from app.core.observability import REPORT_CSP
 from app.db.session import get_session
 from app.i18n.loader import SUPPORTED
@@ -29,15 +29,16 @@ def get_report(
     lang: Annotated[Literal["en", "es"] | None, Query()] = None,
     format: Annotated[Literal["html", "pdf"], Query()] = "html",  # noqa: A002 — public param name
 ) -> Response:
-    """``lang`` wins over ``Accept-Language``. Open to anonymous callers; a key needs
-    ``reports:read``."""
+    """Procurement data gets the spend report; any other table the generic report (summary,
+    KPIs and the dashboard's written findings). ``lang`` wins over ``Accept-Language``. Open to
+    anonymous callers; a key needs ``reports:read``."""
     principal = current_principal(request)
     if principal.kind == "key" and "reports:read" not in principal.scopes:
         raise ProblemError(403, "auth.insufficient_scope", scope="reports:read")
     language = lang or request.state.t.lang
     if language not in SUPPORTED:
         language = "en"
-    ds = procurement_dataset(session, dataset_id)
+    ds = ready_dataset(session, dataset_id)
     slug = ds.slug or ds.id
     headers = {"Content-Language": language}
     if format == "pdf":

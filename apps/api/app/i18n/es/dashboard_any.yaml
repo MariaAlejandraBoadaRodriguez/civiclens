@@ -1,0 +1,26 @@
+# Tablero para cualquier tabla: títulos de las secciones y el hallazgo escrito bajo cada gráfico.
+rows: filas
+share: proporción
+rate: "tasa de {target}"
+together: juntas
+opposite: en direcciones opuestas
+sections:
+  distribution: "Cómo se distribuye {column}"
+  counts: "Valores más comunes de {column}"
+  segments: "{metric} por {column}"
+  drivers: "Tasa de {target} por {column}"
+  correlations: Qué cantidades se mueven juntas
+  trend: "{metric} en el tiempo ({date})"
+  outliers: Valores inusuales por columna
+  model: "Qué predice {target}"
+findings:
+  distribution: "El {share} de las filas tiene {column} entre {low} y {high}; la mediana es {median}."
+  counts: "{value} es el valor más común de {column}: {share} de las filas (se muestran los {n} primeros)."
+  segments: "{value} concentra el {share} de todo {metric}: el mayor valor de {column}."
+  drivers: "{column} = {value} tiene la mayor tasa de {target}: {rate} frente a {overall} en total."
+  correlation: "{a} y {b} se mueven {direction} con más fuerza (r = {r}). Correlación no es causalidad."
+  trend: "Mayor {grain}: {peak} ({value}). De {first} a {last}, {metric} cambió {change}."
+  outliers: "{column} tiene más valores inusuales: {n} filas ({share}) fuera del rango usual (1,5 × RIC)."
+  no_outliers: Ninguna columna tiene valores fuera del rango usual (1,5 × RIC).
+  model: "El modelo de predicción de {target} se apoya sobre todo en {column} ({share} de su importancia)."
+  model_leak: "Cuidado: {columns} podría conocerse solo después del resultado."

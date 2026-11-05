@@ -122,6 +122,15 @@
       "contracts_qc": {
         "name": "Québec · Public contracts",
         "body": "Contract notices in French, nested JSON, dates in mixed formats."
+      },
+      "anyData": {
+        "badge": "Any data",
+        "name": "Try any data: German credit",
+        "body": "1,000 bank loans with amounts, terms and a bad-credit flag. CivicLens suggests the Banking domain, generates its own SQL questions, trains a credit-risk model with a fairness check and builds the dashboard.",
+        "license": "South German Credit (UCI), CC BY 4.0.",
+        "button": "Try any data",
+        "loading": "Preparing the sample…",
+        "uploading": "Uploading the sample"
       }
     },
     "footer": {
@@ -838,6 +847,39 @@
       "step1": "1. Upload next month's file",
       "step2": "2. Apply the same cleaning recipe (a job)",
       "step3": "3. Get the KPIs, in CAD"
+    },
+    "any": {
+      "sql": "Show the SQL",
+      "qualityAfter": "Data quality went from {before} to {after} with your cleaning recipe.",
+      "qualityBefore": "Data quality score {before}. No cleaning recipe applied yet: the figures use the recommended cleaning options.",
+      "builder": {
+        "title": "Build your own chart",
+        "hint": "Pick what to measure, how to group it and an optional filter. The SQL runs on the table data, read-only.",
+        "aggregation": "Measure",
+        "metric": "Of column",
+        "dimension": "Grouped by",
+        "filterColumn": "Filter on",
+        "filterValue": "Equal to",
+        "noFilter": "No filter",
+        "chartType": "Chart",
+        "draw": "Draw the chart",
+        "running": "Drawing…",
+        "empty": "No rows match this filter.",
+        "aggregations": {
+          "count": "Number of rows",
+          "sum": "Sum",
+          "avg": "Average",
+          "median": "Median",
+          "min": "Minimum",
+          "max": "Maximum"
+        },
+        "types": {
+          "bar": "Bars",
+          "line": "Line",
+          "table": "Table"
+        }
+      },
+      "range": "{min} – {max}"
     }
   },
   "domain": {

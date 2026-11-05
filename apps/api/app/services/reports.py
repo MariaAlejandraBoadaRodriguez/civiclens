@@ -249,13 +249,34 @@ def report_context(ds: Dataset, lang: str) -> dict[str, Any]:
     }
 
 
+def any_context(ds: Dataset, lang: str) -> dict[str, Any]:
+    """Report context for a table that is not procurement data (generic core)."""
+    from app.core.reports import any_report
+    from app.services import overview
+
+    t = Translator(lang)
+    seed = SEEDS.get(ds.slug or "")
+    name = t(f"datasets.{ds.slug}.name") if seed else ds.name
+    source = (
+        t("reports.notes.source", publisher=name, license=seed.license)
+        if seed
+        else t("reports.notes.upload", name=ds.name)
+    )
+    return any_report.context(ds, overview.overview(ds, t), t, name, source)
+
+
 def render_html(ds: Dataset, lang: str) -> str:
+    if not sql.has_star(ds):
+        return _env.get_template("report_any.html.j2").render(**any_context(ds, lang))
     return _env.get_template("report.html.j2").render(**report_context(ds, lang))
 
 
 def render_pdf(ds: Dataset, lang: str) -> bytes:
-    from app.core.reports import pdf
+    from app.core.reports import any_report, pdf
 
-    body = pdf.render(report_context(ds, lang))
+    if not sql.has_star(ds):
+        body = any_report.render_pdf(any_context(ds, lang))
+    else:
+        body = pdf.render(report_context(ds, lang))
     memory.release()
     return body
