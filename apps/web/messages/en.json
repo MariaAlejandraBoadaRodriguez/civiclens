@@ -2,7 +2,6 @@
   "common": {
     "brand": "CivicLens",
     "skipToContent": "Skip to content",
-    "apiDocs": "API docs",
     "loading": "Loading…",
     "before": "Before",
     "after": "After",
@@ -44,7 +43,8 @@
       "title": "Page not found",
       "body": "The link may be wrong, or the dataset may have expired (uploads are kept 24 hours).",
       "home": "Back to the start"
-    }
+    },
+    "forDevelopers": "For developers · API"
   },
   "nav": {
     "lifecycle": "Lifecycle",
@@ -916,5 +916,85 @@
     "savedTitle": "Domain saved: {name}",
     "savedBody": "The SQL Lab now shows this domain's questions and KPIs for your file.",
     "openSql": "Open the SQL Lab"
+  },
+  "developers": {
+    "metaTitle": "For developers · CivicLens API",
+    "eyebrow": "REST API · OpenAPI 3.1",
+    "title": "Automate CivicLens with the API",
+    "subtitle": "Everything you do in the app — upload, clean, query, model, report — is one HTTP call away, for any table. Machine fields stay in English; human text follows Accept-Language (EN or ES).",
+    "explorer": "Open the API explorer",
+    "spec": "Download openapi.yaml",
+    "key": "Get an API key",
+    "steps": {
+      "title": "Get started in 3 steps",
+      "upload": {
+        "title": "Upload a file and wait for the job",
+        "body": "Send a CSV, XLSX or flat JSON file (up to 50 MB). The answer is 202 with a job; poll it until it succeeds. Progress comes with a phase and a percent."
+      },
+      "explore": {
+        "title": "Check the domain and ask questions in SQL",
+        "body": "See which domain pack CivicLens suggests and how it mapped the columns, then run the generated questions — or your own read-only SQL — on the table data."
+      },
+      "results": {
+        "title": "Train a model, read the findings, get the report",
+        "body": "Train a model for the target (with its baseline, leakage warnings and fairness check), read the dashboard's written findings and download the report as HTML or PDF."
+      }
+    },
+    "languageTabs": "Language of the example",
+    "codeLabel": "{lang} example",
+    "code": {
+      "upload": "Upload the file (the job processes it in the background)",
+      "poll": "Poll the job until status is succeeded",
+      "domain": "Suggested domain pack and column roles",
+      "guided": "Questions generated for this file",
+      "query": "Run read-only SQL on the table data",
+      "model": "Train the prediction model (default target: the domain's or the table's yes/no column)",
+      "overview": "Dashboard findings, one sentence per chart",
+      "report": "Executive report as PDF"
+    },
+    "conventions": {
+      "title": "Conventions",
+      "auth": {
+        "title": "API keys",
+        "body": "Send X-API-Key with each call. Keys are scoped (datasets:write, recipes:write, models:run, reports:read) and revocable from the admin console. The public demo also accepts anonymous calls."
+      },
+      "language": {
+        "title": "Languages",
+        "body": "Accept-Language: es or en. Ids, codes, numbers and SQL never change with the language; titles, explanations and findings do. Data values are never translated."
+      },
+      "errors": {
+        "title": "Errors",
+        "body": "Every error is an RFC 7807 problem with a stable code (e.g. dataset.not_found) and a localized title and detail."
+      },
+      "limits": {
+        "title": "Limits",
+        "body": "Uploads up to 50 MB, kept 24 hours. Heavy calls (uploads, recipes, models) are rate-limited per minute; a 429 says how long to wait in Retry-After."
+      }
+    },
+    "endpoints": {
+      "title": "Main endpoints",
+      "method": "Method",
+      "path": "Path",
+      "what": "What it does",
+      "more": "The API explorer lists every endpoint with its parameters, schemas and error codes.",
+      "items": {
+        "upload": "Upload a file; returns the dataset and its ingest job",
+        "job": "Job status, phase and percent",
+        "profile": "Column profile, types, quality score and personal data",
+        "issues": "Detected data issues with fix options",
+        "apply": "Apply a cleaning recipe (job)",
+        "download": "Cleaned data as CSV or Parquet",
+        "domain": "Read or confirm the domain pack, goal and column roles",
+        "guided": "Guided SQL questions for the file",
+        "query": "Run read-only SQL",
+        "kpis": "KPIs with definitions",
+        "models": "Train a model: target_model, anomalies, segments, forecast (red_flags for procurement)",
+        "overview": "Dashboard: KPIs, findings and chart data",
+        "chart": "A chart you configure (metric, aggregation, dimension, filters)",
+        "report": "Executive report, HTML or PDF",
+        "export": "Tables for Power BI / Tableau (zip)"
+      },
+      "caption": "Main endpoints of the CivicLens API (table)"
+    }
   }
 }

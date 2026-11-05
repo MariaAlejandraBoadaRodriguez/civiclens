@@ -15,6 +15,7 @@ const PAGES = [
   "/datasets/contracts_ca/dashboard?scope=all&period=12m",
   "/datasets/secop_co/dashboard",
   "/admin",
+  "/developers",
 ];
 function findClipping(): string[] {
   const out: string[] = [];

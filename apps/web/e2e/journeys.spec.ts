@@ -94,6 +94,18 @@ for (const lang of LANGS) {
       expect(await res.text()).toContain(`<html lang="${lang}">`);
     });
 
+    test("header → for developers · API → 3 steps with curl and Python, explorer link", async ({ page }) => {
+      await page.goto(`/${lang}`);
+      await page.getByRole("link", { name: m.common.forDevelopers }).click();
+      await expect(page).toHaveURL(new RegExp(`/${lang}/developers$`));
+      await expect(page.getByRole("heading", { level: 1, name: m.developers.title })).toBeVisible();
+      await expect(page.getByTestId("dev-step")).toHaveCount(3);
+      await page.getByTestId("dev-step").first().getByRole("tab", { name: "Python" }).click();
+      await expect(page.getByTestId("dev-step").first()).toContainText("requests.post");
+      const explorer = await page.getByRole("link", { name: m.developers.explorer }).getAttribute("href");
+      expect(explorer).toMatch(/\/docs$/);
+    });
+
     test("cleaning studio → recipe preview → apply", async ({ page }) => {
       await page.goto(`/${lang}/datasets/contracts_ca/clean`);
       await expect(page.getByRole("heading", { level: 1, name: m.clean.title })).toBeVisible();
