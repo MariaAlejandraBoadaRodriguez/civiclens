@@ -6,7 +6,7 @@
 //                      dashboard and the HTML report;
 //   every 3rd session → "check your own data": upload a small CSV, wait for the job, read the
 //                      domain and the dashboard overview, train the prediction model.
-// Uploads and model runs are "heavy" calls: the API allows 12 per minute per caller.
+// Uploads and model runs are "heavy" calls: the API allows 30 per minute per caller.
 //
 //   k6 run -e BASE=http://127.0.0.1:8000 load/k6-visitors.js                  # one shared IP
 //   k6 run -e BASE=... -e UNIQUE_IPS=1 load/k6-visitors.js  # 10 IPs (API with TRUSTED_PROXY_HOPS=1)
@@ -134,8 +134,9 @@ function ownData() {
   if (!check(res, { "upload accepted": (r) => r.status === 202 })) return;
   const { dataset, job } = res.json();
   let status = "queued";
-  for (let i = 0; i < 90 && !["succeeded", "failed"].includes(status); i++) {
-    sleep(1);
+  // Up to 4 minutes: on 0.1 CPU the job can queue behind other visitors' jobs for > 90 s.
+  for (let i = 0; i < 120 && !["succeeded", "failed"].includes(status); i++) {
+    sleep(2);
     const j = get(`/api/v1/jobs/${job.id}`, "job", "poll");
     if (j.status === 200) status = j.json().status;
   }
