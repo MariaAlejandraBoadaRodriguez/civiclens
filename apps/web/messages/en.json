@@ -322,7 +322,9 @@
       "uploading": "Uploading {name}…",
       "processing": "Reading and profiling {name}…",
       "tooLargeTitle": "File too large",
-      "tooLargeDetail": "The limit is {mb} MB per file."
+      "tooLargeDetail": "The limit is {mb} MB per file.",
+      "uploadingDetail": "Sending the file to the engine…",
+      "processingDetail": "Waiting for the engine…"
     },
     "source": {
       "title": "Source"
@@ -406,6 +408,11 @@
     "footer": {
       "summary": "<strong>{count, plural, one {# column needs} other {# columns need}} attention</strong> out of {total} — ready for the cleaning studio.",
       "continue": "Continue to cleaning →"
+    },
+    "ready": {
+      "title": "“{name}” is ready",
+      "body": "{rows} rows and {columns} columns read and profiled. Data quality score: {score}/100.",
+      "next": "Continue to cleaning →"
     }
   },
   "clean": {
@@ -474,7 +481,24 @@
       "rows": "Rows",
       "rowsValue": "{before} → {after}",
       "hash": "Output fingerprint (SHA-256) — the same recipe on the same file always gives this value",
-      "continue": "Continue to SQL lab →"
+      "continue": "Continue to SQL lab →",
+      "explainApply": "Save and apply: saves your decisions as a versioned recipe and runs it on every row. SQL, models and the dashboard then use the cleaned data.",
+      "explainContinue": "Continue: goes to the SQL lab without changing the data. Until you apply, the next steps use the recommended options.",
+      "doneTitle": "Recipe v{version} applied — your data is clean",
+      "doneBody": "Download the cleaned data or the recipe, or continue to the SQL lab.",
+      "downloadCsv": "Download cleaned data (CSV)",
+      "downloadParquet": "Download (Parquet)",
+      "downloadRecipe": {
+        "json": "Recipe (JSON)",
+        "pandas": "Recipe (pandas)",
+        "sql": "Recipe (SQL)"
+      },
+      "unsaved": {
+        "title": "{steps, plural, one {# cleaning step is} other {# cleaning steps are}} not applied yet",
+        "body": "If you continue now, the SQL lab, models and dashboard will use the recommended options instead of your decisions.",
+        "apply": "Apply and continue",
+        "skip": "Continue without applying"
+      }
     }
   },
   "sql": {

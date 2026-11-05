@@ -94,6 +94,10 @@ export type Job = {
   dataset_id: string | null;
   result: Record<string, unknown> | null;
   error: Problem | null;
+  /** What the job is doing now and how far the whole job is (0–100). */
+  phase?: string | null;
+  phase_label?: string | null;
+  progress?: number;
 };
 
 export type RecipeStep = { op: string; args: Record<string, unknown> };

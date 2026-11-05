@@ -1,0 +1,9 @@
+# Fases de los trabajos en segundo plano, que se muestran con la barra de progreso.
+phases:
+  reading: Leyendo el archivo
+  profiling: Perfilando las columnas
+  detecting_issues: Detectando problemas en los datos
+  building_model: Construyendo el modelo de análisis
+  applying_recipe: Aplicando tus decisiones de limpieza
+  training: Entrenando el modelo
+  done: Terminado

@@ -1,0 +1,9 @@
+# Background job phases shown with the progress bar.
+phases:
+  reading: Reading the file
+  profiling: Profiling the columns
+  detecting_issues: Detecting data issues
+  building_model: Building the analysis model
+  applying_recipe: Applying your cleaning decisions
+  training: Training the model
+  done: Finished

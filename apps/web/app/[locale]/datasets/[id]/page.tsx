@@ -11,6 +11,7 @@ import { DataTable } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ScoreBar, SCORE_THRESHOLD } from "@/components/ui/ScoreBar";
 import { SkeletonGroup } from "@/components/ui/Skeleton";
+import { StatusBanner } from "@/components/ui/StatusBanner";
 import { WakingUp } from "@/components/ui/WakingUp";
 import { apiGet } from "@/lib/api";
 import type { ColumnProfile, Profile } from "@/lib/api-types";
@@ -19,7 +20,7 @@ import { formatNumber, formatPercent } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: { locale: string; id: string } };
+type Params = { params: { locale: string; id: string }; searchParams?: { ready?: string } };
 type T = Awaited<ReturnType<typeof getTranslations<"ingest">>>;
 
 export async function generateMetadata({ params: { locale } }: Params) {
@@ -88,7 +89,7 @@ function Unavailable({ kind, t, id }: { kind: "unreachable" | "notReady" | "notF
   );
 }
 
-export default async function IngestPage({ params: { locale, id } }: Params) {
+export default async function IngestPage({ params: { locale, id }, searchParams }: Params) {
   setRequestLocale(locale);
   const t = await getTranslations("ingest");
   const result = await apiGet<Profile>(`/api/v1/datasets/${encodeURIComponent(id)}/profile`, locale);
@@ -136,6 +137,17 @@ export default async function IngestPage({ params: { locale, id } }: Params) {
           {t("datasetChip", { name: p.dataset.name })}
         </Badge>
       </div>
+      {searchParams?.ready === "1" && (
+        <StatusBanner
+          variant="success"
+          title={t("ready.title", { name: p.dataset.name })}
+          actions={
+            <ButtonLink href={`/datasets/${ref}/clean`}>{t("ready.next")}</ButtonLink>
+          }
+        >
+          {t("ready.body", { rows: formatNumber(locale, p.rows), columns: formatNumber(locale, p.columns_count), score: p.quality.score })}
+        </StatusBanner>
+      )}
       <DatasetPicker current={p.dataset.slug} />
 
       <div className="flex flex-wrap gap-5">

@@ -98,6 +98,7 @@ def run_model_job(job_id: uuid.UUID) -> None:
             return
         ds = session.get(Dataset, job.dataset_id)
         job.status, job.started_at = JobStatus.RUNNING, now()
+        job.phase, job.progress = "training", 15
         session.commit()
         payload = job.input_json or {}
         try:
@@ -108,6 +109,7 @@ def run_model_job(job_id: uuid.UUID) -> None:
                 "summary": summary(result),
             }
             job.status = JobStatus.SUCCEEDED
+            job.phase, job.progress = "done", 100
         except Exception:  # noqa: BLE001 — stable code; details in the server log
             log.exception("model job %s failed", job_id)
             job.status, job.error_code = JobStatus.FAILED, "model.failed"

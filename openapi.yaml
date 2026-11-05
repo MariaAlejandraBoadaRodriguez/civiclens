@@ -889,6 +889,53 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
 
+  /api/v1/datasets/{dataset_id}/download:
+    get:
+      tags: [cleaning]
+      operationId: downloadCleanedData
+      x-user-stories: [US-12, US-13]
+      summary: Download the cleaned data
+      description: |
+        The data with the cleaning decisions applied: the clean layer once a recipe was applied
+        (`X-CivicLens-Origin: clean`), otherwise the recommended options applied on the fly
+        (`recommended`). The recipe itself is downloaded from `/api/v1/recipes/{recipe_id}/export`.
+      security: [{}, ApiKey: []]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [csv, parquet]
+            default: csv
+      responses:
+        "200":
+          description: The file.
+          headers:
+            X-CivicLens-Origin:
+              description: "`clean` or `recommended`."
+              schema:
+                type: string
+                enum: [clean, recommended]
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/vnd.apache.parquet:
+              schema:
+                type: string
+                contentMediaType: application/vnd.apache.parquet
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
   /api/v1/datasets/{dataset_id}/export:
     get:
       tags: [sql]
@@ -2176,6 +2223,18 @@ components:
         result:
           type: [object, "null"]
           additionalProperties: true
+        phase:
+          type: [string, "null"]
+          description: What the job is doing now.
+          enum: [reading, profiling, detecting_issues, building_model, applying_recipe, training, done, null]
+        phase_label:
+          type: [string, "null"]
+          description: The phase in the requested language.
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: How far the whole job is, in percent.
         error:
           oneOf:
             - type: "null"

@@ -209,6 +209,9 @@ class Job(TimestampMixin, Base):
     result_json: Mapped[dict[str, Any] | None] = mapped_column(JsonDoc)
     # Stable machine code (e.g. "ingest.unsupported_encoding"); localized at read time.
     error_code: Mapped[str | None] = mapped_column(String(64))
+    # What the job is doing now (e.g. "profiling") and how far along it is, 0–100.
+    phase: Mapped[str | None] = mapped_column(String(32))
+    progress: Mapped[int | None] = mapped_column(Integer)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

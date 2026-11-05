@@ -53,15 +53,21 @@ export async function apiRequest<T>(path: string, options: Options): Promise<Api
   return { ok: false, error: { kind: "unavailable", status: res.status } };
 }
 
-/** Poll a job until it succeeds or fails; a failed job becomes a `problem`. */
+/** Poll a job until it succeeds or fails; a failed job becomes a `problem`. `onProgress`
+ * receives every poll (phase, localized label, percent) for the progress bar. */
 export async function waitForJob(
   jobId: string,
   locale: string,
-  { intervalMs = 1000, maxTries = 300 }: { intervalMs?: number; maxTries?: number } = {},
+  {
+    intervalMs = 1000,
+    maxTries = 300,
+    onProgress,
+  }: { intervalMs?: number; maxTries?: number; onProgress?: (job: Job) => void } = {},
 ): Promise<ApiResult<Job>> {
   for (let n = 0; n < maxTries; n += 1) {
     const res = await apiRequest<Job>(`/api/v1/jobs/${jobId}`, { locale });
     if (!res.ok) return res;
+    onProgress?.(res.data);
     if (res.data.status === "succeeded") return res;
     if (res.data.status === "failed") {
       return res.data.error
@@ -71,4 +77,43 @@ export async function waitForJob(
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
   return { ok: false, error: { kind: "unavailable" } };
+}
+
+/**
+ * Upload a form with the browser's upload progress (fetch cannot report it). Same result shape
+ * and failure rules as `apiRequest`; `onProgress` gets 0–100 while the bytes are sent.
+ */
+export function uploadWithProgress<T>(
+  path: string,
+  form: FormData,
+  locale: string,
+  onProgress: (percent: number) => void,
+): Promise<ApiResult<T>> {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${PUBLIC_API_URL}${path}`);
+    xhr.setRequestHeader("Accept-Language", locale);
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.min(100, Math.round((e.loaded / e.total) * 100)));
+    };
+    xhr.onerror = () => resolve({ ok: false, error: { kind: "unavailable" } });
+    xhr.onload = () => {
+      let body: unknown = null;
+      try {
+        body = JSON.parse(xhr.responseText);
+      } catch {
+        body = null;
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && body !== null) {
+        onProgress(100);
+        resolve({ ok: true, data: body as T });
+      } else if (xhr.status < 500 && body && typeof body === "object" && "code" in body) {
+        resolve({ ok: false, error: { kind: "problem", problem: body as Problem } });
+      } else {
+        resolve({ ok: false, error: { kind: "unavailable", status: xhr.status } });
+      }
+    };
+    xhr.send(form);
+  });
 }
