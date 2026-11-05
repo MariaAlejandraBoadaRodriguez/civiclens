@@ -106,6 +106,10 @@ for (const lang of LANGS) {
       const id = new URL(page.url()).pathname.split("/").pop();
       await page.goto(`/${lang}/datasets/${id}/dashboard`);
       await expect(page.getByTestId("kpi-tile").first()).toBeVisible({ timeout: 60_000 });
+      // A banking file: the heading follows its pack, never the procurement title or the CAD note.
+      const h1 = page.getByRole("heading", { level: 1 });
+      await expect(h1).toHaveText(m.dashboard.heading.banking.title);
+      await expect(page.getByTestId("dashboard-heading")).not.toContainText(m.dashboard.subtitle);
       const sections = page.getByTestId("overview-section");
       expect(await sections.count()).toBeGreaterThanOrEqual(3);
       await expect(page.getByTestId("finding").first()).not.toBeEmpty();

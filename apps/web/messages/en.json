@@ -805,6 +805,28 @@
     "metaTitle": "Dashboard · CivicLens",
     "title": "Public procurement · executive view",
     "subtitle": "All amounts in CAD, converted with the rate of each contract's signing month.",
+    "heading": {
+      "banking": {
+        "title": "Banking · credit portfolio view",
+        "subtitle": "{name}: key figures, findings and charts for credit risk, generated from the file's columns."
+      },
+      "marketing": {
+        "title": "Marketing · campaign view",
+        "subtitle": "{name}: key figures, findings and charts for campaigns and conversion, generated from the file's columns."
+      },
+      "environmental": {
+        "title": "Environment · monitoring view",
+        "subtitle": "{name}: key figures, findings and charts for the measurements, generated from the file's columns."
+      },
+      "generic": {
+        "title": "{name} · overview",
+        "subtitle": "Key figures, findings and charts generated from the file's columns."
+      },
+      "unknown": {
+        "title": "Dashboard",
+        "subtitle": "Key figures, findings and charts for a dataset."
+      }
+    },
     "kpisHeading": "Key figures",
     "currencyNote": "Hover or focus a figure for its definition. Changes compare with the previous period of the same length.",
     "notReady": "This dataset is still being prepared. The dashboard appears as soon as it is ready.",

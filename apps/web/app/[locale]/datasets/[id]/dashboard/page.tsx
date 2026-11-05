@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ApiBlock } from "@/components/dashboard/ApiBlock";
+import { DashboardHeading, headingFor } from "@/components/dashboard/DashboardHeading";
 import { DashboardFilters, type ScopeOption } from "@/components/dashboard/DashboardFilters";
 import { GenericDashboard } from "@/components/dashboard/GenericDashboard";
 import { JurisdictionBars } from "@/components/dashboard/JurisdictionBars";
@@ -53,16 +54,10 @@ export default async function DashboardPage({ params: { locale, id }, searchPara
     : "all";
 
   const dataset = await apiGet<Dataset>(`/api/v1/datasets/${encodeURIComponent(id)}`, locale);
-  const heading = (
-    <div className="flex min-w-0 flex-col gap-1.5">
-      <h1 className="m-0 text-[30px] font-semibold text-ink">{t("title")}</h1>
-      <p className="m-0 text-base text-muted">{t("subtitle")}</p>
-    </div>
-  );
   if (!dataset.ok) {
     return (
       <main id="main" className="mx-auto flex max-w-container flex-col gap-6 px-6 pb-12 pt-8">
-        {heading}
+        <DashboardHeading spec={headingFor({ procurement: false })} />
         <DatasetPicker current={id} path="/dashboard" />
         {dataset.kind === "unreachable" ? (
           <WakingUp />
@@ -99,6 +94,17 @@ export default async function DashboardPage({ params: { locale, id }, searchPara
     : null;
   const reportUrl = `${PUBLIC_API_URL}/api/v1/reports/${encodeURIComponent(ref)}?lang=${locale}`;
   const exportUrl = `${PUBLIC_API_URL}/api/v1/datasets/${encodeURIComponent(ref)}/export?format=parquet`;
+  // The heading follows the data: procurement only when that dashboard answered, else the
+  // dataset's domain pack (confirmed, or the suggestion that applies), else its own name.
+  const heading = (
+    <DashboardHeading
+      spec={headingFor({
+        procurement: main.ok || isSample(ref),
+        pack: overview?.ok ? overview.data.domain.pack : null,
+        name: dataset.data.name,
+      })}
+    />
+  );
   const current = main.ok ? main.data.by_jurisdiction.find((j) => j.dataset_id === dataset.data.id) : undefined;
 
   return (
