@@ -2,8 +2,10 @@
 
 > Working name; owner may rename. UI, code, docs, commits: **English only**. Input data may be **EN / FR / ES**.
 
+> **Update (v3, overrides this spec where they differ):** the lifecycle below runs on **any tabular dataset**, not only public procurement. Generic analysis is the core; procurement is the *Government* domain pack, alongside General and Banking (Marketing and Environmental next). See ROADMAP "Changes in v3", ADR-0008 and US-28/US-29 in `docs/requirements.md`. Module notes below that mention contracts, suppliers or CAD describe the Government pack.
+
 ## 0. Purpose
-Portfolio-grade web app + public API that runs the full data analytics lifecycle on public-sector data:
+Portfolio-grade web app + public API that runs the full data analytics lifecycle on any tabular data — public-sector data first:
 **Ingest → Profile → Clean (guided, educational) → Model (SQL) → Analyze → Predict (ML) → Report/Dashboard → API**.
 Audience: (a) hiring managers for Data Analyst / Analytics Engineer roles, (b) public servants who need to understand their own data and make decisions, (c) government agencies consuming it via API.
 
@@ -86,6 +88,13 @@ Each model page: business question, features used, train/test split, metrics, ex
 3. **Contract category classification** from multilingual descriptions — TF-IDF (char n-grams) + Logistic Regression; per-language metrics.
 4. **Supplier segmentation** — KMeans on spend/frequency/diversity features; cluster profiles in plain English.
 - Models retrainable on the user's cleaned data; saved with version + metrics.
+
+### M9 — Generic core and domain packs (v3)
+- Every dataset: typed table `data` (safe names, kinds, examples); generated SQL questions (counts, rates, summaries, distributions, segments, trends, outliers, correlations); generic KPIs.
+- Domain packs (YAML + EN/ES texts): semantic roles matched to columns with a confidence, goals, curated questions, KPIs, ML objectives, dashboard layout. The user confirms or edits pack, goal and roles; unmapped roles fall back to the generic analysis.
+- ML for any table: target model (task from the target's kind, baseline, metrics, permutation importance, leakage warnings, fairness check across sensitive groups — never inputs), anomalies, segments with plain-language profiles, forecast when date + quantity exist; sampled with a fixed seed above 20,000 rows, and the card says so.
+- Dashboard for any table: KPI tiles, quality before → after, sections with a written finding each, a chart builder; the report (HTML + PDF) and BI export work for any table.
+- Acceptance: every fixture in `data/fixtures` gives meaningful, non-empty output at every stage, never a 500, inside 512 MB.
 
 ### M7 — Public API
 - FastAPI, versioned `/api/v1`, OpenAPI docs, API keys (hashed), rate limiting, async jobs for heavy work.

@@ -3,8 +3,6 @@ import { Link } from "@/i18n/routing";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { LifecycleNav } from "./LifecycleNav";
 
-const API_DOCS_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/docs`;
-
 export function Header() {
   const t = useTranslations("common");
   return (
@@ -30,12 +28,12 @@ export function Header() {
         <LifecycleNav />
         <div className="flex flex-wrap items-center gap-3">
           <LanguageSwitcher />
-          <a
-            href={API_DOCS_URL}
+          <Link
+            href="/developers"
             className="inline-flex min-h-touch items-center rounded-nav border border-ink-line px-3 text-sm text-ink-text no-underline hover:border-ink-text hover:text-white"
           >
-            {t("apiDocs")}
-          </a>
+            {t("forDevelopers")}
+          </Link>
         </div>
       </div>
     </header>

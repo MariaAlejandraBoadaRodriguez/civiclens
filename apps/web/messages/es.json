@@ -2,7 +2,6 @@
   "common": {
     "brand": "CivicLens",
     "skipToContent": "Ir al contenido",
-    "apiDocs": "Documentación de la API",
     "loading": "Cargando…",
     "before": "Antes",
     "after": "Después",
@@ -44,7 +43,8 @@
       "title": "No encontramos esta página",
       "body": "El enlace puede estar mal, o el conjunto de datos puede haber expirado (las cargas se guardan 24 horas).",
       "home": "Volver al inicio"
-    }
+    },
+    "forDevelopers": "Para desarrolladores · API"
   },
   "nav": {
     "lifecycle": "Ciclo de vida",
@@ -916,5 +916,85 @@
     "savedTitle": "Dominio guardado: {name}",
     "savedBody": "El SQL Lab ahora muestra las preguntas y los KPI de este dominio para tu archivo.",
     "openSql": "Abrir el SQL Lab"
+  },
+  "developers": {
+    "metaTitle": "Para desarrolladores · API de CivicLens",
+    "eyebrow": "API REST · OpenAPI 3.1",
+    "title": "Automatiza CivicLens con la API",
+    "subtitle": "Todo lo que haces en la aplicación —subir, limpiar, consultar, modelar, reportar— está a una llamada HTTP, para cualquier tabla. Los campos de máquina siguen en inglés; el texto para personas sigue Accept-Language (EN o ES).",
+    "explorer": "Abrir el explorador de la API",
+    "spec": "Descargar openapi.yaml",
+    "key": "Obtener una clave de API",
+    "steps": {
+      "title": "Empieza en 3 pasos",
+      "upload": {
+        "title": "Sube un archivo y espera el trabajo",
+        "body": "Envía un CSV, XLSX o JSON plano (hasta 50 MB). La respuesta es 202 con un trabajo; consúltalo hasta que termine. El avance llega con una fase y un porcentaje."
+      },
+      "explore": {
+        "title": "Revisa el dominio y pregunta en SQL",
+        "body": "Mira qué paquete de dominio sugiere CivicLens y cómo asignó las columnas; luego ejecuta las preguntas generadas —o tu propio SQL de solo lectura— sobre la tabla data."
+      },
+      "results": {
+        "title": "Entrena un modelo, lee los hallazgos y obtén el reporte",
+        "body": "Entrena un modelo para el objetivo (con su línea base, alertas de fuga de información y revisión de equidad), lee los hallazgos escritos del tablero y descarga el reporte en HTML o PDF."
+      }
+    },
+    "languageTabs": "Lenguaje del ejemplo",
+    "codeLabel": "Ejemplo en {lang}",
+    "code": {
+      "upload": "Sube el archivo (el trabajo lo procesa en segundo plano)",
+      "poll": "Consulta el trabajo hasta que su estado sea succeeded",
+      "domain": "Paquete de dominio sugerido y roles de las columnas",
+      "guided": "Preguntas generadas para este archivo",
+      "query": "Ejecuta SQL de solo lectura sobre la tabla data",
+      "model": "Entrena el modelo de predicción (objetivo por defecto: el del dominio o la columna sí/no de la tabla)",
+      "overview": "Hallazgos del tablero, una frase por gráfico",
+      "report": "Reporte ejecutivo en PDF"
+    },
+    "conventions": {
+      "title": "Convenciones",
+      "auth": {
+        "title": "Claves de API",
+        "body": "Envía X-API-Key en cada llamada. Las claves tienen alcances (datasets:write, recipes:write, models:run, reports:read) y se revocan desde la consola de administración. La demostración pública también acepta llamadas anónimas."
+      },
+      "language": {
+        "title": "Idiomas",
+        "body": "Accept-Language: es o en. Los identificadores, códigos, números y el SQL no cambian con el idioma; los títulos, explicaciones y hallazgos sí. Los valores de los datos nunca se traducen."
+      },
+      "errors": {
+        "title": "Errores",
+        "body": "Cada error es un problema RFC 7807 con un código estable (p. ej. dataset.not_found) y un título y detalle traducidos."
+      },
+      "limits": {
+        "title": "Límites",
+        "body": "Archivos de hasta 50 MB, guardados 24 horas. Las llamadas pesadas (subidas, recetas, modelos) tienen un límite por minuto; un 429 indica cuánto esperar en Retry-After."
+      }
+    },
+    "endpoints": {
+      "title": "Endpoints principales",
+      "method": "Método",
+      "path": "Ruta",
+      "what": "Qué hace",
+      "more": "El explorador de la API lista cada endpoint con sus parámetros, esquemas y códigos de error.",
+      "items": {
+        "upload": "Sube un archivo; devuelve el conjunto de datos y su trabajo de ingesta",
+        "job": "Estado, fase y porcentaje del trabajo",
+        "profile": "Perfil de columnas, tipos, puntaje de calidad y datos personales",
+        "issues": "Problemas detectados con opciones de corrección",
+        "apply": "Aplica una receta de limpieza (trabajo)",
+        "download": "Datos limpios en CSV o Parquet",
+        "domain": "Lee o confirma el paquete de dominio, el objetivo y los roles de las columnas",
+        "guided": "Preguntas SQL guiadas para el archivo",
+        "query": "Ejecuta SQL de solo lectura",
+        "kpis": "KPI con sus definiciones",
+        "models": "Entrena un modelo: target_model, anomalies, segments, forecast (red_flags para contratación)",
+        "overview": "Tablero: KPI, hallazgos y datos de los gráficos",
+        "chart": "Un gráfico que configuras (métrica, agregación, dimensión, filtros)",
+        "report": "Reporte ejecutivo, HTML o PDF",
+        "export": "Tablas para Power BI / Tableau (zip)"
+      },
+      "caption": "Endpoints principales de la API de CivicLens (tabla)"
+    }
   }
 }

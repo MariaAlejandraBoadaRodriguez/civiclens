@@ -4,6 +4,13 @@
 > **Companion doc:** `CIVICLENS_SPEC.md` (functional detail). This file = **how and in what order** we build it, and it **overrides the spec** where they differ.
 > **Approved mockups (source of truth for UI):** https://claude.ai/artifact/1FACLDLoSx3hTmETMXnVr9 — 6 screens, described in §3 Phase 2.
 
+### Changes in v3 (owner requirement, 2026-11): generic analysis is the core
+1. **Any tabular file** (CSV, XLSX, flat JSON up to 50 MB, one table per upload) runs the whole pipeline: Ingest → Clean → SQL → ML → Dashboard → Report → API. Procurement is no longer the product's only shape: it is **one domain pack** (Government), layered on top when detected and switchable. This overrides every procurement-only statement below and in the spec.
+2. **Generic core** (ADR-0008): a typed table `data` for every dataset; SQL questions generated from the column profile; generic KPIs; target model with baseline, leakage warnings and a fairness check; anomalies; segments; forecast on any date + quantity; a dashboard whose sections each carry a written EN/ES finding; a chart builder; the report for any table.
+3. **Domain packs** are declarative YAML (roles, goals, KPIs, questions, ML objectives, layout) plus EN/ES texts — new packs need no engine change. Shipped: General, Government, Banking; next: Marketing, Environmental. The user confirms or edits the suggested pack, goal and column roles (with confidences); unmapped roles fall back to the generic analysis, never empty, never 500. Sensitive attributes are never model inputs and get a fairness check.
+4. **Acceptance fixtures** in `data/fixtures` (licenses documented): bank marketing, German credit, air quality, election results, a government budget, company sales with dates, a mostly-text company list. CI runs every stage on each of them inside the 512 MB image (`flow_check.py --fixtures`).
+5. Delivered as stacked PRs: feedback + clean download → generic SQL Lab + packs → generic ML → generic dashboard/report + "Try any data" → developer docs → Marketing + Environmental packs.
+
 ### Changes in v2
 1. **Bilingual UI: English + Spanish** (overrides spec §0 "English only"). Repo, code, commits and technical docs stay in English.
 2. Phase 2 (wireframes) is **done**: mockups approved and documented below.
