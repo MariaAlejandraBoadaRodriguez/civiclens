@@ -1,0 +1,63 @@
+# Public feedback from the pre-launch (citizen oversight audience). Bilingual labels: the form is
+# opened from the app's "Give feedback / Danos tu opinión" button, which pre-fills `page` and
+# `language`. Feedback lives in GitHub issues only: the app stores nothing.
+name: "Feedback · Danos tu opinión"
+description: "Tell us what you tried and what you'd need · Cuéntanos qué probaste y qué necesitarías"
+title: "[Feedback] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Thank you for trying CivicLens.** This form creates a public GitHub issue: please do not include personal data, passwords or confidential documents.
+
+        **Gracias por probar CivicLens.** Este formulario crea un issue público en GitHub: por favor no incluyas datos personales, contraseñas ni documentos confidenciales.
+  - type: dropdown
+    id: who
+    attributes:
+      label: "Who are you? · ¿Quién eres?"
+      options:
+        - "Citizen / oversight committee · Ciudadano/a / veeduría"
+        - "Journalist · Periodista"
+        - "Public servant · Servidor/a público/a"
+        - "Researcher / student · Investigador/a / estudiante"
+        - "Developer · Desarrollador/a"
+        - "Other · Otro"
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: "What did you try? · ¿Qué intentaste hacer?"
+      description: "Which data, which screen, what you expected · Qué datos, qué pantalla, qué esperabas"
+    validations:
+      required: true
+  - type: textarea
+    id: confusing
+    attributes:
+      label: "What was confusing or didn't work? · ¿Qué fue confuso o no funcionó?"
+    validations:
+      required: false
+  - type: textarea
+    id: need
+    attributes:
+      label: "What would you need? · ¿Qué necesitarías?"
+      description: "A feature, a dataset, an explanation… · Una función, un conjunto de datos, una explicación…"
+    validations:
+      required: false
+  - type: input
+    id: page
+    attributes:
+      label: "Page · Página"
+      description: "Filled in by the app · Lo completa la aplicación"
+    validations:
+      required: false
+  - type: dropdown
+    id: language
+    attributes:
+      label: "Language you used · Idioma que usaste"
+      options:
+        - "es"
+        - "en"
+    validations:
+      required: false

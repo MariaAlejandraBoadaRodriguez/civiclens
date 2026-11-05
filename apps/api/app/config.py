@@ -45,9 +45,13 @@ class Settings(BaseSettings):
     admin_api_token: str | None = None
     # Requests per minute: per IP for anonymous callers, per key for agencies; "heavy" = routes
     # that start background work (upload, apply recipe, run model).
-    rate_limit_anonymous: int = 300
+    # Per caller IP (TRUSTED_PROXY_HOPS=1 behind Render's proxy), sized for a shared network: a
+    # workshop or office of 10 visitors behind one IP makes ~530 requests and up to ~10 heavy
+    # calls a minute (docs/capacity.md, k6 load/k6-visitors.js). Heavy jobs run one at a time,
+    # so a higher heavy ceiling queues work; it does not add memory.
+    rate_limit_anonymous: int = 1200
     rate_limit_key: int = 1200
-    rate_limit_heavy_anonymous: int = 12
+    rate_limit_heavy_anonymous: int = 30
     rate_limit_heavy_key: int = 60
     # Proxies in front of the API that append to X-Forwarded-For (Render: 1). The client is the
     # entry that many hops from the right; entries further left are caller-controlled.

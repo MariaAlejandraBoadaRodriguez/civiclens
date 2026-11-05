@@ -1,0 +1,37 @@
+name: Keep the API warm
+
+# Render's free instance sleeps after 15 idle minutes and takes 30–60 s to wake up. During the
+# public pre-launch, ping /health every 10 minutes from 07:00 to 23:00 America/Bogota (UTC−5, no
+# daylight saving) so visitors rarely meet a sleeping engine. GitHub may delay scheduled runs by
+# a few minutes under load; the landing page still shows a friendly "starting the engine" state.
+# Budget: ~16 h/day awake ≈ 500 instance-hours a month, inside Render's free 750.
+on:
+  schedule:
+    - cron: "*/10 12-23 * * *" # 07:00–18:50 Bogota
+    - cron: "*/10 0-3 * * *" # 19:00–22:50 Bogota
+    - cron: "0 4 * * *" # 23:00 Bogota
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      API_URL: ${{ vars.PRODUCTION_API_URL || 'https://civiclens-api.onrender.com' }}
+    steps:
+      - name: Ping /health (waits for a cold start)
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$API_URL/health" || true)
+            echo "attempt $attempt: HTTP $code"
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 10
+          done
+          echo "::warning::$API_URL/health did not answer 200; the post-deploy smoke test watches real outages."

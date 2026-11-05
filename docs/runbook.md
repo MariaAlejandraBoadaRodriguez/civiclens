@@ -89,7 +89,7 @@ migration step today. With a persistent database (Neon, Phase 9 option):
 
 `load/k6-kpis.js` (20 virtual users on `/kpis` + `/query`, warm) runs in CI against the API image
 in 512 MB; target p95 < 1.5 s, < 1 % errors. Locally: `k6 run -e BASE=http://127.0.0.1:8000 load/k6-kpis.js`
-with `RATE_LIMIT_ANONYMOUS=1000000` (the default 300/min per IP would answer 429).
+with `RATE_LIMIT_ANONYMOUS=1000000` (the default 1200/min per IP would answer 429).
 
 ## 7. Incident checklist
 

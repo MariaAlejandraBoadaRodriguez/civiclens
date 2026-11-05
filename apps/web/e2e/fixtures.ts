@@ -35,7 +35,7 @@ export const test = base.extend<{ browserConsole: Console }>({
 export { expect };
 
 /**
- * Wait for `done`, pressing the visible Retry button when the API rate limit (12 heavy calls
+ * Wait for `done`, pressing the visible Retry button when the API rate limit (30 heavy calls
  * per minute for anonymous callers, as in production) answers 429 — what a user would do.
  * The 429 the browser logs is declared, so only that console error is tolerated.
  */

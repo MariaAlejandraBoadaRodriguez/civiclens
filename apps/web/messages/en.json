@@ -44,7 +44,18 @@
       "body": "The link may be wrong, or the dataset may have expired (uploads are kept 24 hours).",
       "home": "Back to the start"
     },
-    "forDevelopers": "For developers · API"
+    "forDevelopers": "For developers · API",
+    "feedback": {
+      "button": "Give feedback",
+      "newTab": "(opens a GitHub form in a new tab)"
+    },
+    "responsible": {
+      "title": "Use these results responsibly",
+      "leads": "Flags are leads for review, not accusations: each pattern has legitimate explanations.",
+      "verify": "Verify with the original source (SECOP II, CanadaBuys, SEAO…) before publishing or reporting anything.",
+      "asPublished": "Data is shown exactly as published by the government, errors included; your cleaning steps are listed in the recipe.",
+      "link": "Read the responsible-use guide"
+    }
   },
   "nav": {
     "lifecycle": "Lifecycle",
@@ -56,9 +67,9 @@
     "dashboard": "Dashboard"
   },
   "landing": {
-    "eyebrow": "Public-sector data engine · EN / FR / ES data",
-    "title": "From messy public files to decisions you can defend.",
-    "subtitle": "Upload contracts, budgets or program data in any of three languages. CivicLens profiles it, teaches you how to clean it, models it in SQL, flags what deserves a second look, and builds the executive report — the same steps, repeatable through an API.",
+    "eyebrow": "Open tool for citizen oversight · public data in EN / FR / ES",
+    "title": "Follow public money with evidence you can verify.",
+    "subtitle": "Load public contracts, budgets or any table the government publishes. CivicLens checks the data quality, shows you how to clean it, answers questions in SQL, points out contracts that deserve a second look, and writes a report you can share — every step explained and repeatable.",
     "trySample": "Try with sample data",
     "upload": "Upload my own file",
     "outputs": {
@@ -138,6 +149,32 @@
       "github": "GitHub",
       "licenses": "Dataset licenses",
       "design": "Design system"
+    },
+    "useCases": {
+      "title": "What you can do with it",
+      "secondLook": {
+        "title": "Find contracts that deserve a second look",
+        "body": "Single bidders, amounts just under a threshold, new suppliers winning large contracts, end-of-year spikes: ranked for review, each with the reason.",
+        "cta": "See red flags in Colombian contracts →"
+      },
+      "compare": {
+        "title": "Compare spending between entities",
+        "body": "Totals, concentration and monthly trends side by side for Colombia, Canada and Québec, in one currency, with the same KPI definitions.",
+        "cta": "Compare jurisdictions →"
+      },
+      "checkOwn": {
+        "title": "Check your own data before publishing",
+        "body": "Upload your spreadsheet: CivicLens scores its quality, warns about personal data, lists the problems and gives you a cleaning recipe others can repeat.",
+        "cta": "Upload a file →"
+      },
+      "note": "Red flags are leads for review, not accusations. Always verify with the original source before publishing."
+    },
+    "engine": {
+      "startingTitle": "Starting the engine…",
+      "startingBody": "The analysis engine runs on free hosting and sleeps when nobody uses it. It is waking up — this takes 30 to 60 seconds, once. You can keep reading.",
+      "ready": "Engine ready",
+      "failed": "The engine did not wake up. It may be restarting; try again in a minute.",
+      "retry": "Try again"
     }
   },
   "design": {

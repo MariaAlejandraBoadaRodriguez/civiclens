@@ -37,3 +37,9 @@ notes:
   source: "Fuente: {publisher} — {license}."
   upload: "Fuente: un archivo subido a CivicLens ({name}). Los archivos subidos se eliminan después de 24 horas."
 footer: "Generado por CivicLens · {date} · Idioma del reporte: español"
+responsible:
+  heading: Usa este reporte con responsabilidad
+  leads: "Las alertas son pistas para revisar, no acusaciones: cada patrón tiene explicaciones legítimas."
+  verify: "Verifica con la fuente original (SECOP II, CanadaBuys, SEAO…) antes de publicar o denunciar algo."
+  as_published: "Los datos se muestran tal como los publicó el gobierno, con sus errores; los pasos de limpieza aplicados quedan en la receta."
+  guide: Guía de uso responsable

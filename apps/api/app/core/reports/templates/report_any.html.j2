@@ -27,6 +27,7 @@
   .bar .track { background: var(--ground); border-radius: 6px; height: 10px; }
   .bar .fill { background: var(--primary); border-radius: 6px; height: 10px; }
   .bar .value { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .warning { background: var(--flag-tint); color: var(--flag-text); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
   footer { margin-top: 32px; font-size: 12px; color: var(--muted); }
   @media print { body { background: #fff; } main { padding: 0; } }
 </style>
@@ -42,6 +43,16 @@
     <div class="card">
       <p style="margin:0">{{ summary }}</p>
       <p style="margin:8px 0 0">{{ quality }}</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="responsible">
+    <h2 id="responsible">{{ responsible.heading }}</h2>
+    <div class="warning">
+      <ul style="margin:0;padding-left:18px">
+        {% for item in responsible["items"] %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+      <p style="margin:6px 0 0"><a href="{{ responsible.url }}" style="color:inherit">{{ responsible.guide }}</a>: {{ responsible.url }}</p>
     </div>
   </section>
   <section aria-labelledby="kpis">

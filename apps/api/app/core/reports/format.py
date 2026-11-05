@@ -42,3 +42,21 @@ def month(iso_month: str, lang: str, short: bool = False) -> str:
     year, m = iso_month[:4], int(iso_month[5:7])
     name = MONTHS.get(lang, MONTHS["en"]).split()[m - 1]
     return f"{name[:3]} {year}" if short else f"{name} {year}"
+
+
+GUIDE = "https://github.com/MariaAlejandraBoadaRodriguez/civiclens/blob/main/docs/{name}"
+
+
+def responsible(t) -> dict:
+    """The responsible-use notice every report carries (same text as the app's)."""
+    name = "responsible-use.es.md" if t.lang == "es" else "responsible-use.md"
+    return {
+        "heading": t("reports.responsible.heading"),
+        "items": [
+            t("reports.responsible.leads"),
+            t("reports.responsible.verify"),
+            t("reports.responsible.as_published"),
+        ],
+        "guide": t("reports.responsible.guide"),
+        "url": GUIDE.format(name=name),
+    }

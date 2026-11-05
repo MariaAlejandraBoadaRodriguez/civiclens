@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { TryAnyData } from "@/components/ingest/TryAnyData";
+import { EngineStatus } from "@/components/layout/EngineStatus";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Link } from "@/i18n/routing";
@@ -16,6 +17,13 @@ const STEPS = [
 ] as const;
 
 const OUTPUTS = ["quality", "recipe", "star", "flags", "report"] as const;
+
+/** Citizen-oversight use cases (veeduría ciudadana): each opens the screen that answers it. */
+const USE_CASES = [
+  { key: "secondLook", href: "/datasets/secop_co/ml" },
+  { key: "compare", href: "/datasets/contracts_ca/dashboard?scope=all" },
+  { key: "checkOwn", href: "/datasets/secop_co#source" },
+] as const;
 
 // Data language and file format are machine values: shown as codes in both UI languages.
 const ANY_FORMAT = "CSV";
@@ -43,6 +51,7 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
                 {t("upload")}
               </ButtonLink>
             </div>
+            <EngineStatus />
           </div>
           <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-3.5 rounded-card border border-line bg-surface p-6">
             <h2 className="m-0 text-[13px] font-medium text-muted">{t("outputs.title")}</h2>
@@ -55,6 +64,27 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
               ))}
             </dl>
           </div>
+        </section>
+
+        <section aria-labelledby="use-cases" className="flex flex-col gap-5">
+          <h2 id="use-cases" className="m-0 text-2xl font-semibold text-ink">
+            {t("useCases.title")}
+          </h2>
+          <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
+            {USE_CASES.map((u) => (
+              <li key={u.key} className="flex" data-testid="use-case">
+                <Link
+                  href={u.href}
+                  className="flex w-full flex-col gap-2 rounded-card border border-line bg-surface p-5 text-text no-underline hover:border-primary hover:text-text"
+                >
+                  <span className="text-[17px] font-semibold text-ink">{t(`useCases.${u.key}.title`)}</span>
+                  <span className="text-sm leading-normal text-muted">{t(`useCases.${u.key}.body`)}</span>
+                  <span className="mt-auto text-[15px] font-medium text-primary">{t(`useCases.${u.key}.cta`)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="m-0 text-sm text-muted">{t("useCases.note")}</p>
         </section>
 
         <section aria-labelledby="flow" className="flex flex-col gap-5">
