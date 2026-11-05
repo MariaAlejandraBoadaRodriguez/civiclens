@@ -81,8 +81,10 @@ def test_procurement_only_views_answer_409_not_500(name: str) -> None:
         assert r.status_code == 409, (path, r.text)
         assert r.json()["code"] == "domain.procurement_only"
         assert "SQL Lab" in r.json()["detail"]
-    r = client.post("/api/v1/models/forecast/run", json={"dataset_id": ds})
+    r = client.post("/api/v1/models/red_flags/run", json={"dataset_id": ds})
     assert r.status_code == 409
+    # The forecast is generic since PR 3: it runs on any table (or explains why it cannot).
+    assert client.post("/api/v1/models/forecast/run", json={"dataset_id": ds}).status_code == 202
 
 
 def test_bi_export_has_the_data_table_for_any_dataset() -> None:

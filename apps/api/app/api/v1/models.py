@@ -1,4 +1,5 @@
-"""/api/v1/models — red flags and spend forecast (slice 5d). Runs are asynchronous jobs; the
+"""/api/v1/models — red flags and spend forecast for procurement data (slice 5d); target model,
+anomalies, segments and forecast for any dataset (generic core). Runs are asynchronous jobs; the
 latest result per dataset and model is stored and returned with a localized model card."""
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_translator
 from app.api.problems import ProblemError
 from app.api.security import Principal, require_scope
-from app.api.v1.sql import procurement_dataset
+from app.api.v1.sql import procurement_dataset, ready_dataset
 from app.core import jobs
 from app.db.models import Job, JobStatus, JobType
 from app.db.session import get_session
@@ -30,6 +31,12 @@ class RunParams(BaseModel):
 
     model_config = ConfigDict(extra="allow")
     entity_id: StrictStr | None = None
+    target: StrictStr | None = Field(
+        default=None, max_length=200, description="target_model: column of table `data`"
+    )
+    positive: StrictStr | None = Field(
+        default=None, max_length=200, description="target_model: the value that means yes"
+    )
 
 
 class RunRequest(BaseModel):
@@ -41,6 +48,19 @@ class ReviewRequest(BaseModel):
     dataset_id: str
     contract_id: str = Field(min_length=1, max_length=200)
     reviewed: StrictBool = True
+
+
+def _dataset(session: Session, ref: str, model: str):
+    """Red flags need the procurement star schema; every other model runs on any dataset."""
+    if model in svc.PROCUREMENT_ONLY:
+        return procurement_dataset(session, ref)
+    return ready_dataset(session, ref)
+
+
+def _headers(ds) -> dict[str, str]:
+    from app.services import analysis
+
+    return {c.name: c.source for c in analysis.columns(ds)}
 
 
 def _model(model_type: str) -> str:
@@ -59,8 +79,16 @@ def run_model(
     caller: Annotated[Principal, Depends(require_scope("models:run"))],
 ) -> JSONResponse:
     model = _model(model_type)
-    ds = procurement_dataset(session, body.dataset_id)
-    params = {"entity_id": body.params.entity_id} if body.params.entity_id else {}
+    ds = _dataset(session, body.dataset_id, model)
+    params: dict[str, Any] = {}
+    if body.params.entity_id:
+        params["entity_id"] = body.params.entity_id
+    if model == "target_model" and body.params.target:
+        if body.params.target not in _headers(ds):
+            raise ProblemError(422, "model.unknown_target", target=body.params.target)
+        params["target"] = body.params.target
+        if body.params.positive is not None:
+            params["positive"] = body.params.positive
     job = Job(
         type=JobType.MODEL_RUN,
         status=JobStatus.QUEUED,
@@ -82,11 +110,11 @@ def run_model(
 def latest(model_type: str, dataset_id: str, session: SessionDep, t: TDep) -> dict[str, Any]:
     """Latest stored result with its model card in the UI language."""
     model = _model(model_type)
-    ds = procurement_dataset(session, dataset_id)
+    ds = _dataset(session, dataset_id, model)
     result = svc.load_result(ds, model)
     if result is None or "model_type" not in result:
         raise ProblemError(404, "model.not_run", model_type=model)
-    return svc.localize(result, t)
+    return svc.localize(result, t, _headers(ds))
 
 
 @router.post("/red_flags/reviews", dependencies=[Depends(require_scope("models:run"))])

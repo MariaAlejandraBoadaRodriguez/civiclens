@@ -56,4 +56,94 @@ forecast:
 classifier:
   name: Category classifier
 segments:
-  name: Supplier segments
+  name: Segments
+  question: Which groups of similar rows does the table contain, and what sets each apart?
+  method: k-means on the quantities and main categories
+  method_detail: "k-means (fixed seed {seed}) on standardized quantities (clipped at the 5th and 95th percentiles) and the main categories; {k} segments chosen by the silhouette score ({silhouette})."
+  warning: Segments describe the data, they do not explain it. Different columns or a different number of segments give different groups.
+  limitations:
+    l1: k-means looks for round groups of similar size; elongated or tiny groups can be missed.
+    l2: Only quantities and categories with up to 12 labels are used; free text and identifiers are left out.
+    l3: Large tables are sampled, so small segments can shift between runs on different data.
+  profile: "Segment {n} ({share} of rows): {traits}"
+  typical: close to the table's typical values
+  trait_higher: "higher {column} (median {value} vs {overall})"
+  trait_lower: "lower {column} (median {value} vs {overall})"
+  trait_category: "more often {column} = {value} ({share} vs {overall})"
+target_model:
+  name: Prediction model
+  question: Which rows are likely to have the outcome you pick, and what drives it?
+  questions:
+    binary: "Which rows are likely to have {target} = yes, and what drives it?"
+    multiclass: "Which {target} will each row have, and what drives it?"
+    regression: "What value of {target} should we expect for each row, and what drives it?"
+  method: Gradient boosting vs a naive baseline
+  method_detail: "Histogram gradient boosting (fixed seed {seed}) trained on {train} rows and tested on {test} rows it did not see (stratified split). The baseline: {baseline}. Importance: how much the test score drops when a column is shuffled (permutation importance)."
+  baselines:
+    majority_class: always predicting the most common value
+    mean: always predicting the average
+  warning: A model finds patterns, not causes. Check the leakage warnings and the fairness check before using predictions about people.
+  verdict_beats: "The model beats the baseline: {metric} {model} vs {baseline}."
+  verdict_loses: "The model does not beat the baseline ({metric} {model} vs {baseline}). The columns do not predict this outcome well."
+  positive: "Positive value of {target}: {value}"
+  metrics:
+    roc_auc: ROC AUC
+    average_precision: Average precision
+    accuracy: Accuracy
+    precision: Precision
+    recall: Recall
+    threshold: Score threshold
+    positive_rate: Share of positives
+    f1_macro: F1 (macro)
+    mae: Mean absolute error
+    rmse: Root mean squared error
+    r2: R²
+  leakage:
+    too_strong: "Possible leakage: {column} alone predicts the outcome almost perfectly (strength {strength}). Check that it is known before the outcome; if not, remove it."
+    name_and_strength: "Possible leakage: {column} looks like something measured after the outcome and predicts it strongly (strength {strength}). Remove it for a model you can use in advance."
+  sensitive_excluded: "Sensitive attributes left out of the inputs: {columns}. They are used only for the fairness check."
+  fairness:
+    passes: "Fairness across {column}: the lowest group's share of flagged rows is {ratio} × the highest (≥ 0.8 passes the four-fifths rule)."
+    fails: "Fairness warning across {column}: the lowest group's share of flagged rows is only {ratio} × the highest (< 0.8). Review before using the model for decisions about people."
+  limitations:
+    l1: The test score comes from one split of this file; new data can behave differently.
+    l2: Categories with more than 60 labels, free text and identifiers are not used as inputs.
+    l3: Importance shows what the model relies on, not what causes the outcome.
+anomalies:
+  name: Unusual rows
+  question: Which rows look unlike the rest and deserve a second look?
+  method: Isolation Forest on the quantities
+  method_detail: "An Isolation Forest (150 trees, fixed seed {seed}) scores how easy each row is to isolate from the others; the column that is most unusual for the row is named (robust z-score against the median)."
+  warning: Unusual is not wrong. A flagged row can be a data error, a rare but valid case, or the most interesting row in the table.
+  verdict: "{flagged} rows ({share}) look unusual."
+  why_high: "{column} = {value}, far above the usual {median}"
+  why_low: "{column} = {value}, far below the usual {median}"
+  limitations:
+    l1: Only quantities are used; an unusual combination of categories is not detected.
+    l2: Missing values are replaced by the median before scoring.
+    l3: The share of flagged rows is chosen by the model; read the ranking, not the count.
+forecast_any:
+  name: Forecast
+  question: What comes next for the main quantity over time, and can we trust the estimate?
+  method: Gradient boosting vs a seasonal-naive baseline
+  method_detail: "Monthly totals of {metric} by {date}. Gradient boosting (fixed seed {seed}) on lags of 1, 2, 3 and 12 months, a 3-month mean and the month of the year. The baseline repeats the same month of last year. Both are tested on the last {test} months they did not see."
+  rows: the number of rows
+  warning: A forecast is a range of plausible values, not a promise.
+  limitations:
+    l1: It needs at least 24 complete months; shorter or finer-grained data is not forecast.
+    l2: MAPE grows quickly when actual values are small.
+    l3: The forecast assumes the coming months look like the recent past.
+generic:
+  sampled: "Trained on a random sample of {rows} of {total} rows to fit in memory (fixed seed)."
+  sensitive:
+    age: Age
+    sex: Sex / gender
+    marital_status: Marital status
+    nationality: Nationality
+  status:
+    no_target: "This table has no yes/no column to predict. Pick a target column to train a model."
+    unsupported_target: This column cannot be predicted (free text, identifiers or a single value). Pick a flag, a category with up to 20 labels or a quantity.
+    no_features: No usable input columns besides the target.
+    single_class: The target has a single value in the rows that have one; there is nothing to predict.
+    no_numbers: The table has no quantities to score; unusual rows need at least one numeric column.
+    no_date: The table has no date column, so there is nothing to forecast.

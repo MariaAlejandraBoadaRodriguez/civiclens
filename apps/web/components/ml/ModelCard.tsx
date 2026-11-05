@@ -36,6 +36,16 @@ export function ModelCard({ card, id, actions }: { card: Card; id: string; actio
           {card.thresholds && <span className="text-[13px] text-muted">{card.thresholds}</span>}
         </div>
       )}
+      {card.notes && card.notes.length > 0 && (
+        <div className={row}>
+          <span className={label}>{t("notes")}</span>
+          <ul className="m-0 flex flex-col gap-1.5 pl-5 text-[13px] leading-relaxed" data-testid="card-notes">
+            {card.notes.map((n) => (
+              <li key={n}>{n}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className={row}>
         <span className={label}>{t("features")}</span>
         <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
@@ -44,7 +54,7 @@ export function ModelCard({ card, id, actions }: { card: Card; id: string; actio
               <span title={f.label} className="inline-block rounded-chip bg-subtle px-2 py-1 font-mono text-xs text-neutral">
                 {f.id}
               </span>
-              <span className="sr-only">: {f.label}</span>
+              {f.label !== f.id && <span className="sr-only">: {f.label}</span>}
             </li>
           ))}
         </ul>

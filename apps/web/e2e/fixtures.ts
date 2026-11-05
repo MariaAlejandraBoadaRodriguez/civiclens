@@ -1,11 +1,11 @@
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 import en from "../messages/en.json";
 import es from "../messages/es.json";
 
 export const MESSAGES = { en, es } as const;
 export type Lang = keyof typeof MESSAGES;
 
-type Console = {
+export type Console = {
   /** Declare a console error the journey provokes on purpose (e.g. a rejected SQL query: the
    * browser logs every 4xx response). Anything not declared fails the test. */
   allow: (pattern: RegExp) => void;
@@ -33,3 +33,31 @@ export const test = base.extend<{ browserConsole: Console }>({
 });
 
 export { expect };
+
+/**
+ * Wait for `done`, pressing the visible Retry button when the API rate limit (12 heavy calls
+ * per minute for anonymous callers, as in production) answers 429 — what a user would do.
+ * The 429 the browser logs is declared, so only that console error is tolerated.
+ */
+export async function withRetry(
+  page: Page,
+  browserConsole: Console,
+  retryLabel: string,
+  done: () => Promise<boolean>,
+  attempts = 8,
+): Promise<void> {
+  browserConsole.allow(/status of 429/);
+  for (let n = 0; n < attempts; n += 1) {
+    const deadline = Date.now() + 20_000;
+    while (Date.now() < deadline) {
+      if (await done()) return;
+      await page.waitForTimeout(500);
+    }
+    const retry = page.getByRole("button", { name: retryLabel }).first();
+    if (await retry.isVisible()) {
+      await page.waitForTimeout(10_000); // the limit window is one minute
+      await retry.click();
+    }
+  }
+  expect(await done(), "still not done after waiting out the rate limit").toBe(true);
+}

@@ -595,7 +595,11 @@
       "redFlags": "Detección de alertas",
       "forecast": "Pronóstico de gasto",
       "classifier": "Clasificador de categorías · después",
-      "segments": "Segmentos de proveedores · después"
+      "segments": "Segmentos de proveedores · después",
+      "prediction": "Predicción",
+      "anomalies": "Filas inusuales",
+      "segmentsAny": "Segmentos",
+      "forecastAny": "Pronóstico"
     },
     "card": {
       "title": "Ficha del modelo",
@@ -603,7 +607,8 @@
       "method": "Método",
       "rules": "Reglas",
       "features": "Variables",
-      "limitations": "Limitaciones"
+      "limitations": "Limitaciones",
+      "notes": "Lee esto antes de usarlo"
     },
     "rerun": "Volver a ejecutar con los datos actuales",
     "running": "Entrenando…",
@@ -650,10 +655,45 @@
         "future": "Pronóstico",
         "table": "Ver los números",
         "month": "Mes"
-      }
+      },
+      "titleAny": "{metric} mensual: modelo vs línea base estacional ingenua",
+      "rows": "filas"
     },
     "continue": "Continuar al tablero →",
-    "openSql": "Abrir el SQL Lab"
+    "openSql": "Abrir el SQL Lab",
+    "generic": {
+      "target": {
+        "title": "Predicción",
+        "target": "Columna a predecir",
+        "auto": "Objetivo sugerido",
+        "train": "Entrenar el modelo",
+        "training": "Entrenando…",
+        "trainingLong": "Entrenando un modelo para esta tabla (semilla fija, unos segundos)…",
+        "baseline": "línea base {value}",
+        "leakageTitle": "Revisa estas columnas antes de confiar en el puntaje",
+        "leakageBody": "{columns} podría conocerse solo después del resultado. Mira la ficha del modelo.",
+        "importance": "En qué se apoya el modelo",
+        "importanceHelp": "Proporción de la caída del puntaje de prueba cuando se desordena cada columna. Más alto = el modelo depende más de ella; no significa que cause el resultado.",
+        "fairness": "Revisión de equidad · {attribute}",
+        "group": "Grupo",
+        "rows": "Filas",
+        "actualRate": "Tasa real",
+        "flaggedRate": "Marcadas por el modelo",
+        "tpr": "Positivos detectados"
+      },
+      "anomalies": {
+        "title": "Filas más inusuales",
+        "training": "Buscando filas inusuales (semilla fija, unos segundos)…",
+        "row": "Fila",
+        "why": "Por qué se destaca",
+        "context": "Contexto"
+      },
+      "segments": {
+        "title": "Segmentos en lenguaje claro",
+        "training": "Buscando segmentos (semilla fija, unos segundos)…",
+        "rows": "{rows} filas · {share}"
+      }
+    }
   },
   "admin": {
     "metaTitle": "Claves de API · Administración de CivicLens",

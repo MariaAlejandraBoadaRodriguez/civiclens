@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DatasetPicker, SAMPLE_SLUGS } from "@/components/ingest/DatasetPicker";
+import { GenericMlLab } from "@/components/ml/GenericMlLab";
 import { MlLab } from "@/components/ml/MlLab";
 import { AutoRefresh } from "@/components/ui/AutoRefresh";
 import { ButtonLink } from "@/components/ui/Button";
@@ -8,7 +9,15 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonGroup } from "@/components/ui/Skeleton";
 import { WakingUp } from "@/components/ui/WakingUp";
 import { apiGet } from "@/lib/api";
-import type { Dataset, ForecastResult, RedFlagResult } from "@/lib/api-types";
+import type {
+  AnomaliesResult,
+  Dataset,
+  ForecastResult,
+  RedFlagResult,
+  SegmentsResult,
+  StarSchemaResponse,
+  TargetModelResult,
+} from "@/lib/api-types";
 
 export const dynamic = "force-dynamic";
 
@@ -39,13 +48,11 @@ export default async function MlPage({ params: { locale, id } }: Params) {
   const notReady =
     !redFlags.ok && redFlags.kind === "problem" && redFlags.problem.code === "dataset.not_ready";
 
-  // The current models need procurement data; other files get the generic models in a later PR.
-  const procurementOnly =
-    !redFlags.ok && redFlags.kind === "problem" && redFlags.problem.code === "domain.procurement_only"
-      ? redFlags.problem
-      : null;
+  // Red flags need procurement data; any other table gets the generic models.
+  const generic =
+    !redFlags.ok && redFlags.kind === "problem" && redFlags.problem.code === "domain.procurement_only";
 
-  if (!dataset.ok || notReady || procurementOnly) {
+  if (!dataset.ok || notReady) {
     return (
       <main id="main" className="mx-auto flex max-w-container flex-col gap-6 px-6 pb-12 pt-8">
         {heading}
@@ -60,13 +67,6 @@ export default async function MlPage({ params: { locale, id } }: Params) {
             <AutoRefresh seconds={3} />
           </Card>
         )}
-        {dataset.ok && procurementOnly && (
-          <EmptyState
-            title={procurementOnly.title}
-            body={procurementOnly.detail}
-            action={<ButtonLink href={`/datasets/${ref}/sql`}>{t("openSql")}</ButtonLink>}
-          />
-        )}
         {!dataset.ok && dataset.kind === "problem" && (
           <EmptyState
             title={t("notFound.title")}
@@ -79,6 +79,30 @@ export default async function MlPage({ params: { locale, id } }: Params) {
   }
 
   const datasetRef = (SAMPLE_SLUGS as readonly string[]).includes(id) ? id : dataset.data.id;
+  if (generic) {
+    const latest = <T,>(model: string) =>
+      apiGet<T>(`/api/v1/models/${model}/latest?dataset_id=${ref}`, locale).then((r) => (r.ok ? r.data : null));
+    const [schema, target, anomalies, segments] = await Promise.all([
+      apiGet<StarSchemaResponse>(`/api/v1/datasets/${ref}/schema`, locale, 30_000),
+      latest<TargetModelResult>("target_model"),
+      latest<AnomaliesResult>("anomalies"),
+      latest<SegmentsResult>("segments"),
+    ]);
+    return (
+      <main id="main" className="mx-auto flex max-w-container flex-col gap-6 px-6 pb-12 pt-8">
+        {heading}
+        <DatasetPicker current={id} path="/ml" />
+        <GenericMlLab
+          datasetRef={datasetRef}
+          columns={schema.ok ? schema.data.data_columns : []}
+          initial={{ target, anomalies, segments, forecast: forecast.ok ? forecast.data : null }}
+        />
+        <div className="flex justify-end">
+          <ButtonLink href={`/datasets/${encodeURIComponent(id)}/dashboard`}>{t("continue")}</ButtonLink>
+        </div>
+      </main>
+    );
+  }
   return (
     <main id="main" className="mx-auto flex max-w-container flex-col gap-6 px-6 pb-12 pt-8">
       {heading}

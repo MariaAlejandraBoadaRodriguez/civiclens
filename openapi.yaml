@@ -746,12 +746,20 @@ paths:
       operationId: runModel
       summary: Run a model
       description: |-
-        Trains and scores on the dataset's star schema (cleaned data). Fixed seed → reproducible
-        output. The job result holds a summary; the full result and model card come from
-        `GET /api/v1/models/{model_type}/latest`. `classifier` and `segments` are not available yet and answer 404 (`model.not_available`).
+        Trains and scores on the cleaned data. Fixed seed → reproducible output. The job result
+        holds a summary; the full result and model card come from
+        `GET /api/v1/models/{model_type}/latest`.
+        - Any dataset (table `data`): `target_model` (predicts `params.target`, default: the
+          domain pack's target role or the table's yes/no column; task chosen from the column
+          kind; baseline, metrics, permutation importance, leakage warnings, fairness check
+          across sensitive groups, which are never inputs), `anomalies`, `segments`, and
+          `forecast` (monthly, on the first date column and the main quantity).
+        - Procurement data only (star schema): `red_flags` (409 `domain.procurement_only`
+          otherwise); `forecast` then forecasts spend in CAD.
+        - `classifier` is not available yet (404 `model.not_available`).
 
         With an API key, the key needs the `models:run` scope. Anonymous calls are accepted only while the server allows anonymous writes (public demo).
-      x-user-stories: [US-18, US-19, US-20, US-21, US-25]
+      x-user-stories: [US-18, US-19, US-20, US-21, US-25, US-28]
       parameters:
         - $ref: "#/components/parameters/ModelType"
         - $ref: "#/components/parameters/AcceptLanguage"
@@ -769,10 +777,20 @@ paths:
                   example: contracts_ca
                 params:
                   type: object
-                  description: "`forecast` only: `entity_id` restricts the series to one entity."
+                  description: |
+                    `forecast` on procurement data: `entity_id` restricts the series to one
+                    entity. `target_model`: `target` (a column of table `data`) and `positive`
+                    (the target value that means yes).
                   properties:
                     entity_id:
                       type: [string, "null"]
+                    target:
+                      type: [string, "null"]
+                      maxLength: 200
+                      example: credit_risk
+                    positive:
+                      type: [string, "null"]
+                      maxLength: 200
       responses:
         "202":
           description: Accepted; poll the job in `Location`.
@@ -808,7 +826,7 @@ paths:
         language; the `card` (question, method, warning, limitations, verdict) and
         `reason_labels` follow `Accept-Language`.
       security: [{}, ApiKey: []]
-      x-user-stories: [US-18, US-19]
+      x-user-stories: [US-18, US-19, US-28]
       parameters:
         - $ref: "#/components/parameters/ModelType"
         - name: dataset_id
@@ -831,6 +849,7 @@ paths:
                 oneOf:
                   - $ref: "#/components/schemas/RedFlagResult"
                   - $ref: "#/components/schemas/ForecastResult"
+                  - $ref: "#/components/schemas/GenericModelResult"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -1264,10 +1283,10 @@ components:
       name: model_type
       in: path
       required: true
-      description: Which model. `classifier` and `segments` are stretch goals (404 `model.not_available` for now).
+      description: Which model. `red_flags` needs procurement data; `classifier` is a stretch goal (404 `model.not_available` for now).
       schema:
         type: string
-        enum: [red_flags, forecast, classifier, segments]
+        enum: [red_flags, forecast, target_model, anomalies, segments, classifier]
     RecipeId:
       name: recipe_id
       in: path
@@ -2387,9 +2406,189 @@ components:
           type: string
         verdict:
           type: string
-          description: Forecast only — says plainly whether the model beats the baseline.
+          description: Says plainly whether the model beats its baseline (or why it could not run).
         dropped:
           type: string
+        notes:
+          type: array
+          description: Generic models — sampling, leakage warnings, sensitive attributes left out.
+          items:
+            type: string
+        positive:
+          type: string
+        metric_labels:
+          type: object
+          additionalProperties:
+            type: string
+
+    GenericModelResult:
+      type: object
+      description: |
+        `target_model`, `anomalies` or `segments` on table `data`. `status` is `ok` or why the
+        model could not run (`no_target`, `unsupported_target`, `no_features`, `single_class`,
+        `no_numbers`); the card's `verdict` explains it in the UI language.
+      required: [model_type, status, card]
+      properties:
+        model_type:
+          type: string
+          enum: [target_model, anomalies, segments]
+        status:
+          type: string
+          enum: [ok, no_target, unsupported_target, no_features, single_class, no_numbers]
+        task:
+          type: string
+          enum: [binary, multiclass, regression]
+        target:
+          type: string
+        positive:
+          type: [string, "null"]
+        seed:
+          type: integer
+        rows:
+          type: integer
+        rows_used:
+          type: integer
+        sampled:
+          type: boolean
+          description: true when the model was trained on a random sample (the card says so).
+        features:
+          type: array
+          items:
+            type: string
+        excluded_sensitive:
+          type: array
+          items:
+            type: string
+        metrics:
+          type: object
+          additionalProperties:
+            type: number
+        baseline_metrics:
+          type: object
+          additionalProperties:
+            type: number
+        beats_baseline:
+          type: boolean
+        importance:
+          type: array
+          items:
+            type: object
+            required: [feature, importance, share]
+            properties:
+              feature:
+                type: string
+              label:
+                type: string
+              importance:
+                type: number
+              share:
+                type: number
+        leakage:
+          type: array
+          items:
+            type: object
+            required: [feature, strength, reason]
+            properties:
+              feature:
+                type: string
+              strength:
+                type: number
+              reason:
+                type: string
+                enum: [too_strong, name_and_strength]
+        fairness:
+          type: array
+          items:
+            type: object
+            required: [attribute, column, groups, disparity_ratio, passes]
+            properties:
+              attribute:
+                type: string
+                enum: [age, sex, marital_status, nationality]
+              column:
+                type: string
+              label:
+                type: string
+              verdict:
+                type: string
+              disparity_ratio:
+                type: [number, "null"]
+                description: Lowest group's share of positive predictions ÷ the highest's (four-fifths rule passes at ≥ 0.8).
+              passes:
+                type: boolean
+              groups:
+                type: array
+                items:
+                  type: object
+                  required: [group, rows, actual_rate, flagged_rate]
+                  properties:
+                    group:
+                      type: string
+                    rows:
+                      type: integer
+                    actual_rate:
+                      type: number
+                    flagged_rate:
+                      type: number
+                    true_positive_rate:
+                      type: [number, "null"]
+                    false_positive_rate:
+                      type: [number, "null"]
+        flagged:
+          type: integer
+        flagged_share:
+          type: number
+        top:
+          type: array
+          description: anomalies — the most unusual rows, each with the column that makes it unusual.
+          items:
+            type: object
+            required: [row, score, feature, z]
+            properties:
+              row:
+                type: integer
+              score:
+                type: number
+              feature:
+                type: string
+              label:
+                type: string
+              value:
+                type: [number, "null"]
+              median:
+                type: number
+              z:
+                type: number
+              why:
+                type: string
+              labels:
+                type: object
+                additionalProperties:
+                  type: [string, "null"]
+        k:
+          type: integer
+        silhouette:
+          type: number
+        segments:
+          type: array
+          items:
+            type: object
+            required: [segment, rows, share, traits]
+            properties:
+              segment:
+                type: integer
+              rows:
+                type: integer
+              share:
+                type: number
+              profile:
+                type: string
+              traits:
+                type: array
+                items:
+                  type: object
+        card:
+          $ref: "#/components/schemas/ModelCard"
 
     RedFlagRule:
       type: string
@@ -2495,18 +2694,26 @@ components:
 
     ForecastResult:
       type: object
-      required: [model_type, status, seed, months, metrics, series, card]
+      required: [model_type, status, card]
       properties:
+        generic:
+          type: boolean
+          description: true for any dataset (monthly totals of `metric_column` by `date_column`).
+        date_column:
+          type: [string, "null"]
+        metric_column:
+          type: [string, "null"]
+          description: null = the number of rows per month.
         model_type:
           type: string
           const: forecast
         status:
           type: string
-          enum: [ok, insufficient_history]
+          enum: [ok, insufficient_history, no_date]
         seed:
           type: integer
         currency:
-          type: string
+          type: [string, "null"]
           example: CAD
         months:
           type: integer

@@ -85,6 +85,9 @@ sql:
     title: The query took too long
     detail: "Queries stop after {seconds} seconds. Add filters or aggregate before joining."
 model:
+  unknown_target:
+    title: Unknown target column
+    detail: "Table data has no column called {target}. Pick one of the columns listed in the SQL Lab."
   not_available:
     title: This model is not available yet
     detail: "{model_type} is planned for a later release. Available now: red_flags, forecast."

@@ -283,7 +283,7 @@ export function DomainStep({ domain, datasetRef, sample }: { domain: DomainRespo
           {t("savedBody")}
         </StatusBanner>
       )}
-      {save.state === "error" && <ApiErrorNotice error={save.error} />}
+      {save.state === "error" && <ApiErrorNotice error={save.error} onRetry={() => void submit()} />}
     </Card>
   );
 }

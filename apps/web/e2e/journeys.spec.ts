@@ -1,5 +1,5 @@
 import path from "node:path";
-import { MESSAGES, expect, test, type Lang } from "./fixtures";
+import { MESSAGES, expect, test, withRetry, type Lang } from "./fixtures";
 
 /** Acceptance fixtures (data/fixtures/README.md): public, non-procurement files. */
 const FIXTURES = path.resolve(__dirname, "../../../data/fixtures");
@@ -34,10 +34,10 @@ for (const lang of LANGS) {
       await expect(banner.getByRole("link", { name: m.ingest.ready.next })).toBeVisible();
     });
 
-    test("any dataset: credit file → banking domain suggested and confirmed → generic SQL lab", async ({ page }) => {
+    test("any dataset: credit file → banking domain suggested and confirmed → generic SQL lab", async ({ page, browserConsole }) => {
       await page.goto(`/${lang}/datasets/secop_co`);
       await page.locator("input[type=file]").setInputFiles(path.join(FIXTURES, "german_credit.csv"));
-      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/[0-9a-f-]{36}\\?ready=1$`), { timeout: 120_000 });
+      await withRetry(page, browserConsole, m.common.apiError.retry, async () => /\?ready=1$/.test(page.url()));
       // The domain step suggests Banking and maps the target with a confidence.
       const step = page.locator("section", { has: page.getByRole("heading", { name: m.domain.title }) });
       await expect(step.getByText(m.domain.suggested.replace("{name}", ""), { exact: false })).toBeVisible();
@@ -45,7 +45,7 @@ for (const lang of LANGS) {
       await expect(step.getByTestId("role-mapping")).toContainText("credit_risk");
       await step.getByRole("button", { name: m.domain.confirm }).click();
       const saved = step.getByTestId("banner-success");
-      await expect(saved).toBeVisible({ timeout: 60_000 });
+      await withRetry(page, browserConsole, m.common.apiError.retry, () => saved.isVisible());
       await saved.getByRole("link", { name: m.domain.openSql }).click();
       // SQL lab: the table data with its columns, no star schema, and results for the first question.
       await expect(page.getByRole("heading", { level: 2, name: new RegExp(m.sql.data.title.split(" <")[0]) })).toBeVisible();
@@ -54,6 +54,26 @@ for (const lang of LANGS) {
       const results = m.sql.results.title.split(" · ")[0];
       await expect(page.getByRole("heading", { level: 3, name: new RegExp(`^${results}`) })).toBeVisible();
       await expect(page.locator("#query-results table tbody tr").first()).toBeVisible();
+    });
+
+    test("any dataset: bank marketing → ML lab predicts y, warns about duration, segments", async ({ page, browserConsole }) => {
+      const retry = m.common.apiError.retry;
+      await page.goto(`/${lang}/datasets/secop_co`);
+      await page.locator("input[type=file]").setInputFiles(path.join(FIXTURES, "bank_marketing.csv"));
+      await withRetry(page, browserConsole, retry, async () => /\?ready=1$/.test(page.url()));
+      const id = new URL(page.url()).pathname.split("/").pop();
+      await page.goto(`/${lang}/datasets/${id}/ml`);
+      // The prediction tab trains on first view: verdict vs the baseline, leakage, fairness.
+      await withRetry(page, browserConsole, retry, () => page.getByTestId("model-verdict").isVisible());
+      await expect(page.getByTestId("card-notes")).toContainText("duration");
+      await expect(page.getByRole("heading", { level: 3, name: m.ml.generic.target.importance })).toBeVisible();
+      await expect(page.getByTestId("fairness").first()).toBeVisible();
+      await page.getByRole("tab", { name: m.ml.tabs.segmentsAny }).click();
+      await withRetry(page, browserConsole, retry, () => page.getByTestId("segments").locator("li").first().isVisible());
+      await page.getByRole("tab", { name: m.ml.tabs.anomalies }).click();
+      await withRetry(page, browserConsole, retry, () =>
+        page.getByRole("heading", { level: 2, name: m.ml.generic.anomalies.title }).isVisible(),
+      );
     });
 
     test("cleaning studio → recipe preview → apply", async ({ page }) => {

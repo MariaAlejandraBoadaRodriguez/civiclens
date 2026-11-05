@@ -595,7 +595,11 @@
       "redFlags": "Red-flag detection",
       "forecast": "Spend forecast",
       "classifier": "Category classifier · later",
-      "segments": "Supplier segments · later"
+      "segments": "Supplier segments · later",
+      "prediction": "Prediction",
+      "anomalies": "Unusual rows",
+      "segmentsAny": "Segments",
+      "forecastAny": "Forecast"
     },
     "card": {
       "title": "Model card",
@@ -603,7 +607,8 @@
       "method": "Method",
       "rules": "Rules",
       "features": "Features",
-      "limitations": "Limitations"
+      "limitations": "Limitations",
+      "notes": "Read before using"
     },
     "rerun": "Re-run on current data",
     "running": "Training…",
@@ -650,10 +655,45 @@
         "future": "Forecast",
         "table": "Show the numbers",
         "month": "Month"
-      }
+      },
+      "titleAny": "Monthly {metric}: model vs seasonal-naive baseline",
+      "rows": "rows"
     },
     "continue": "Continue to dashboard →",
-    "openSql": "Open the SQL Lab"
+    "openSql": "Open the SQL Lab",
+    "generic": {
+      "target": {
+        "title": "Prediction",
+        "target": "Column to predict",
+        "auto": "Suggested target",
+        "train": "Train the model",
+        "training": "Training…",
+        "trainingLong": "Training a model for this table (fixed seed, a few seconds)…",
+        "baseline": "baseline {value}",
+        "leakageTitle": "Check these columns before trusting the score",
+        "leakageBody": "{columns} may only be known after the outcome. See the model card.",
+        "importance": "What the model relies on",
+        "importanceHelp": "Share of the drop in the test score when each column is shuffled. Higher = the model relies on it more; it does not mean it causes the outcome.",
+        "fairness": "Fairness check · {attribute}",
+        "group": "Group",
+        "rows": "Rows",
+        "actualRate": "Actual rate",
+        "flaggedRate": "Flagged by the model",
+        "tpr": "Positives caught"
+      },
+      "anomalies": {
+        "title": "Most unusual rows",
+        "training": "Looking for unusual rows (fixed seed, a few seconds)…",
+        "row": "Row",
+        "why": "Why it stands out",
+        "context": "Context"
+      },
+      "segments": {
+        "title": "Segments in plain language",
+        "training": "Finding segments (fixed seed, a few seconds)…",
+        "rows": "{rows} rows · {share}"
+      }
+    }
   },
   "admin": {
     "metaTitle": "API keys · CivicLens admin",
