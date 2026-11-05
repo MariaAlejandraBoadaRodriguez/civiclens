@@ -46,6 +46,16 @@
     </div>
   </section>
 
+  <section aria-labelledby="responsible">
+    <h2 id="responsible">{{ responsible.heading }}</h2>
+    <div class="warning">
+      <ul style="margin:0;padding-left:18px">
+        {% for item in responsible["items"] %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+      <p style="margin:6px 0 0"><a href="{{ responsible.url }}" style="color:inherit">{{ responsible.guide }}</a>: {{ responsible.url }}</p>
+    </div>
+  </section>
+
   <section aria-labelledby="kpis">
     <h2 id="kpis">{{ t("reports.kpis.heading") }}</h2>
     <div class="tiles">

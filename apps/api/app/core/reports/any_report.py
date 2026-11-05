@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from app.core.reports import format as fmt
-from app.core.reports.pdf import INK, LINE, MUTED, PRIMARY, TEXT, latin1
+from app.core.reports.pdf import INK, LINE, MUTED, PRIMARY, TEXT, latin1, responsible_pdf
 
 
 def tile_value(kpi: dict[str, Any], lang: str) -> str:
@@ -72,6 +72,7 @@ def context(ds: Any, overview: dict[str, Any], t: Any, name: str, source: str) -
             sections=len(sections),
         ),
         "quality": quality,
+        "responsible": fmt.responsible(t),
         "tiles": [
             {"name": k["name"], "value": tile_value(k, lang), "definition": k["definition"]}
             for k in overview["kpis"]
@@ -118,6 +119,8 @@ def render_pdf(ctx: dict[str, Any]) -> bytes:
     pdf.ln(3)
     text(ctx["summary"])
     text(ctx["quality"])
+    pdf.ln(2)
+    responsible_pdf(pdf, ctx["responsible"], width)
     pdf.ln(2)
     text(t("reports.kpis.heading"), 13, INK, "B")
     for tile in ctx["tiles"]:

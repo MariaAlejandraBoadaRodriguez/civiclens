@@ -1,0 +1,64 @@
+name: Capacity
+
+# 10 concurrent visitors doing the main flow (load/k6-visitors.js), in conditions like Render's
+# free instance: the API image with 512 MB and 0.1 CPU. Runs on pull requests that change the
+# load test or this workflow, and on demand — against the emulated instance or production.
+# The k6 summary (sessions, p50/p95, 429s, 5xx) is printed and kept as an artifact.
+on:
+  pull_request:
+    paths: [load/**, .github/workflows/capacity.yml, apps/api/app/config.py]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "emulated (512 MB · 0.1 CPU container) or production"
+        type: choice
+        options: [emulated, production]
+        default: emulated
+      duration:
+        description: k6 duration
+        default: 3m
+
+permissions:
+  contents: read
+
+jobs:
+  k6:
+    name: Capacity · 10 visitors (k6) on 512 MB · 0.1 CPU
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TARGET: ${{ inputs.target || 'emulated' }}
+      DURATION: ${{ inputs.duration || '3m' }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build and run the API like Render free (512 MB, 0.1 CPU)
+        if: env.TARGET == 'emulated'
+        run: |
+          docker build -f apps/api/Dockerfile -t civiclens-api .
+          docker run -d --name api --memory=512m --memory-swap=512m --cpus=0.1 -p 8000:8000 \
+            -e TRUSTED_PROXY_HOPS=1 civiclens-api
+          npx --yes wait-on@8.0.1 http-get://127.0.0.1:8000/health --timeout 300000 || (docker logs api; exit 1)
+          echo "BASE=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+      - name: Production URL
+        if: env.TARGET == 'production'
+        run: echo "BASE=${{ vars.PRODUCTION_API_URL || 'https://civiclens-api.onrender.com' }}" >> "$GITHUB_ENV"
+      - uses: grafana/setup-k6-action@v1
+      - name: One shared IP (a workshop, an office, mobile CGNAT)
+        working-directory: load
+        run: k6 run --quiet -e BASE="$BASE" -e MODE=measure -e DURATION="$DURATION" k6-visitors.js
+      - name: One IP per visitor
+        if: env.TARGET == 'emulated'
+        working-directory: load
+        run: k6 run --quiet -e BASE="$BASE" -e MODE=measure -e UNIQUE_IPS=1 -e DURATION="$DURATION" k6-visitors.js
+      - name: Memory and OOM
+        if: always() && env.TARGET == 'emulated'
+        run: |
+          echo "memory.peak: $(docker exec api cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo n/a) bytes"
+          docker exec api cat /sys/fs/cgroup/memory.events || true
+          test "$(docker inspect -f '{{.State.OOMKilled}}' api)" = "false"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-visitors-summary
+          path: load/k6-visitors-summary.json
+          retention-days: 14

@@ -44,7 +44,18 @@
       "body": "El enlace puede estar mal, o el conjunto de datos puede haber expirado (las cargas se guardan 24 horas).",
       "home": "Volver al inicio"
     },
-    "forDevelopers": "Para desarrolladores · API"
+    "forDevelopers": "Para desarrolladores · API",
+    "feedback": {
+      "button": "Danos tu opinión",
+      "newTab": "(abre un formulario de GitHub en una pestaña nueva)"
+    },
+    "responsible": {
+      "title": "Usa estos resultados con responsabilidad",
+      "leads": "Las alertas son pistas para revisar, no acusaciones: cada patrón tiene explicaciones legítimas.",
+      "verify": "Verifica con la fuente original (SECOP II, CanadaBuys, SEAO…) antes de publicar o denunciar algo.",
+      "asPublished": "Los datos se muestran tal como los publicó el gobierno, con sus errores; tus pasos de limpieza quedan en la receta.",
+      "link": "Lee la guía de uso responsable"
+    }
   },
   "nav": {
     "lifecycle": "Ciclo de vida",
@@ -56,9 +67,9 @@
     "dashboard": "Tablero"
   },
   "landing": {
-    "eyebrow": "Motor de datos del sector público · datos en EN / FR / ES",
-    "title": "De archivos públicos desordenados a decisiones que puedes defender.",
-    "subtitle": "Sube contratos, presupuestos o datos de programas en cualquiera de tres idiomas. CivicLens los perfila, te enseña a limpiarlos, los modela en SQL, señala lo que merece una segunda mirada y arma el reporte ejecutivo: los mismos pasos, repetibles mediante una API.",
+    "eyebrow": "Herramienta abierta para la veeduría ciudadana · datos públicos en EN / FR / ES",
+    "title": "Sigue el dinero público con evidencia que puedes verificar.",
+    "subtitle": "Carga contratos públicos, presupuestos o cualquier tabla que publique el gobierno. CivicLens revisa la calidad de los datos, te muestra cómo limpiarlos, responde preguntas en SQL, señala contratos que merecen una segunda mirada y redacta un reporte que puedes compartir: cada paso explicado y repetible.",
     "trySample": "Probar con datos de ejemplo",
     "upload": "Subir mi propio archivo",
     "outputs": {
@@ -138,6 +149,32 @@
       "github": "GitHub",
       "licenses": "Licencias de los datos",
       "design": "Sistema de diseño"
+    },
+    "useCases": {
+      "title": "Qué puedes hacer",
+      "secondLook": {
+        "title": "Encontrar contratos que merecen una segunda mirada",
+        "body": "Un solo oferente, valores justo por debajo de un umbral, proveedores nuevos que ganan contratos grandes, picos de fin de año: ordenados para revisión, cada uno con su motivo.",
+        "cta": "Ver alertas en contratos de Colombia →"
+      },
+      "compare": {
+        "title": "Comparar el gasto entre entidades",
+        "body": "Totales, concentración y tendencias mensuales lado a lado para Colombia, Canadá y Quebec, en una sola moneda y con las mismas definiciones de KPI.",
+        "cta": "Comparar jurisdicciones →"
+      },
+      "checkOwn": {
+        "title": "Revisar tus propios datos antes de publicarlos",
+        "body": "Sube tu hoja de cálculo: CivicLens mide su calidad, avisa si hay datos personales, lista los problemas y te da una receta de limpieza que otros pueden repetir.",
+        "cta": "Subir un archivo →"
+      },
+      "note": "Las alertas son pistas para revisar, no acusaciones. Verifica siempre con la fuente original antes de publicar."
+    },
+    "engine": {
+      "startingTitle": "Encendiendo el motor…",
+      "startingBody": "El motor de análisis funciona en un alojamiento gratuito y se duerme cuando nadie lo usa. Se está despertando: tarda entre 30 y 60 segundos, una sola vez. Puedes seguir leyendo.",
+      "ready": "Motor listo",
+      "failed": "El motor no despertó. Puede estar reiniciándose; inténtalo de nuevo en un minuto.",
+      "retry": "Intentar de nuevo"
     }
   },
   "design": {

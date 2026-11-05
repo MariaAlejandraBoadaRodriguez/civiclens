@@ -233,6 +233,7 @@ def report_context(ds: Dataset, lang: str) -> dict[str, Any]:
     return {
         "lang": lang,
         "t": t,
+        "responsible": fmt.responsible(t),
         "data": data,
         "texts": texts,
         "tiles": tiles,

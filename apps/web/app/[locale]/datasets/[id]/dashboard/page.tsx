@@ -10,6 +10,7 @@ import { AutoRefresh } from "@/components/ui/AutoRefresh";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink, buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ResponsibleUse } from "@/components/ui/ResponsibleUse";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { KpiTile } from "@/components/ui/KpiTile";
 import { SkeletonGroup } from "@/components/ui/Skeleton";
@@ -204,6 +205,7 @@ export default async function DashboardPage({ params: { locale, id }, searchPara
           </div>
         </>
       )}
+      {(main.ok || overview?.ok) && <ResponsibleUse />}
       <ApiBlock datasetRef={ref} />
     </main>
   );

@@ -189,7 +189,7 @@ jobs:
         run: npm run test:e2e
       - name: Light load test (k6, 20 VUs on /kpis + /query, p95 < 1.5 s) on a second 512 MB container
         run: |
-          # Its own container: the anonymous rate limit (300/min per IP) would otherwise answer
+          # Its own container: the anonymous rate limit (1200/min per IP) would otherwise answer
           # 429 to 20 users sharing the runner's IP. Same image, same memory limit.
           docker run -d --name api-load --memory=512m --memory-swap=512m -p 8001:8000 \
             -e RATE_LIMIT_ANONYMOUS=1000000 -e RATE_LIMIT_HEAVY_ANONYMOUS=1000000 civiclens-api

@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import { FeedbackButton } from "./FeedbackButton";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { LifecycleNav } from "./LifecycleNav";
 
@@ -27,6 +28,7 @@ export function Header() {
         </Link>
         <LifecycleNav />
         <div className="flex flex-wrap items-center gap-3">
+          <FeedbackButton />
           <LanguageSwitcher />
           <Link
             href="/developers"

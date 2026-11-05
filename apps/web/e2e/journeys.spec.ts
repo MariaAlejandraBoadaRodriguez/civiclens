@@ -18,6 +18,29 @@ for (const lang of LANGS) {
       await expect(page.getByText(m.ingest.score.title).first()).toBeVisible();
     });
 
+    test("pre-launch: citizen use cases, feedback on every page, responsible-use notices", async ({ page }) => {
+      await page.goto(`/${lang}`);
+      await expect(page.getByRole("heading", { level: 1, name: m.landing.title })).toBeVisible();
+      await expect(page.getByTestId("use-case")).toHaveCount(3);
+      await expect(page.getByTestId("any-data-card")).toBeVisible(); // "Try any data" stays
+      await expect(page.getByTestId("engine-ready")).toBeVisible({ timeout: 30_000 });
+      for (const path of ["", "/datasets/secop_co", "/datasets/secop_co/sql", "/developers"]) {
+        await page.goto(`/${lang}${path}`);
+        const feedback = page.getByRole("link", { name: new RegExp(m.common.feedback.button) });
+        await expect(feedback).toBeVisible();
+        const href = new URL((await feedback.getAttribute("href")) as string);
+        expect(href.searchParams.get("template")).toBe("feedback.yml");
+        expect(href.searchParams.get("page")).toBe(`/${lang}${path}`);
+      }
+      // The first use case opens the red flags, which carry the responsible-use notice.
+      await page.goto(`/${lang}`);
+      await page.getByRole("link", { name: new RegExp(m.landing.useCases.secondLook.title) }).click();
+      await expect(page).toHaveURL(new RegExp(`/${lang}/datasets/secop_co/ml$`));
+      await expect(page.getByTestId("responsible-use")).toContainText(m.common.responsible.verify, { timeout: 150_000 });
+      await page.goto(`/${lang}/datasets/contracts_ca/dashboard?scope=all`);
+      await expect(page.getByTestId("responsible-use")).toContainText(m.common.responsible.leads);
+    });
+
     test("upload a file → its profile", async ({ page, browserConsole }) => {
       await page.goto(`/${lang}/datasets/secop_co`);
       const rows = Array.from({ length: 40 }, (_, i) => `C-${i};Entidad ${i % 4};Proveedor ${i % 7};2024-0${(i % 9) + 1}-15;${1000 + i},50`);

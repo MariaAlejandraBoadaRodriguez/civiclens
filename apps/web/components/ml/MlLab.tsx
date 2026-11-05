@@ -6,6 +6,7 @@ import { Contributions } from "@/components/ml/Contributions";
 import { ForecastChart } from "@/components/ml/ForecastChart";
 import { ModelCard } from "@/components/ml/ModelCard";
 import { Alert } from "@/components/ui/Alert";
+import { ResponsibleUse } from "@/components/ui/ResponsibleUse";
 import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
 import { Button } from "@/components/ui/Button";
 import { KpiTile } from "@/components/ui/KpiTile";
@@ -101,6 +102,7 @@ function RedFlags({ datasetRef, initial }: { datasetRef: string; initial: RedFla
   const explained = result.items.find((i) => i.rank === selected && i.contributions) ?? result.items[0];
   return (
     <div className="flex flex-wrap items-start gap-5">
+      <ResponsibleUse className="w-full" />
       <ModelCard
         card={result.card}
         id="card-red-flags"

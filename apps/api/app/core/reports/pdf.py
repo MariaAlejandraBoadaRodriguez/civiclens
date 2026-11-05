@@ -49,6 +49,27 @@ def latin1(text: Any) -> str:
     return "".join(out)
 
 
+def responsible_pdf(pdf: Any, notice: dict[str, Any], width: float) -> None:
+    """The responsible-use box (flags are leads, verify the source, data as published)."""
+    pdf.set_fill_color(*FLAG_TINT)
+    pdf.set_text_color(*FLAG_TEXT)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.multi_cell(width, 6, latin1(notice["heading"]), fill=True, new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", size=9)
+    for item in notice["items"]:
+        pdf.multi_cell(width, 5, latin1(f"-  {item}"), fill=True, new_x="LMARGIN", new_y="NEXT")
+    pdf.multi_cell(
+        width,
+        5,
+        latin1(f"{notice['guide']}: {notice['url']}"),
+        fill=True,
+        link=notice["url"],
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
+    pdf.ln(2)
+
+
 def render(ctx: dict[str, Any]) -> bytes:
     from fpdf import FPDF  # imported here: only report requests pay for it
 
@@ -101,6 +122,8 @@ def render(ctx: dict[str, Any]) -> bytes:
     para(texts["summary"])
     pdf.ln(1)
     para(texts["quality"])
+    pdf.ln(2)
+    responsible_pdf(pdf, ctx["responsible"], width)
 
     # KPI tiles, three per row
     heading(t("reports.kpis.heading"))
