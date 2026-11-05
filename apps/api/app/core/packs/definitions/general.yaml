@@ -1,0 +1,25 @@
+# General: the fallback for any table. No roles: the generic analysis (generated questions,
+# column KPIs, target model, anomalies, segments, trends) covers everything.
+id: general
+order: 99
+engine: generic
+detect:
+  base_score: 0.3
+roles: []
+goals:
+  - id: explore
+    default: true
+kpis: []
+questions: []
+ml:
+  - objective: target_model
+    goals: [explore]
+  - objective: anomalies
+    goals: [explore]
+  - objective: segments
+    goals: [explore]
+  - objective: forecast
+    goals: [explore]
+layout:
+  kpis: []
+  sections: [quality, distributions, segments, drivers, trends, outliers]

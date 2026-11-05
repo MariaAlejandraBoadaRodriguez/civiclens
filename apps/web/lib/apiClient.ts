@@ -18,7 +18,7 @@ export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiFailur
 
 type Options = {
   locale: string;
-  method?: "GET" | "POST" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   /** Base URL; "" calls this web app's own route handlers (e.g. the admin console's). */
   base?: string;
   json?: unknown;

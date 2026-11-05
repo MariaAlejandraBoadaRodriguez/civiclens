@@ -7,7 +7,10 @@ Modes:
          issues, a recipe preview for every option of every issue, apply the recommended
          recipe (job), star schema, the 12 guided queries, KPIs, both models (jobs), the
          executive report (HTML EN + ES, PDF), the BI export and the dashboard (one dataset and
-         all three, every period).
+         all three, every period). With --fixtures, also every acceptance fixture (any kind of
+         table): upload, ingest, apply the recommended recipe, the table `data`, every generated
+         question (each must return rows), KPIs, the domain step and BI export; procurement-only
+         views must answer 409, never 5xx.
          Used by CI against the Docker image limited to 512 MB.
   smoke  /health and one recipe preview per seed. Used after each production deploy.
 
@@ -16,6 +19,7 @@ fails the run. Exit code 0 = all good.
 
 Usage:
   python scripts/flow_check.py --base http://127.0.0.1:8000 --mode full --files data/demo
+  python scripts/flow_check.py --base http://127.0.0.1:8000 --mode full --fixtures data/fixtures
   python scripts/flow_check.py --base https://civiclens-api.onrender.com --mode smoke \\
       --origin https://civiclens-eosin.vercel.app
 """
@@ -52,16 +56,23 @@ class Client:
             headers["Content-Type"] = content_type
         if self.origin:
             headers["Origin"] = self.origin
-        req = urllib.request.Request(self.base + path, data=data, method=method, headers=headers)
-        self.calls += 1
-        started = time.perf_counter()
-        try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as res:  # noqa: S310
-                status, payload, hdrs = res.status, res.read(), res.headers
-        except urllib.error.HTTPError as exc:
-            status, payload, hdrs = exc.code, exc.read(), exc.headers
-        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
-            raise FlowError(f"{method} {path}: no answer ({exc}) — did the instance restart?") from exc
+        for attempt in range(4):
+            req = urllib.request.Request(self.base + path, data=data, method=method, headers=headers)
+            self.calls += 1
+            started = time.perf_counter()
+            try:
+                with urllib.request.urlopen(req, timeout=self.timeout) as res:  # noqa: S310
+                    status, payload, hdrs = res.status, res.read(), res.headers
+            except urllib.error.HTTPError as exc:
+                status, payload, hdrs = exc.code, exc.read(), exc.headers
+            except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+                raise FlowError(f"{method} {path}: no answer ({exc}) — did the instance restart?") from exc
+            if status != 429 or 429 in ok or attempt == 3:
+                break
+            # The API's per-minute rate limit (heavy routes): wait as told, like a real client.
+            wait = min(float(hdrs.get("retry-after") or 30), 65)
+            log(f"    rate limited on {method} {path}: waiting {wait:.0f} s")
+            time.sleep(wait)
         ms = int((time.perf_counter() - started) * 1000)
         if status >= 500:
             raise FlowError(f"{method} {path}: HTTP {status} after {ms} ms: {payload[:300]!r}")
@@ -176,6 +187,43 @@ def full(c: Client, files: Path | None) -> None:
     log("  dashboard across the three jurisdictions OK")
 
 
+FIXTURE_SUFFIXES = (".csv", ".xlsx", ".json")
+
+
+def any_dataset(c: Client, folder: Path) -> None:
+    """Every stage on files that are not procurement data (owner requirement: any table)."""
+    for path in sorted(p for p in folder.iterdir() if p.suffix in FIXTURE_SUFFIXES):
+        t0 = time.perf_counter()
+        ds = upload(c, path)
+        c.get(f"/api/v1/datasets/{ds}/profile")
+        data = c.get(f"/api/v1/datasets/{ds}/issues")
+        previews(c, path.name, data, every_option=False)
+        job = c.post(f"/api/v1/datasets/{ds}/recipes/apply",
+                     {"recipe": {"name": f"ci-{path.stem}", "steps": recommended(data["issues"])}},
+                     ok=(202,))
+        c.wait_job(job, f"apply recipe {path.name}")
+        schema = c.get(f"/api/v1/datasets/{ds}/schema")
+        if not schema["data_columns"] or schema["tables"][0]["name"] != "data":
+            raise FlowError(f"{path.name}: no table data")
+        guided = c.get(f"/api/v1/guided-queries?dataset_id={ds}")["items"]
+        if len(guided) < 5:
+            raise FlowError(f"{path.name}: only {len(guided)} generated questions")
+        for q in guided:
+            if not c.post("/api/v1/query", {"dataset_id": ds, "sql": q["sql"]})["rows"]:
+                raise FlowError(f"{path.name}: question {q['query_id']} returned no rows")
+        kpis = c.get(f"/api/v1/kpis/{ds}")["items"]
+        if len(kpis) < 5 or any(k["value"] is None for k in kpis):
+            raise FlowError(f"{path.name}: KPIs missing or empty")
+        domain = c.get(f"/api/v1/datasets/{ds}/domain")
+        if not c.get(f"/api/v1/datasets/{ds}/export?format=parquet").startswith(b"PK"):
+            raise FlowError(f"export {path.name}: zip expected")
+        if domain["pack"] != "government":  # views not generic yet: a clear 409, not a 5xx
+            c.get(f"/api/v1/dashboard?dataset_id={ds}", ok=(409,))
+            c.get(f"/api/v1/reports/{ds}", ok=(409,))
+        log(f"  {path.name}: {len(schema['data_columns'])} columns, {len(guided)} questions, "
+            f"{len(kpis)} KPIs, domain {domain['pack']} ({time.perf_counter() - t0:.0f} s)")
+
+
 def smoke(c: Client) -> None:
     for slug in SEEDS:
         data = c.get(f"/api/v1/datasets/{slug}/issues")
@@ -188,6 +236,8 @@ def main(argv: list[str]) -> int:
     p.add_argument("--base", required=True, help="API base URL")
     p.add_argument("--mode", choices=("full", "smoke"), default="full")
     p.add_argument("--files", type=Path, help="Folder with the dirty demo files (full mode)")
+    p.add_argument("--fixtures", type=Path,
+                   help="Folder of acceptance fixtures (any kind of table) to run end to end")
     p.add_argument("--origin", help="Web origin whose CORS header every answer must carry")
     p.add_argument("--lang", default="en")
     p.add_argument("--wait", type=float, default=0, help="Seconds to wait for /health first")
@@ -208,7 +258,14 @@ def main(argv: list[str]) -> int:
     log(f"health OK: {health}")
     started = time.perf_counter()
     try:
-        smoke(c) if args.mode == "smoke" else full(c, args.files)
+        if args.mode == "smoke":
+            smoke(c)
+        elif args.fixtures is not None and args.files is None:
+            any_dataset(c, args.fixtures)
+        else:
+            full(c, args.files)
+            if args.fixtures is not None:
+                any_dataset(c, args.fixtures)
     except FlowError as exc:
         log(f"FAIL after {c.calls} calls: {exc}")
         return 1

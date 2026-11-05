@@ -234,6 +234,7 @@ LOCALIZED = {
     "question",
     "explanation",
     "label",
+    "kind_label",
     "what",
     "why",
     "learn_more",
@@ -271,7 +272,8 @@ def _machine(value: Any) -> Any:
         ("/api/v1/datasets/contracts_qc", True),
         ("/api/v1/datasets/contracts_qc/profile", True),
         ("/api/v1/datasets/contracts_qc/issues", True),
-        ("/api/v1/datasets/contracts_qc/schema", False),  # machine data only
+        ("/api/v1/datasets/contracts_qc/schema", True),  # column kind labels
+        ("/api/v1/datasets/contracts_qc/domain", True),
         ("/api/v1/guided-queries", True),
         ("/api/v1/kpis/contracts_qc", True),
         ("/api/v1/datasets/nope", True),

@@ -1,0 +1,93 @@
+# Paquetes de dominio: nombres, objetivos, roles semánticos, KPI y preguntas seleccionadas.
+# Los textos de las preguntas reciben los encabezados de las columnas asignadas como {rol}.
+general:
+  name: General
+  description: Cualquier tabla. El análisis se genera a partir de las propias columnas.
+  goals:
+    explore: Explorar los datos
+  roles: {}
+government:
+  name: Gobierno / contratación pública
+  description: Contratos con una entidad compradora, un proveedor, un valor y fechas. Agrega el modelo estrella de contratación, alertas y KPI de gasto.
+  goals:
+    spend_overview: Panorama del gasto
+    integrity: Integridad y alertas
+    concentration: Concentración de proveedores
+  roles:
+    contract_id: ID del contrato
+    entity_name: Entidad compradora
+    supplier_name: Proveedor
+    signed_date: Fecha de firma
+    amount_original: Valor del contrato
+    currency: Moneda
+    award_type: Modalidad de contratación
+    n_bidders: Número de oferentes
+banking:
+  name: Banca / crédito
+  description: Préstamos o clientes con montos, plazos y una marca de incumplimiento (crédito malo). Agrega KPI y preguntas de riesgo de crédito y una revisión de equidad.
+  goals:
+    credit_risk: Riesgo de crédito
+    portfolio: Cartera
+    credit_profiling: Perfilamiento crediticio
+  roles:
+    client_id: ID del cliente
+    loan_amount: Monto del préstamo
+    balance: Saldo / exposición
+    days_past_due: Días de mora
+    default_flag: Marca de incumplimiento
+    product: Producto / propósito
+    duration: Plazo / duración
+    income: Ingresos
+    date: Fecha
+    age: Edad
+    sex: Sexo / género
+    marital_status: Estado civil
+    nationality: Nacionalidad
+  kpis:
+    default_rate:
+      name: Tasa de incumplimiento
+      definition: Porcentaje de préstamos cuya marca de incumplimiento toma su valor positivo (malo).
+    total_exposure:
+      name: Exposición total
+      definition: Suma del saldo (o del monto del préstamo cuando no hay saldo).
+    avg_loan:
+      name: Préstamo promedio
+      definition: Monto medio de los préstamos.
+    avg_duration:
+      name: Plazo promedio
+      definition: Plazo o duración media de los préstamos, en la unidad del archivo.
+    past_due_share:
+      name: Mora mayor a 30 días
+      definition: Porcentaje de préstamos con más de 30 días de mora.
+    clients:
+      name: Clientes
+      definition: Número de ID de cliente distintos.
+  questions:
+    default_rate_by_product:
+      title: Tasa de incumplimiento por {product}
+      question: ¿Qué valores de {product} incumplen más?
+      explanation: Préstamos y tasa de incumplimiento ({default_flag}) por {product}, de la mayor a la menor.
+    default_rate_by_amount_band:
+      title: Tasa de incumplimiento por tramo de {loan_amount}
+      question: ¿Los préstamos más grandes incumplen más?
+      explanation: Divide {loan_amount} en cinco tramos del mismo tamaño (quintiles) y muestra la tasa de incumplimiento de cada uno.
+    default_rate_by_duration_band:
+      title: Tasa de incumplimiento por tramo de {duration}
+      question: ¿Los plazos más largos incumplen más?
+      explanation: Divide {duration} en cuatro tramos del mismo tamaño (cuartiles) y muestra la tasa de incumplimiento de cada uno.
+    exposure_by_product:
+      title: Exposición por {product}
+      question: ¿Dónde está prestado el dinero?
+      explanation: Total de {loan_amount} y su participación por {product}.
+    past_due_buckets:
+      title: Tramos de mora
+      question: ¿Qué tan atrasados están los pagos?
+      explanation: Préstamos por tramo de {days_past_due} (al día, 1–30, 31–60, 61–90, más de 90 días).
+    default_rate_by_age_band:
+      title: Tasa de incumplimiento por rango de edad
+      question: ¿La tasa de incumplimiento cambia según {age}?
+      explanation: Tasa de incumplimiento por rango de edad. La edad es un atributo sensible; úsalo para revisar la equidad, no para decidir sobre una persona.
+    default_rate_by_sex:
+      title: Tasa de incumplimiento por {sex}
+      question: ¿La tasa de incumplimiento cambia según {sex}?
+      explanation: Tasa de incumplimiento por grupo. El sexo/género es un atributo sensible; las diferencias exigen una revisión de equidad, no usarlo en las decisiones.

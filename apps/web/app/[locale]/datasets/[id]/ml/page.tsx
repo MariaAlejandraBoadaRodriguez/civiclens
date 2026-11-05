@@ -39,7 +39,13 @@ export default async function MlPage({ params: { locale, id } }: Params) {
   const notReady =
     !redFlags.ok && redFlags.kind === "problem" && redFlags.problem.code === "dataset.not_ready";
 
-  if (!dataset.ok || notReady) {
+  // The current models need procurement data; other files get the generic models in a later PR.
+  const procurementOnly =
+    !redFlags.ok && redFlags.kind === "problem" && redFlags.problem.code === "domain.procurement_only"
+      ? redFlags.problem
+      : null;
+
+  if (!dataset.ok || notReady || procurementOnly) {
     return (
       <main id="main" className="mx-auto flex max-w-container flex-col gap-6 px-6 pb-12 pt-8">
         {heading}
@@ -53,6 +59,13 @@ export default async function MlPage({ params: { locale, id } }: Params) {
             <SkeletonGroup lines={5} />
             <AutoRefresh seconds={3} />
           </Card>
+        )}
+        {dataset.ok && procurementOnly && (
+          <EmptyState
+            title={procurementOnly.title}
+            body={procurementOnly.detail}
+            action={<ButtonLink href={`/datasets/${ref}/sql`}>{t("openSql")}</ButtonLink>}
+          />
         )}
         {!dataset.ok && dataset.kind === "problem" && (
           <EmptyState

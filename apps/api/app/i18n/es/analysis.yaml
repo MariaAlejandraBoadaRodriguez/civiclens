@@ -1,0 +1,89 @@
+# Análisis genérico de cualquier tabla: tipos de columna, preguntas SQL generadas y KPI.
+kinds:
+  number: Número
+  integer: Número entero
+  boolean: Sí / no
+  date: Fecha
+  datetime: Fecha y hora
+  category: Categoría
+  text: Texto libre
+  identifier: Identificador
+grain:
+  year: año
+  month: mes
+  day: día
+questions:
+  completeness:
+    title: ¿Qué tan completa está cada columna?
+    question: ¿Cuántas de las {rows} filas tienen un valor en cada columna?
+    explanation: Cuenta los valores presentes y faltantes por columna, del peor al mejor. Los faltantes limitan lo que dicen los gráficos y modelos posteriores.
+  category_counts:
+    title: Filas por {column}
+    question: ¿Cómo se reparten las filas entre los valores de {column}?
+    explanation: Agrupa las filas por {column} y muestra el conteo y la participación de cada valor.
+  target_rate:
+    title: Tasa de {target} por {column}
+    question: ¿Qué valores de {column} tienen la mayor tasa de {target}?
+    explanation: Convierte {target} en 1 (positivo) o 0 y lo promedia por cada valor de {column}; se omiten los grupos con menos de 5 filas.
+  numeric_summary:
+    title: Resumen de las columnas numéricas
+    question: ¿Cuáles son los valores típicos y la dispersión de {columns}?
+    explanation: Mínimo, cuartiles, mediana, máximo, media y desviación estándar de cada cantidad.
+  distribution:
+    title: Distribución de {column}
+    question: ¿Cómo se distribuyen los valores de {column}?
+    explanation: Divide el rango de {column} en 10 tramos de igual ancho y cuenta las filas de cada uno (un histograma).
+  category_numeric:
+    title: "{metric} por {column}"
+    question: ¿Cómo se compara {metric} entre los valores de {column}?
+    explanation: Promedio, mediana y total de {metric} por cada valor de {column}, del mayor total al menor.
+  top_segments:
+    title: Segmentos con más {metric}
+    question: ¿Qué combinaciones de {columns} suman más {metric}?
+    explanation: Agrupa por {columns} y ordena los grupos (de al menos 3 filas) por el total de {metric}.
+  bottom_segments:
+    title: Segmentos con menos {metric}
+    question: ¿Qué combinaciones de {columns} suman menos {metric}?
+    explanation: La misma agrupación de los segmentos principales, ordenada desde el menor total.
+  category_cross:
+    title: "{column} × {other}"
+    question: ¿Qué combinaciones de {column} y {other} son las más frecuentes?
+    explanation: Cuenta las filas de cada par de valores de las dos categorías.
+  time_trend:
+    title: Tendencia en el tiempo ({date})
+    question: ¿Cómo cambian las filas por {grain} de {date}?
+    explanation: Trunca {date} al {grain} y cuenta las filas (y suma la cantidad principal, si existe) por periodo.
+  outliers:
+    title: Valores atípicos en {columns}
+    question: ¿Cuántos valores de {columns} son inusualmente bajos o altos?
+    explanation: Marca los valores a más de 1,5 × el rango intercuartílico por debajo del primer cuartil o por encima del tercero (regla de Tukey).
+  correlations:
+    title: Correlaciones entre cantidades
+    question: ¿Qué pares de {columns} se mueven juntos?
+    explanation: Correlación de Pearson de cada par, de la más fuerte a la más débil (+1 juntos, −1 opuestos, 0 sin relación). Correlación no es causalidad.
+  identifier_duplicates:
+    title: ¿{column} es único?
+    question: ¿Algún valor de {column} aparece más de una vez?
+    explanation: Compara los valores presentes con los distintos y muestra el más repetido. Un identificador debería ser único; los repetidos pueden ser filas duplicadas o una columna que en realidad no identifica.
+kpis:
+  rows:
+    name: Filas
+    definition: Número de filas de la tabla de análisis.
+  columns:
+    name: Columnas
+    definition: Número de columnas de la tabla de análisis.
+  completeness:
+    name: Completitud
+    definition: Porcentaje de celdas que tienen un valor.
+  quality_score:
+    name: Puntaje de calidad
+    definition: El puntaje de calidad de los datos (0–100) después de la limpieza.
+  mean:
+    name: Promedio de {column}
+    definition: Media de {column} sobre las filas que tienen un valor.
+  distinct:
+    name: Valores distintos de {column}
+    definition: Número de valores diferentes de {column}.
+  rate:
+    name: Tasa de {column}
+    definition: Porcentaje de filas en que {column} toma su valor positivo.

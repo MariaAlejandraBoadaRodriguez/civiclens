@@ -1,0 +1,89 @@
+# Generic analysis of any table: column kinds, generated SQL questions and column KPIs.
+kinds:
+  number: Number
+  integer: Whole number
+  boolean: Yes / no
+  date: Date
+  datetime: Date and time
+  category: Category
+  text: Free text
+  identifier: Identifier
+grain:
+  year: year
+  month: month
+  day: day
+questions:
+  completeness:
+    title: How complete is each column?
+    question: How many of the {rows} rows have a value in each column?
+    explanation: Counts filled and missing values per column, worst first. Missing values reduce what every later chart and model can say.
+  category_counts:
+    title: Rows per {column}
+    question: How are the rows distributed across {column}?
+    explanation: Groups the rows by {column} and shows each value's count and share of the total.
+  target_rate:
+    title: "{target} rate by {column}"
+    question: Which {column} values have the highest {target} rate?
+    explanation: Turns {target} into 1 (positive) or 0 and averages it per {column} value; groups with fewer than 5 rows are left out.
+  numeric_summary:
+    title: Summary of the numeric columns
+    question: What are the typical values and the spread of {columns}?
+    explanation: Minimum, quartiles, median, maximum, mean and standard deviation of each quantity.
+  distribution:
+    title: Distribution of {column}
+    question: How are the values of {column} spread?
+    explanation: Splits the range of {column} into 10 equal-width buckets and counts the rows in each (a histogram).
+  category_numeric:
+    title: "{metric} by {column}"
+    question: How does {metric} compare across {column}?
+    explanation: Average, median and total of {metric} for each {column} value, largest total first.
+  top_segments:
+    title: Top segments by {metric}
+    question: Which combinations of {columns} add up to the most {metric}?
+    explanation: Groups by {columns} and ranks the groups (at least 3 rows) by total {metric}.
+  bottom_segments:
+    title: Bottom segments by {metric}
+    question: Which combinations of {columns} add up to the least {metric}?
+    explanation: The same grouping as the top segments, ranked from the smallest total.
+  category_cross:
+    title: "{column} × {other}"
+    question: Which combinations of {column} and {other} are most frequent?
+    explanation: Counts the rows for each pair of values of the two categories.
+  time_trend:
+    title: Trend over {date}
+    question: How do the rows change per {grain} of {date}?
+    explanation: Truncates {date} to the {grain} and counts the rows (and totals the main quantity, if any) per period.
+  outliers:
+    title: Outliers in {columns}
+    question: How many values of {columns} are unusually low or high?
+    explanation: Flags values more than 1.5 × the interquartile range below the first or above the third quartile (Tukey's rule).
+  correlations:
+    title: Correlations between quantities
+    question: Which pairs of {columns} move together?
+    explanation: Pearson correlation of every pair, strongest first (+1 together, −1 opposite, 0 unrelated). Correlation is not causation.
+  identifier_duplicates:
+    title: Is {column} unique?
+    question: Does any value of {column} appear more than once?
+    explanation: Compares filled and distinct values and shows the most repeated one. An identifier should be unique; repeats may be duplicated rows or a column that is not really an identifier.
+kpis:
+  rows:
+    name: Rows
+    definition: Number of rows in the analysis table.
+  columns:
+    name: Columns
+    definition: Number of columns in the analysis table.
+  completeness:
+    name: Completeness
+    definition: Share of cells that have a value.
+  quality_score:
+    name: Quality score
+    definition: The data quality score (0–100) after cleaning.
+  mean:
+    name: Average {column}
+    definition: Mean of {column} over the rows that have a value.
+  distinct:
+    name: Distinct {column} values
+    definition: Number of different values of {column}.
+  rate:
+    name: "{column} rate"
+    definition: Share of rows where {column} takes its positive value.

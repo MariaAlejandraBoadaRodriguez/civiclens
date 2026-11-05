@@ -327,24 +327,110 @@ paths:
     get:
       tags: [sql]
       operationId: getStarSchema
-      summary: Star schema of a dataset
+      summary: Analysis model of a dataset
       description: |
-        Tables (`fact_contract` + 5 dimensions), columns, types and row counts. Built on first use
-        from the cleaned layer; when no recipe was applied yet, from the staged layer with the
-        recommended recipe (`origin: recommended`).
+        Every dataset has the table `data`: the cleaned columns of the file, typed, with safe
+        snake_case names (`data_columns` gives each one's header, kind, SQL type and examples).
+        Procurement data (Government pack) also gets the star schema (`fact_contract` + 5
+        dimensions). Built on first use from the cleaned layer; when no recipe was applied yet,
+        from the staged layer with the recommended recipe (`origin: recommended`).
       security: [{}, ApiKey: []]
-      x-user-stories: [US-15, US-16]
+      x-user-stories: [US-15, US-16, US-28]
       parameters:
         - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
       responses:
         "200":
-          description: Star schema.
+          description: Tables, columns and the active domain pack.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/StarSchema"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/v1/datasets/{dataset_id}/domain:
+    get:
+      tags: [datasets]
+      operationId: getDomain
+      summary: Domain pack, goal and column roles
+      description: |
+        The active domain pack (the user's choice, else CivicLens's suggestion), its analysis
+        goal and the mapping of its semantic roles to the file's columns, each with a confidence;
+        plus every pack with its fit score, the pack catalog and the columns to choose from.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-29]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+      responses:
+        "200":
+          description: The domain choice.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Domain"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    put:
+      tags: [datasets]
+      operationId: setDomain
+      summary: Confirm or change the domain pack and roles
+      description: |
+        Stores the user's pack, goal and role mapping (omit `roles` to accept the suggestion).
+        Roles that are not mapped drop the pack items that need them; the generic analysis
+        stays. Switching to or from the Government pack rebuilds the model in a background job
+        (`job`); any other change applies at once. Sample datasets keep their domain (409).
+        Needs `recipes:write` with an API key.
+      security: [{}, ApiKey: []]
+      x-user-stories: [US-29]
+      parameters:
+        - $ref: "#/components/parameters/DatasetId"
+        - $ref: "#/components/parameters/AcceptLanguage"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainChoice"
+      responses:
+        "200":
+          description: The stored choice.
+          headers:
+            Content-Language:
+              $ref: "#/components/headers/ContentLanguage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Domain"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -560,11 +646,24 @@ paths:
       tags: [sql]
       operationId: listGuidedQueries
       summary: Guided query library
-      description: The 12 guided business questions with SQL (identical in every language) and localized explanations.
+      description: |
+        Guided questions with SQL (identical in every language) and localized explanations.
+        With `dataset_id`: the questions for that file — the domain pack's curated questions (its
+        goal's first), then questions generated from the file's own columns (counts, rates,
+        summaries, distributions, segments, trends, outliers, correlations), plus the 12
+        procurement questions for procurement data. Without it: the 12 procurement questions.
       security: [{}, ApiKey: []]
-      x-user-stories: [US-15]
+      x-user-stories: [US-15, US-28, US-29]
       parameters:
         - $ref: "#/components/parameters/AcceptLanguage"
+        - name: dataset_id
+          in: query
+          required: false
+          description: Dataset UUID or seed slug.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
       responses:
         "200":
           description: Guided queries.
@@ -585,6 +684,12 @@ paths:
                     $ref: "#/components/schemas/Guardrails"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
         "429":
           $ref: "#/components/responses/TooManyRequests"
 
@@ -594,10 +699,12 @@ paths:
       operationId: getKpis
       summary: KPIs for a dataset
       description: |
-        Values from the KPI catalog (stable `kpi_id`) with localized names and definitions.
-        Monetary KPIs are in CAD (each amount converted with the rate of its signed month).
+        Values with a stable `kpi_id` and localized names and definitions. Procurement data: the
+        KPI catalog, monetary KPIs in CAD (each amount converted with the rate of its signed
+        month). Any other data: the domain pack's KPIs (`<pack>.<id>`) whose roles are mapped,
+        then KPIs of the table itself (`generic.*`: rows, completeness, means, rates …).
       security: [{}, ApiKey: []]
-      x-user-stories: [US-17, US-22, US-23, US-25]
+      x-user-stories: [US-17, US-22, US-23, US-25, US-28]
       parameters:
         - $ref: "#/components/parameters/DatasetId"
         - $ref: "#/components/parameters/AcceptLanguage"
@@ -838,6 +945,7 @@ paths:
         CAD. Several datasets are combined exactly (one HHI over every supplier, one median).
         `12m` is each dataset's last 12 months of data; `fy` its last fiscal year holding at
         least 10 % of its contracts (Colombia: calendar year; Canada and Québec: April–March).
+        Procurement data only for now: other datasets answer 409 `domain.procurement_only`.
       security: [{}, ApiKey: []]
       x-user-stories: [US-22, US-23]
       parameters:
@@ -940,8 +1048,10 @@ paths:
     get:
       tags: [sql]
       operationId: exportStarSchema
-      summary: Star schema for Power BI / Tableau
-      description: A zip with one CSV or Parquet file per star-schema table and a README.
+      summary: Analysis model for Power BI / Tableau
+      description: |
+        A zip with one CSV or Parquet file per table of the model and a README: `data` for every
+        dataset, plus the star-schema tables for procurement data.
       security: [{}, ApiKey: []]
       x-user-stories: [US-23]
       parameters:
@@ -1784,11 +1894,20 @@ components:
           type: string
         explanation:
           type: string
-        concepts:
+        source:
+          type: string
+          description: "`generic` (generated from the columns) or the domain pack it comes from."
+          example: banking
+        goals:
           type: array
+          description: Analysis goals of the pack this question serves first.
           items:
             type: string
-            enum: [join, cte, window_function, aggregation, subquery]
+        concepts:
+          type: array
+          description: SQL concepts the query shows (e.g. `join`, `cte`, `GROUP BY`).
+          items:
+            type: string
 
     Kpi:
       type: object
@@ -1796,20 +1915,24 @@ components:
       properties:
         kpi_id:
           type: string
-          enum: [total_spend, contract_count, avg_value, median_value, direct_award_share, hhi, single_bidder_share, yoy_growth, quality_score]
+          description: |
+            Procurement catalog id (`total_spend`, `contract_count`, `avg_value`, `median_value`,
+            `direct_award_share`, `hhi`, `single_bidder_share`, `yoy_growth`, `quality_score`),
+            a pack KPI (`banking.default_rate`) or a table KPI (`generic.mean.<column>`).
+          example: total_spend
         value:
           type: [number, "null"]
         unit:
           type: string
-          enum: [currency, count, ratio, index, score]
+          enum: [currency, amount, number, count, ratio, index, score]
         currency:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/Currency"
         owner:
           type: string
-          description: Team accountable for the definition.
-          enum: [finance, procurement, audit, data]
+          description: Team accountable for the definition, or the domain pack that defines it.
+          example: finance
         name:
           type: string
         definition:
@@ -1962,8 +2085,15 @@ components:
 
     StarSchema:
       type: object
-      required: [dataset_id, origin, tables, guardrails]
+      required: [dataset_id, origin, tables, guardrails, data_columns, domain]
       properties:
+        data_columns:
+          type: array
+          description: The columns of table `data`, in file order.
+          items:
+            $ref: "#/components/schemas/DataColumn"
+        domain:
+          $ref: "#/components/schemas/ActiveDomain"
         dataset_id:
           type: string
           format: uuid
@@ -1979,10 +2109,10 @@ components:
             properties:
               name:
                 type: string
-                enum: [fact_contract, dim_entity, dim_supplier, dim_date, dim_category, dim_currency]
+                enum: [data, fact_contract, dim_entity, dim_supplier, dim_date, dim_category, dim_currency]
               role:
                 type: string
-                enum: [fact, dimension]
+                enum: [data, fact, dimension]
               rows:
                 type: integer
               columns:
@@ -1995,6 +2125,222 @@ components:
                       type: string
                     type:
                       type: string
+
+    DataColumn:
+      type: object
+      required: [name, source, kind, kind_label, sql_type, binary, nulls, distinct, examples]
+      properties:
+        name:
+          type: string
+          description: Safe SQL name in table `data`.
+          example: emp_var_rate
+        source:
+          type: string
+          description: The header as written in the file (never translated).
+          example: emp.var.rate
+        kind:
+          $ref: "#/components/schemas/ColumnKind"
+        kind_label:
+          type: string
+          description: Localized name of the kind.
+        sql_type:
+          type: string
+          enum: [DOUBLE, BIGINT, BOOLEAN, DATE, TIMESTAMP, VARCHAR]
+        binary:
+          type: boolean
+          description: Exactly two values (yes/no, 0/1).
+        nulls:
+          type: integer
+        distinct:
+          type: integer
+        examples:
+          type: array
+          items:
+            type: string
+
+    ColumnKind:
+      type: string
+      enum: [number, integer, boolean, date, datetime, category, text, identifier]
+
+    ActiveDomain:
+      type: object
+      required: [pack, goal, roles, confirmed, engine]
+      properties:
+        pack:
+          type: string
+          example: banking
+        goal:
+          type: string
+          example: credit_risk
+        confirmed:
+          type: boolean
+          description: false while CivicLens's suggestion has not been confirmed by the user.
+        engine:
+          type: string
+          enum: [generic, procurement_star]
+        roles:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/RoleMapping"
+
+    RoleMapping:
+      type: object
+      required: [column]
+      properties:
+        column:
+          type: string
+          description: Column of table `data`.
+        source:
+          type: string
+          description: Its header as written in the file.
+        confidence:
+          type: [number, "null"]
+          minimum: 0
+          maximum: 1
+          description: How sure the automatic match is (1 = chosen by the user).
+        positive:
+          type: [string, "null"]
+          description: Target roles only — the value that means "it happened" (default, converted …).
+
+    Domain:
+      type: object
+      required: [dataset_id, pack, goal, confirmed, roles, suggestions, packs, columns, job]
+      properties:
+        dataset_id:
+          type: string
+          format: uuid
+        pack:
+          type: string
+        goal:
+          type: string
+        confirmed:
+          type: boolean
+        roles:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/RoleMapping"
+        suggestions:
+          type: array
+          description: Every pack with its fit score (0–1), best first; General is the floor (0.3).
+          items:
+            type: object
+            required: [pack, score, name]
+            properties:
+              pack:
+                type: string
+              score:
+                type: number
+              name:
+                type: string
+        packs:
+          type: array
+          items:
+            type: object
+            required: [id, name, description, goals, roles]
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              goals:
+                type: array
+                items:
+                  type: object
+                  required: [id, name, default]
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    default:
+                      type: boolean
+              roles:
+                type: array
+                items:
+                  type: object
+                  required: [id, name, kinds, key, target, sensitive]
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    kinds:
+                      type: array
+                      description: Column kinds the role accepts; `binary` means any two-valued column.
+                      items:
+                        type: string
+                        enum: [number, integer, boolean, date, datetime, category, text, identifier, binary]
+                    key:
+                      type: boolean
+                    target:
+                      type: boolean
+                    sensitive:
+                      type: boolean
+                      description: Age, sex/gender, marital status, nationality — used only for fairness checks.
+        columns:
+          type: array
+          items:
+            type: object
+            required: [name, source, kind, kind_label, binary, examples, top]
+            properties:
+              binary:
+                type: boolean
+              name:
+                type: string
+              source:
+                type: string
+              kind:
+                $ref: "#/components/schemas/ColumnKind"
+              kind_label:
+                type: string
+              examples:
+                type: array
+                items:
+                  type: string
+              top:
+                type: array
+                description: Most frequent values (categories and flags).
+                items:
+                  type: string
+        job:
+          description: The model rebuild started by a switch to or from the Government pack.
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/JobRef"
+
+    DomainChoice:
+      type: object
+      additionalProperties: false
+      required: [pack]
+      properties:
+        pack:
+          type: string
+          minLength: 1
+          maxLength: 40
+          example: banking
+        goal:
+          type: [string, "null"]
+          maxLength: 40
+          description: Defaults to the pack's default goal.
+        roles:
+          description: Omit to accept the suggested mapping for this pack.
+          oneOf:
+            - type: "null"
+            - type: object
+              additionalProperties:
+                type: object
+                additionalProperties: false
+                required: [column]
+                properties:
+                  column:
+                    type: string
+                    minLength: 1
+                    maxLength: 200
+                  positive:
+                    type: [string, "null"]
+                    maxLength: 200
 
     ModelCard:
       type: object

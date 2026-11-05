@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DatasetPicker } from "@/components/ingest/DatasetPicker";
+import { DomainStep } from "@/components/ingest/DomainStep";
 import { Dropzone } from "@/components/ingest/Dropzone";
 import { MappingSelect } from "@/components/ingest/MappingSelect";
 import { Alert } from "@/components/ui/Alert";
@@ -14,7 +15,7 @@ import { SkeletonGroup } from "@/components/ui/Skeleton";
 import { StatusBanner } from "@/components/ui/StatusBanner";
 import { WakingUp } from "@/components/ui/WakingUp";
 import { apiGet } from "@/lib/api";
-import type { ColumnProfile, Profile } from "@/lib/api-types";
+import type { ColumnProfile, DomainResponse, Profile } from "@/lib/api-types";
 import { cn } from "@/lib/cn";
 import { formatNumber, formatPercent } from "@/lib/format";
 
@@ -105,6 +106,8 @@ export default async function IngestPage({ params: { locale, id }, searchParams 
 
   const p = result.data;
   const ref = p.dataset.slug ?? p.dataset.id;
+  // Pack suggestion and role mapping (the model is built by the ingest job's last phase).
+  const domain = await apiGet<DomainResponse>(`/api/v1/datasets/${encodeURIComponent(ref)}/domain`, locale, 30_000);
   const rank = (c: ColumnProfile) =>
     c.canonical_field ? CANONICAL_ORDER.indexOf(c.canonical_field) : CANONICAL_ORDER.length;
   const columns = [...p.columns].sort((a, b) => rank(a) - rank(b));
@@ -289,6 +292,8 @@ export default async function IngestPage({ params: { locale, id }, searchParams 
           ]}
         />
       </Card>
+
+      {domain.ok && <DomainStep domain={domain.data} datasetRef={ref} sample={Boolean(p.dataset.slug)} />}
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface px-[22px] py-[18px]">
         <p className="m-0 text-[15px]">

@@ -19,7 +19,7 @@ from app.api.problems import (
     validation_handler,
 )
 from app.api.security import problem, security_middleware
-from app.api.v1 import dashboard, datasets, jobs, keys, models, recipes, reports, sql
+from app.api.v1 import dashboard, datasets, domain, jobs, keys, models, recipes, reports, sql
 from app.config import settings
 from app.core import jobs as job_runner
 from app.core import observability as obs
@@ -90,7 +90,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_origin_regex=settings.allowed_origin_regex,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
     expose_headers=[
         "Content-Language",
@@ -103,6 +103,7 @@ app.add_middleware(
 
 
 app.include_router(datasets.router)
+app.include_router(domain.router)
 app.include_router(jobs.router)
 app.include_router(recipes.router)
 app.include_router(sql.router)

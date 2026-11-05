@@ -560,9 +560,25 @@
         "procurement": "Procurement",
         "data": "Data team",
         "audit": "Audit"
-      }
+      },
+      "subtitleAny": "One shared definition per KPI, computed in SQL on the table data: the domain pack's KPIs first, then KPIs of the table itself."
     },
-    "continue": "Continue to ML lab →"
+    "continue": "Continue to ML lab →",
+    "subtitleAny": "Your clean data as the table data, with questions generated from its own columns. Start from a guided question or write your own query.",
+    "domainChip": "Domain: {pack}",
+    "goalChip": "Goal: {goal}",
+    "changeDomain": "Change the domain or the column roles",
+    "data": {
+      "title": "Analysis table <code>data</code>",
+      "summary": "{rows} rows · {columns} columns",
+      "hint": "Every column of your cleaned file, typed, with a safe SQL name. Query it as data; headers are kept as written in the file.",
+      "caption": "Columns of the table data",
+      "name": "SQL name",
+      "source": "Header in the file",
+      "kind": "Kind",
+      "examples": "Most frequent values",
+      "missing": "Missing"
+    }
   },
   "ml": {
     "metaTitle": "ML lab · CivicLens",
@@ -636,7 +652,8 @@
         "month": "Month"
       }
     },
-    "continue": "Continue to dashboard →"
+    "continue": "Continue to dashboard →",
+    "openSql": "Open the SQL Lab"
   },
   "admin": {
     "metaTitle": "API keys · CivicLens admin",
@@ -782,5 +799,40 @@
       "step2": "2. Apply the same cleaning recipe (a job)",
       "step3": "3. Get the KPIs, in CAD"
     }
+  },
+  "domain": {
+    "title": "Domain and analysis goal",
+    "intro": "CivicLens suggests a domain from your columns. Confirm it or pick another: a domain adds its own questions, KPIs and models, and the general analysis of your columns always stays.",
+    "confirmed": "Confirmed by you",
+    "suggested": "Suggested: {name}",
+    "packLegend": "Domain",
+    "fit": "fit {score}",
+    "notApplicable": "Needs procurement columns (an amount, a supplier and a buyer or a date).",
+    "goal": "Analysis goal",
+    "roles": {
+      "title": "Which column plays each role?",
+      "hint": "Suggested from the headers and the column kinds, with how sure the match is. A role left empty only hides the items that need it.",
+      "caption": "Role of each column",
+      "role": "Role",
+      "column": "Column",
+      "confidence": "Confidence",
+      "positive": "Value that means “yes”",
+      "target": "Target",
+      "sensitive": "Sensitive",
+      "none": "Not mapped",
+      "byYou": "Chosen by you",
+      "auto": "Automatic",
+      "positiveLabel": "Value of {role} that means yes",
+      "sensitiveNote": "Sensitive attributes (age, sex/gender, marital status, nationality) are used only to check that results are fair across groups, never as model inputs to decide on a person."
+    },
+    "procurementNote": "The procurement domain uses the header mapping above (amount, supplier, buyer, dates) and builds the star schema.",
+    "sampleNote": "The sample datasets keep their domain. Upload your own file to choose its domain and roles.",
+    "confirm": "Confirm this domain",
+    "save": "Save the domain",
+    "saveHint": "Changes apply to the SQL Lab, KPIs and models.",
+    "saving": "Saving the domain",
+    "savedTitle": "Domain saved: {name}",
+    "savedBody": "The SQL Lab now shows this domain's questions and KPIs for your file.",
+    "openSql": "Open the SQL Lab"
   }
 }

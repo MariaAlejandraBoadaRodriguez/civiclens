@@ -169,19 +169,76 @@ export type StarOrigin = "clean" | "recommended";
 
 export type StarTable = {
   name: string;
-  role: "fact" | "dimension";
+  role: "data" | "fact" | "dimension";
   rows: number;
   columns: { name: string; type: string }[];
+};
+
+export type ColumnKind = "number" | "integer" | "boolean" | "date" | "datetime" | "category" | "text" | "identifier";
+
+/** A column of table `data`: safe SQL name, header as written in the file, kind and examples. */
+export type DataColumn = {
+  name: string;
+  source: string;
+  kind: ColumnKind;
+  kind_label: string;
+  sql_type: string;
+  binary: boolean;
+  nulls: number;
+  distinct: number;
+  examples: string[];
+};
+
+export type RoleMapping = {
+  column: string;
+  source?: string;
+  confidence?: number | null;
+  positive?: string | null;
+};
+
+export type ActiveDomain = {
+  pack: string;
+  goal: string;
+  confirmed: boolean;
+  engine: "generic" | "procurement_star";
+  roles: Record<string, RoleMapping>;
 };
 
 export type StarSchemaResponse = {
   dataset_id: string;
   origin: StarOrigin;
   tables: StarTable[];
+  data_columns: DataColumn[];
+  domain: ActiveDomain;
   guardrails: Guardrails;
 };
 
-export type SqlConcept = "join" | "cte" | "window_function" | "aggregation" | "subquery";
+export type PackRole = { id: string; name: string; kinds: (ColumnKind | "binary")[]; key: boolean; target: boolean; sensitive: boolean };
+export type PackGoal = { id: string; name: string; default: boolean };
+export type Pack = { id: string; name: string; description: string; goals: PackGoal[]; roles: PackRole[] };
+
+export type DomainResponse = {
+  dataset_id: string;
+  pack: string;
+  goal: string;
+  confirmed: boolean;
+  roles: Record<string, RoleMapping>;
+  suggestions: { pack: string; score: number; name: string }[];
+  packs: Pack[];
+  columns: {
+    name: string;
+    source: string;
+    kind: ColumnKind;
+    kind_label: string;
+    binary: boolean;
+    examples: string[];
+    top: string[];
+  }[];
+  job: { id: string; status: string } | null;
+};
+
+/** Translated concept keys (procurement questions); generated questions name SQL keywords. */
+export type SqlConcept = "join" | "cte" | "window_function" | "aggregation" | "subquery" | (string & {});
 
 export type GuidedQuery = {
   query_id: string;
@@ -190,6 +247,9 @@ export type GuidedQuery = {
   sql: string;
   explanation: string;
   concepts: SqlConcept[];
+  /** "generic" (generated from the columns), "government" or a domain pack id. */
+  source?: string;
+  goals?: string[];
 };
 
 export type GuidedQueriesResponse = { items: GuidedQuery[]; guardrails: Guardrails };
@@ -207,7 +267,7 @@ export type QueryResult = {
 export type Kpi = {
   kpi_id: string;
   value: number | null;
-  unit: "currency" | "count" | "ratio" | "index" | "score";
+  unit: "currency" | "amount" | "number" | "count" | "ratio" | "index" | "score";
   currency: string | null;
   owner: string;
   formula_sql: string | null;

@@ -14,7 +14,7 @@ from app.core.cleaning.ops import apply_steps
 from app.core.seed.registry import SEEDS
 from app.core.sql import engine
 from app.core.sql.kpi_catalog import CATALOG
-from app.core.sql.star_schema import GROUPS, build_star, write_duckdb
+from app.core.sql.star_schema import GROUPS, build_star
 from app.db.models import Dataset, DatasetStatus, Job
 from app.i18n.loader import Translator
 from app.services import storage
@@ -49,24 +49,67 @@ def source_frame(ds: Dataset) -> tuple[Any, str]:
 
 
 def ensure_star(ds: Dataset, rebuild: bool = False) -> Path:
-    """The dataset's star schema, built when missing. ``rebuild`` replaces an existing one
-    atomically: readers keep querying the old file until the new one is in place (deleting it
-    first made concurrent KPI/SQL requests fail while a recipe was being applied)."""
+    """The dataset's analysis model, built when missing: the typed table ``data`` (every
+    dataset) plus, when the Government / procurement pack applies, the star schema in CAD.
+    ``rebuild`` replaces an existing file atomically: readers keep querying the old file until
+    the new one is in place (deleting it first made concurrent KPI/SQL requests fail while a
+    recipe was being applied)."""
+    from app.services import analysis
+
     path = storage.star_path(ds.id)
-    if path.exists() and not rebuild:
+    if path.exists() and analysis.meta_path(ds).exists() and not rebuild:
         return path
     with _locks[str(ds.id)]:
-        if path.exists() and not rebuild:
+        if path.exists() and analysis.meta_path(ds).exists() and not rebuild:
             return path
         frame, origin = source_frame(ds)
-        star = build_star(
-            frame, jurisdiction(ds), context().fx, _group_labels(), default_currency(ds)
+        profile = storage.read_json(storage.profile_path(ds.id))
+        typed, metas, canonical = analysis.build(frame, profile)
+        from app.core import packs as pack_engine
+
+        suggestions = pack_engine.suggestions(metas, canonical)
+        star = None
+        if analysis.stored_pack_engine(ds, suggestions) == "procurement_star":
+            star = build_star(
+                frame, jurisdiction(ds), context().fx, _group_labels(), default_currency(ds)
+            )
+        del frame
+        write_model(path, typed, metas, star)
+        del typed
+        storage.write_json({"origin": origin, "star": star is not None}, path.with_suffix(".json"))
+        analysis.finish_model(ds, path, metas, canonical, origin)
+        log.info(
+            "model for %s built from %s data (star schema: %s)", ds.id, origin, star is not None
         )
-        write_duckdb(star, path)
-        storage.write_json({"origin": origin}, path.with_suffix(".json"))
-        log.info("star schema for %s built from %s data", ds.id, origin)
     memory.release()
     return path
+
+
+def write_model(path: Path, typed: Any, metas: list[Any], star: Any | None) -> None:
+    """One DuckDB file: ``data`` and, for procurement, the star-schema tables (atomic replace)."""
+    import duckdb
+
+    from app.services import analysis
+
+    tmp = path.with_suffix(".tmp")
+    tmp.unlink(missing_ok=True)
+    con = duckdb.connect(str(tmp))
+    try:
+        analysis.write_data_table(con, typed, metas)
+        if star is not None:
+            for name, df in star.tables().items():
+                con.register("_df", df)
+                con.execute(f"CREATE TABLE {name} AS SELECT * FROM _df")  # noqa: S608 — fixed names
+                con.unregister("_df")
+    finally:
+        con.close()
+    tmp.replace(path)
+
+
+def has_star(ds: Dataset) -> bool:
+    ensure_star(ds)
+    meta = storage.read_json(storage.star_path(ds.id).with_suffix(".json")) or {}
+    return bool(meta.get("star"))
 
 
 def star_origin(ds: Dataset) -> str:
@@ -135,7 +178,8 @@ BI_FORMATS = ("csv", "parquet")
 
 
 def export_star(ds: Dataset, fmt: str) -> bytes:
-    """The star schema as a zip of one file per table, for Power BI / Tableau (spec M5).
+    """The model as a zip of one file per table, for Power BI / Tableau (spec M5): ``data``
+    always, the star schema for procurement data.
     Read through the guarded read-only connection; written in memory (the tables are small)."""
     import io
     import zipfile
@@ -151,7 +195,8 @@ def export_star(ds: Dataset, fmt: str) -> bytes:
     con = engine.connect(ensure_star(ds))
     try:
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-            for name in TABLES:
+            names = ["data"] + (list(TABLES) if has_star(ds) else [])
+            for name in names:
                 rel = con.sql(f"SELECT * FROM {name}")  # noqa: S608 — fixed table names
                 # DuckDB 2 renamed the relation's arrow() to to_arrow_table().
                 fetch = getattr(rel, "to_arrow_table", None) or rel.arrow
@@ -169,8 +214,9 @@ def export_star(ds: Dataset, fmt: str) -> bytes:
     return buffer.getvalue()
 
 
-BI_README = """CivicLens star schema export
+BI_README = """CivicLens model export
 
+data           every dataset: the cleaned columns of the file, typed, with safe snake_case names
 fact_contract  one row per contract; amount_cad is the amount converted to CAD with the
                rate of the signing month; joins: entity_id, supplier_id, date_id, category_id
 dim_entity     buying entities

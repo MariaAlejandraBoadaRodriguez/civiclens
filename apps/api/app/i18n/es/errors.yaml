@@ -118,3 +118,28 @@ rate_limit:
   exceeded:
     title: Demasiadas solicitudes
     detail: "Espera {retry_after} segundos e inténtalo de nuevo."
+domain:
+  seed_fixed:
+    title: Los conjuntos de ejemplo conservan su dominio
+    detail: Los ejemplos los usan todas las personas. Sube tu propio archivo para elegir su dominio y sus roles.
+  unknown_pack:
+    title: Dominio desconocido
+    detail: "No existe un paquete de dominio llamado {pack}."
+  not_applicable:
+    title: Este dominio no corresponde al archivo
+    detail: "El paquete {pack} necesita columnas que este archivo no tiene (para contratación: un valor, un proveedor y una entidad o una fecha)."
+  unknown_goal:
+    title: Objetivo de análisis desconocido
+    detail: "Este dominio no tiene un objetivo llamado {goal}."
+  unknown_role:
+    title: Rol de columna desconocido
+    detail: "Este dominio no tiene un rol llamado {role}."
+  unknown_column:
+    title: Columna desconocida
+    detail: "La tabla data no tiene una columna llamada {column}."
+  column_reused:
+    title: Una columna está asignada a dos roles
+    detail: Cada columna puede cumplir un solo rol. Elige otra columna para uno de ellos.
+  procurement_only:
+    title: Disponible solo para datos de contratación
+    detail: Esta vista necesita el modelo estrella de contratación (contratos, proveedores, entidades). Para este archivo usa el SQL Lab, que funciona con cualquier tabla.
