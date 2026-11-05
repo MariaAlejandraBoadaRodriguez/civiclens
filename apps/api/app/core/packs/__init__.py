@@ -54,6 +54,9 @@ class Pack:
     questions: tuple[dict[str, Any], ...]
     ml: tuple[dict[str, Any], ...]
     layout: dict[str, Any] = field(default_factory=dict)
+    # {limit} in SQL: per-category thresholds (e.g. pollutant → µg/m3) and a fallback value.
+    limits: dict[str, float] = field(default_factory=dict)
+    default_limit: float | None = None
 
     @property
     def default_goal(self) -> str:
@@ -91,6 +94,8 @@ def packs() -> dict[str, Pack]:
             questions=tuple(raw.get("questions", [])),
             ml=tuple(raw.get("ml", [])),
             layout=raw.get("layout", {}),
+            limits={str(k).upper(): float(v) for k, v in (raw.get("limits") or {}).items()},
+            default_limit=raw.get("default_limit"),
         )
     return dict(sorted(out.items(), key=lambda kv: kv[1].order))
 
@@ -182,6 +187,9 @@ def score(
         return float(detect.get("score", 0.9)) if ok else 0.0
     if not any(r in mapping for r in detect.get("require_any", [])):
         return 0.0
+    needs_one_of = detect.get("require_all_any", [])
+    if needs_one_of and not any(r in mapping for r in needs_one_of):
+        return 0.0
     weights = {r.id: (2.0 if r.key or r.target else 1.0) for r in pack.roles if not r.sensitive}
     got = sum(weights[r] * mapping[r]["confidence"] for r in weights if r in mapping)
     total = sum(weights.values()) or 1.0
@@ -215,9 +223,35 @@ class MissingRole(KeyError):
     pass
 
 
-def render(sql: str, roles: dict[str, dict[str, Any]], metas: dict[str, ColumnMeta]) -> str:
-    """Fill ``{role}`` (quoted column), ``{a|b}`` (first mapped of a, b) and ``{positive:role}``
-    (TRUE for the flag's positive value). Raises MissingRole when a role is not mapped."""
+def limit_expr(
+    pack: Pack | None, roles: dict[str, dict[str, Any]], metas: dict[str, ColumnMeta]
+) -> str:
+    """``{limit}``: the mapped limit column, else the pack's limit for the row's category
+    (pollutant), else its default limit."""
+    from app.core.analysis.questions import lit
+
+    entry = roles.get("limit") or {}
+    if entry.get("column") in metas:
+        return q(entry["column"])
+    if pack is None or pack.default_limit is None and not pack.limits:
+        raise MissingRole("limit")
+    default = "NULL" if pack.default_limit is None else repr(float(pack.default_limit))
+    category = (roles.get("pollutant") or {}).get("column")
+    if not pack.limits or category not in metas:
+        return default
+    cases = " ".join(f"WHEN {lit(k)} THEN {v!r}" for k, v in pack.limits.items())
+    return f"(CASE UPPER(CAST({q(category)} AS VARCHAR)) {cases} ELSE {default} END)"
+
+
+def render(
+    sql: str,
+    roles: dict[str, dict[str, Any]],
+    metas: dict[str, ColumnMeta],
+    pack: Pack | None = None,
+) -> str:
+    """Fill ``{role}`` (quoted column), ``{a|b}`` (first mapped of a, b), ``{positive:role}``
+    (TRUE for the flag's positive value) and ``{limit}`` (see ``limit_expr``). Raises
+    MissingRole when a role is not mapped."""
 
     def column(spec: str) -> ColumnMeta:
         for role_id in spec.split("|"):
@@ -228,6 +262,8 @@ def render(sql: str, roles: dict[str, dict[str, Any]], metas: dict[str, ColumnMe
 
     def sub(match: re.Match[str]) -> str:
         positive, spec = match.group(1), match.group(2)
+        if spec == "limit" and not positive:
+            return limit_expr(pack, roles, metas)
         meta = column(spec)
         if positive:
             role_id = spec.split("|")[0]

@@ -20,6 +20,8 @@ The owner requires the whole pipeline (Ingest → Clean → SQL → ML → Dashb
    - more than 20,000 rows are sampled with a fixed seed, and the card says so. Red flags stay procurement-only (409 otherwise).
 9. **No 500 while views catch up.** Views not yet generic (dashboard, report, procurement models) answer 409 `domain.procurement_only` with a localized message pointing to the SQL Lab, until PRs 3–4 make them generic.
 
+10. **Pack-level constants** (PR 6): a pack may declare `limits` (e.g. pollutant → µg/m3) and a `default_limit`; the `{limit}` template becomes the mapped limit column, else a `CASE` on the pollutant column, else the default. Marketing and Environmental needed this one addition and no other engine change. Detection may also require one of several roles (`require_all_any`).
+
 ## Consequences
 - ✅ Every acceptance fixture (`data/fixtures`) gets a typed table, ≥ 5 working questions with rows and KPIs with values; CI runs them end to end in the 512 MB image.
 - ✅ Packs are reviewable YAML; adding Marketing and Environmental is a data change plus texts and tests.

@@ -91,3 +91,120 @@ banking:
       title: Default rate by {sex}
       question: Does the default rate differ by {sex}?
       explanation: Default rate per group. Sex/gender is a sensitive attribute; differences call for a fairness review, not for using it in decisions.
+marketing:
+  name: Marketing / campaigns
+  description: Leads or customers contacted by campaigns, with a conversion outcome. Adds conversion KPIs, campaign questions and a conversion-propensity model.
+  goals:
+    conversion: Conversion
+    campaign_performance: Campaign performance
+    segmentation: Segmentation
+  roles:
+    customer_id: Customer / lead ID
+    converted: Converted (target)
+    channel: Channel / contact type
+    campaign: Campaign
+    contacts: Contacts in this campaign
+    previous_outcome: Previous campaign outcome
+    month: Month / date of contact
+    call_duration: Call duration
+    revenue: Revenue
+    segment: Segment / occupation
+    age: Age
+    marital_status: Marital status
+  kpis:
+    conversion_rate:
+      name: Conversion rate
+      definition: Share of leads whose conversion flag takes its positive value.
+    contacts_per_lead:
+      name: Contacts per lead
+      definition: Average number of contacts made to each lead in the campaign.
+    contacts_per_conversion:
+      name: Contacts per conversion
+      definition: Total contacts divided by the number of conversions — the effort behind each success.
+    revenue:
+      name: Revenue
+      definition: Sum of the revenue column.
+    leads:
+      name: Leads
+      definition: Number of rows with a known outcome.
+  questions:
+    conversion_by_channel:
+      title: Conversion by {channel}
+      question: Which {channel} converts best?
+      explanation: Leads and conversion rate ({converted}) per {channel}, best first.
+    conversion_by_contacts:
+      title: Conversion by number of contacts
+      question: Does calling more often pay off?
+      explanation: Groups leads by {contacts} (1, 2, 3, 4–5, 6+) and shows the conversion rate of each group. Falling rates suggest diminishing returns.
+    conversion_by_previous:
+      title: Conversion by {previous_outcome}
+      question: Do past successes convert again?
+      explanation: Conversion rate per outcome of the previous campaign ({previous_outcome}).
+    conversion_by_month:
+      title: Conversion by {month}
+      question: When do campaigns convert best?
+      explanation: Leads and conversion rate per {month}, busiest first.
+    conversion_by_segment:
+      title: Conversion by {segment}
+      question: Which {segment} converts best?
+      explanation: Conversion rate per {segment} (groups of at least 20 leads), best first.
+    conversion_by_campaign:
+      title: Conversion by {campaign}
+      question: Which campaigns perform best?
+      explanation: Leads and conversion rate per {campaign}, largest first.
+    conversion_by_age_band:
+      title: Conversion by age band
+      question: Does conversion differ by {age}?
+      explanation: Conversion rate per age band. Age is a sensitive attribute; use it to check fairness and reach, not to exclude people.
+environmental:
+  name: Environmental / monitoring
+  description: Measurements at stations over time (air or water quality, noise…). Adds limit compliance, trends and station comparisons, with a forecast and exceedance anomalies.
+  goals:
+    compliance: Compliance with limits
+    trends: Trends and seasonality
+    stations: Station comparison
+  roles:
+    station: Station / site
+    pollutant: Pollutant / variable
+    value: Measured value
+    date: Date and time
+    limit: Limit / standard
+    unit: Unit
+    city: City / area
+  kpis:
+    mean_value:
+      name: Mean value
+      definition: Average of all measurements, in the file's unit.
+    max_value:
+      name: Maximum value
+      definition: Highest measurement in the file.
+    exceedance_share:
+      name: Measurements over the limit
+      definition: Share of measurements above the limit (the limit column, else the pollutant's 24-hour standard of Colombian Resolution 2254/2017; confirm it for your jurisdiction and averaging period).
+    stations:
+      name: Stations
+      definition: Number of distinct stations.
+    measurements:
+      name: Measurements
+      definition: Number of measurements with a value.
+  questions:
+    exceedances_by_station:
+      title: Exceedances by {station}
+      question: Which stations exceed the limit most often?
+      explanation: Measurements, exceedances (value above the limit) and their share per {station}, worst first, with the highest value.
+    daily_means_over_limit:
+      title: Days whose mean is over the limit
+      question: On which days did the daily mean exceed the limit?
+      explanation: Averages {value} per day of {date} and lists the days above the limit, worst first. 24-hour standards are about daily means, not single readings.
+    monthly_trend:
+      title: Monthly trend of {value}
+      question: How does {value} change month by month?
+      explanation: Mean and maximum of {value} per month of {date}.
+    hour_of_day:
+      title: "{value} by hour of day"
+      question: At what time of day is {value} highest?
+      explanation: Mean of {value} for each hour of {date}; daily cycles (traffic, heating) show up here.
+    station_comparison:
+      title: Stations compared
+      question: How do the stations compare?
+      explanation: Mean, median and 95th percentile of {value} per {station}, highest mean first.

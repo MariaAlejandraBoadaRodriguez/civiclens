@@ -91,3 +91,120 @@ banking:
       title: Tasa de incumplimiento por {sex}
       question: ¿La tasa de incumplimiento cambia según {sex}?
       explanation: Tasa de incumplimiento por grupo. El sexo/género es un atributo sensible; las diferencias exigen una revisión de equidad, no usarlo en las decisiones.
+marketing:
+  name: Marketing / campañas
+  description: Prospectos o clientes contactados por campañas, con un resultado de conversión. Agrega KPI de conversión, preguntas de campaña y un modelo de propensión a convertir.
+  goals:
+    conversion: Conversión
+    campaign_performance: Desempeño de campañas
+    segmentation: Segmentación
+  roles:
+    customer_id: ID de cliente / prospecto
+    converted: Convirtió (objetivo)
+    channel: Canal / tipo de contacto
+    campaign: Campaña
+    contacts: Contactos en esta campaña
+    previous_outcome: Resultado de la campaña anterior
+    month: Mes / fecha de contacto
+    call_duration: Duración de la llamada
+    revenue: Ingresos
+    segment: Segmento / ocupación
+    age: Edad
+    marital_status: Estado civil
+  kpis:
+    conversion_rate:
+      name: Tasa de conversión
+      definition: Porcentaje de prospectos cuya marca de conversión toma su valor positivo.
+    contacts_per_lead:
+      name: Contactos por prospecto
+      definition: Número promedio de contactos hechos a cada prospecto en la campaña.
+    contacts_per_conversion:
+      name: Contactos por conversión
+      definition: "Total de contactos dividido por el número de conversiones: el esfuerzo detrás de cada éxito."
+    revenue:
+      name: Ingresos
+      definition: Suma de la columna de ingresos.
+    leads:
+      name: Prospectos
+      definition: Número de filas con un resultado conocido.
+  questions:
+    conversion_by_channel:
+      title: Conversión por {channel}
+      question: ¿Qué {channel} convierte mejor?
+      explanation: Prospectos y tasa de conversión ({converted}) por {channel}, de la mejor a la peor.
+    conversion_by_contacts:
+      title: Conversión por número de contactos
+      question: ¿Vale la pena llamar más veces?
+      explanation: Agrupa los prospectos por {contacts} (1, 2, 3, 4–5, 6+) y muestra la tasa de conversión de cada grupo. Si la tasa baja, hay rendimientos decrecientes.
+    conversion_by_previous:
+      title: Conversión por {previous_outcome}
+      question: ¿Los éxitos pasados vuelven a convertir?
+      explanation: Tasa de conversión según el resultado de la campaña anterior ({previous_outcome}).
+    conversion_by_month:
+      title: Conversión por {month}
+      question: ¿Cuándo convierten mejor las campañas?
+      explanation: Prospectos y tasa de conversión por {month}, del más activo al menos activo.
+    conversion_by_segment:
+      title: Conversión por {segment}
+      question: ¿Qué {segment} convierte mejor?
+      explanation: Tasa de conversión por {segment} (grupos de al menos 20 prospectos), de la mejor a la peor.
+    conversion_by_campaign:
+      title: Conversión por {campaign}
+      question: ¿Qué campañas funcionan mejor?
+      explanation: Prospectos y tasa de conversión por {campaign}, de la más grande a la más pequeña.
+    conversion_by_age_band:
+      title: Conversión por rango de edad
+      question: ¿La conversión cambia según {age}?
+      explanation: Tasa de conversión por rango de edad. La edad es un atributo sensible; úsala para revisar equidad y alcance, no para excluir personas.
+environmental:
+  name: Ambiental / monitoreo
+  description: Mediciones en estaciones a lo largo del tiempo (calidad del aire o del agua, ruido…). Agrega cumplimiento de límites, tendencias y comparación de estaciones, con un pronóstico y anomalías de excedencia.
+  goals:
+    compliance: Cumplimiento de límites
+    trends: Tendencias y estacionalidad
+    stations: Comparación de estaciones
+  roles:
+    station: Estación / sitio
+    pollutant: Contaminante / variable
+    value: Valor medido
+    date: Fecha y hora
+    limit: Límite / norma
+    unit: Unidad
+    city: Ciudad / zona
+  kpis:
+    mean_value:
+      name: Valor promedio
+      definition: Promedio de todas las mediciones, en la unidad del archivo.
+    max_value:
+      name: Valor máximo
+      definition: La medición más alta del archivo.
+    exceedance_share:
+      name: Mediciones sobre el límite
+      definition: Porcentaje de mediciones por encima del límite (la columna de límite o, si no hay, la norma de 24 horas del contaminante según la Resolución 2254 de 2017 de Colombia; confírmala para tu jurisdicción y periodo de exposición).
+    stations:
+      name: Estaciones
+      definition: Número de estaciones distintas.
+    measurements:
+      name: Mediciones
+      definition: Número de mediciones con valor.
+  questions:
+    exceedances_by_station:
+      title: Excedencias por {station}
+      question: ¿Qué estaciones superan el límite con más frecuencia?
+      explanation: Mediciones, excedencias (valor por encima del límite) y su porcentaje por {station}, de la peor a la mejor, con el valor más alto.
+    daily_means_over_limit:
+      title: Días con promedio por encima del límite
+      question: ¿Qué días el promedio diario superó el límite?
+      explanation: Promedia {value} por día de {date} y lista los días por encima del límite, del peor al mejor. Las normas de 24 horas se refieren a promedios diarios, no a lecturas sueltas.
+    monthly_trend:
+      title: Tendencia mensual de {value}
+      question: ¿Cómo cambia {value} mes a mes?
+      explanation: Promedio y máximo de {value} por mes de {date}.
+    hour_of_day:
+      title: "{value} por hora del día"
+      question: ¿A qué hora del día es más alto {value}?
+      explanation: Promedio de {value} para cada hora de {date}; aquí aparecen los ciclos diarios (tráfico, calefacción).
+    station_comparison:
+      title: Comparación de estaciones
+      question: ¿Cómo se comparan las estaciones?
+      explanation: Promedio, mediana y percentil 95 de {value} por {station}, del promedio más alto al más bajo.
