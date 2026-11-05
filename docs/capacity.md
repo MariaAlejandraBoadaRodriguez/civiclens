@@ -30,12 +30,12 @@ on demand against production (Actions → Capacity → Run workflow → `product
 
 | Scenario | Sessions | Requests | Page p50 / p95 | HTML report p95 | Own-data flow p50 / p95 | 429 | 5xx | Checks | Peak memory |
 |---|---|---|---|---|---|---|---|---|---|
-| D · 10 visitors, one shared IP | 13 | 863 | 1.9 / 11.0 s | 13.4 s | 84 / 107 s | 0 | 0 | 100 % | 348 MiB (both runs), no OOM |
-| E · 10 visitors, one IP each (right after D) | 13 | 1,025 | 1.7 / 10.6 s | 16.6 s | none finished in 90 s | 0 | 0 | 97.3 % | |
+| D · 10 visitors, one shared IP | 20 | 792 | 1.1 / 8.2 s | 13.0 s | 80 / 110 s | 0 | 0 | 100 % | 336 MiB (both runs), no OOM |
+| E · 10 visitors, one IP each (right after D) | 12 | 893 | 1.1 / 7.2 s | 13.7 s | 139 / 147 s | 0 | 0 | 100 % | |
 
-In E every upload was accepted, but the ingest jobs queued behind D's and E's other jobs for more
-than the 90 s the test then waited; the test now waits up to 4 minutes so the next run reports the
-real time instead of a failed check.
+The own-data flow is mostly queue time: jobs run one at a time, and in E they also queue behind
+the jobs D left running. A first run that waited only 90 s for the ingest timed out in E (97 %
+checks, no 5xx); the test now waits up to 4 minutes, like a visitor watching the progress bar.
 
 ## Rate limit: per IP or global?
 The limit is **already per caller**, not global: anonymous callers are counted per IP, and in
@@ -55,9 +55,9 @@ client, so it could be forged to escape the limit, and it would need a server-si
 IP anyway. Revisit if feedback shows larger groups (a classroom of 30) on one network.
 
 ## What a visitor waits for
-- Browsing pages: p95 under 1 s on one core; **p50 ~2 s, p95 ~11 s on Render free's 0.1 CPU**
-  with ten visitors at once (the report ~13–17 s).
-- The own-data flow: ~40 s at p50 on one core; **~1.5 min on 0.1 CPU**, more when several visitors
+- Browsing pages: p95 under 1 s on one core; **p50 ~1 s, p95 ~7–8 s on Render free's 0.1 CPU**
+  with ten visitors at once (the report ~13 s).
+- The own-data flow: ~40 s at p50 on one core; **~1.5–2.5 min on 0.1 CPU** when several visitors
   upload at the same time — mostly queue time behind other visitors' jobs (one job at a time
   protects the 512 MB). The UI shows the phase and percent meanwhile.
 - Nothing failed: no 5xx, no 429, no OOM. The limit for ten simultaneous visitors on the free
