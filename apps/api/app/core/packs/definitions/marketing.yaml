@@ -1,0 +1,139 @@
+# Marketing: campaigns, contacts and conversions (e.g. the UCI Bank Marketing data: a phone
+# campaign where y = the client subscribed). Roles are matched on header names (EN/ES/FR) and
+# column kinds; the user confirms or edits the mapping.
+id: marketing
+order: 3
+engine: generic
+detect:
+  # A marketing file has a conversion outcome and something about the contact or campaign.
+  require_any: [converted]
+  min_score: 0.5
+roles:
+  - id: customer_id
+    kinds: [identifier, category, integer]
+    synonyms: [customer_id, client_id, lead_id, contact_id, id_cliente, cliente, lead, prospect]
+  - id: converted
+    kinds: [boolean, binary]
+    key: true
+    target: true
+    synonyms: [y, converted, conversion, subscribed, response, responded, purchased, bought, clicked, convertido, compro, respuesta, suscrito, achat]
+  - id: channel
+    kinds: [category]
+    key: true
+    synonyms: [channel, contact, contact_type, medium, source, utm_medium, canal, medio, fuente, canal_contacto]
+  - id: campaign
+    kinds: [category, identifier]
+    synonyms: [campaign_name, campaign_id, utm_campaign, campana, nombre_campana, campagne]
+  - id: contacts
+    kinds: [integer, number]
+    key: true
+    synonyms: [campaign, contacts, attempts, calls, touches, n_contacts, contactos, intentos, llamadas]
+  - id: previous_outcome
+    kinds: [category]
+    synonyms: [poutcome, previous_outcome, last_outcome, resultado_anterior]
+  - id: month
+    kinds: [category, date, datetime]
+    synonyms: [month, mes, date, fecha, contact_date, fecha_contacto, mois]
+  - id: call_duration
+    kinds: [integer, number]
+    synonyms: [duration, call_duration, talk_time, duracion, duracion_llamada]
+  - id: revenue
+    kinds: [number, integer]
+    synonyms: [revenue, amount, value, sales, ingreso, valor, ventes]
+  - id: segment
+    kinds: [category]
+    synonyms: [job, occupation, segment, profession, education, ocupacion, segmento, profesion]
+  - id: age
+    kinds: [integer, number]
+    sensitive: true
+    synonyms: [age, edad]
+  - id: marital_status
+    kinds: [category]
+    sensitive: true
+    synonyms: [marital, marital_status, estado_civil]
+goals:
+  - {id: conversion, default: true}
+  - {id: campaign_performance}
+  - {id: segmentation}
+kpis:
+  - id: conversion_rate
+    requires: [converted]
+    unit: ratio
+    sql: "SELECT AVG(CASE WHEN {positive:converted} THEN 1.0 ELSE 0.0 END) FROM data WHERE {converted} IS NOT NULL"
+  - id: contacts_per_lead
+    requires: [contacts]
+    unit: number
+    sql: "SELECT AVG({contacts}) FROM data"
+  - id: contacts_per_conversion
+    requires: [converted, contacts]
+    unit: number
+    sql: "SELECT SUM({contacts}) / NULLIF(SUM(CASE WHEN {positive:converted} THEN 1 ELSE 0 END), 0) FROM data"
+  - id: revenue
+    requires: [revenue]
+    unit: amount
+    sql: "SELECT SUM({revenue}) FROM data"
+  - id: leads
+    requires: [converted]
+    unit: count
+    sql: "SELECT COUNT(*) FROM data WHERE {converted} IS NOT NULL"
+questions:
+  - id: conversion_by_channel
+    requires: [converted, channel]
+    goals: [conversion, campaign_performance]
+    sql: |
+      SELECT {channel}, COUNT(*) AS leads,
+             ROUND(100.0 * AVG(CASE WHEN {positive:converted} THEN 1 ELSE 0 END), 1) AS conversion_pct
+      FROM data GROUP BY 1 ORDER BY conversion_pct DESC
+  - id: conversion_by_contacts
+    requires: [converted, contacts]
+    goals: [campaign_performance, conversion]
+    sql: |
+      SELECT CASE WHEN {contacts} <= 1 THEN '1' WHEN {contacts} <= 2 THEN '2'
+                  WHEN {contacts} <= 3 THEN '3' WHEN {contacts} <= 5 THEN '4-5' ELSE '6+' END AS contacts,
+             COUNT(*) AS leads,
+             ROUND(100.0 * AVG(CASE WHEN {positive:converted} THEN 1 ELSE 0 END), 1) AS conversion_pct
+      FROM data WHERE {contacts} IS NOT NULL GROUP BY 1 ORDER BY 1
+  - id: conversion_by_previous
+    requires: [converted, previous_outcome]
+    goals: [conversion]
+    sql: |
+      SELECT {previous_outcome}, COUNT(*) AS leads,
+             ROUND(100.0 * AVG(CASE WHEN {positive:converted} THEN 1 ELSE 0 END), 1) AS conversion_pct
+      FROM data GROUP BY 1 ORDER BY conversion_pct DESC
+  - id: conversion_by_month
+    requires: [converted, month]
+    goals: [campaign_performance]
+    sql: |
+      SELECT {month}, COUNT(*) AS leads,
+             ROUND(100.0 * AVG(CASE WHEN {positive:converted} THEN 1 ELSE 0 END), 1) AS conversion_pct
+      FROM data GROUP BY 1 ORDER BY leads DESC
+  - id: conversion_by_segment
+    requires: [converted, segment]
+    goals: [segmentation, conversion]
+    sql: |
+      SELECT {segment}, COUNT(*) AS leads,
+             ROUND(100.0 * AVG(CASE WHEN {positive:converted} THEN 1 ELSE 0 END), 1) AS conversion_pct
+      FROM data GROUP BY 1 HAVING COUNT(*) >= 20 ORDER BY conversion_pct DESC
+  - id: conversion_by_campaign
+    requires: [converted, campaign]
+    goals: [campaign_performance]
+    sql: |
+      SELECT {campaign}, COUNT(*) AS leads,
+             ROUND(100.0 * AVG(CASE WHEN {positive:converted} THEN 1 ELSE 0 END), 1) AS conversion_pct
+      FROM data GROUP BY 1 ORDER BY leads DESC LIMIT 20
+  - id: conversion_by_age_band
+    requires: [converted, age]
+    goals: [segmentation]
+    sql: |
+      SELECT CASE WHEN {age} < 25 THEN 'under 25' WHEN {age} < 35 THEN '25-34'
+                  WHEN {age} < 50 THEN '35-49' WHEN {age} < 65 THEN '50-64' ELSE '65+' END AS age_band,
+             COUNT(*) AS leads,
+             ROUND(100.0 * AVG(CASE WHEN {positive:converted} THEN 1 ELSE 0 END), 1) AS conversion_pct
+      FROM data WHERE {age} IS NOT NULL GROUP BY 1 ORDER BY 1
+ml:
+  - {objective: target_model, target_role: converted, name: conversion_propensity, goals: [conversion, campaign_performance]}
+  - {objective: segments, goals: [segmentation]}
+  - {objective: anomalies, goals: [campaign_performance]}
+layout:
+  kpis: [conversion_rate, leads, contacts_per_lead, contacts_per_conversion, revenue]
+  sections: [drivers, segments, quality, distributions, trends, outliers]

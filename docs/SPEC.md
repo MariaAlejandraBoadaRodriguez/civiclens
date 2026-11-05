@@ -2,7 +2,7 @@
 
 > Working name; owner may rename. UI, code, docs, commits: **English only**. Input data may be **EN / FR / ES**.
 
-> **Update (v3, overrides this spec where they differ):** the lifecycle below runs on **any tabular dataset**, not only public procurement. Generic analysis is the core; procurement is the *Government* domain pack, alongside General and Banking (Marketing and Environmental next). See ROADMAP "Changes in v3", ADR-0008 and US-28/US-29 in `docs/requirements.md`. Module notes below that mention contracts, suppliers or CAD describe the Government pack.
+> **Update (v3, overrides this spec where they differ):** the lifecycle below runs on **any tabular dataset**, not only public procurement. Generic analysis is the core; procurement is the *Government* domain pack, alongside General, Banking, Marketing and Environmental. See ROADMAP "Changes in v3", ADR-0008 and US-28/US-29 in `docs/requirements.md`. Module notes below that mention contracts, suppliers or CAD describe the Government pack.
 
 ## 0. Purpose
 Portfolio-grade web app + public API that runs the full data analytics lifecycle on any tabular data — public-sector data first:

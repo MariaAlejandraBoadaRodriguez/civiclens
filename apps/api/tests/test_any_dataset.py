@@ -19,9 +19,9 @@ client = TestClient(app)
 FIXTURES = Path(__file__).resolve().parents[3] / "data" / "fixtures"
 CASES = {
     # file: (suggested pack, columns that must be typed with this kind)
-    "bank_marketing.csv": ("general", {"age": "integer", "job": "category", "y": "boolean"}),
+    "bank_marketing.csv": ("marketing", {"age": "integer", "job": "category", "y": "boolean"}),
     "german_credit.csv": ("banking", {"amount": "integer", "credit_risk": "boolean"}),
-    "air_quality_bucaramanga.csv": ("general", {}),
+    "air_quality_bucaramanga.csv": ("environmental", {"med_fecha_inicio": "datetime"}),
     "us_presidential_results.csv": ("general", {}),
     "budget_colombia_pgn.csv": ("general", {}),
     "sales_adventureworks.xlsx": ("general", {}),

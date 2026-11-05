@@ -186,7 +186,7 @@ def pack_questions(ds: Dataset) -> list[dict[str, Any]]:
         if not pack_engine.requires_ok(item, d["roles"], metas):
             continue
         try:
-            sql = pack_engine.render(item["sql"], d["roles"], metas).strip()
+            sql = pack_engine.render(item["sql"], d["roles"], metas, pack).strip()
             engine.run(path, sql, timeout_s=5)
         except (pack_engine.MissingRole, QueryRejected):
             continue
@@ -248,7 +248,7 @@ def pack_kpis(ds: Dataset, t: Translator) -> list[dict[str, Any]]:
         if not pack_engine.requires_ok(item, d["roles"], metas):
             continue
         try:
-            sql = pack_engine.render(item["sql"], d["roles"], metas)
+            sql = pack_engine.render(item["sql"], d["roles"], metas, pack)
             value = engine.run(path, sql, timeout_s=5).rows[0][0]
         except (pack_engine.MissingRole, QueryRejected):
             continue

@@ -1,0 +1,117 @@
+# Environmental monitoring: measurements of a pollutant (or any variable) at stations over time
+# (e.g. IDEAM / CDMB air quality: PM10 at Bucaramanga stations). {limit} in the SQL is the
+# mapped limit column, else the limit for the row's pollutant from `limits`, else
+# `default_limit`. Limits are the Colombian 24-hour standards of Resolution 2254/2017 (µg/m3);
+# confirm them for your jurisdiction and averaging period.
+id: environmental
+order: 4
+engine: generic
+detect:
+  require_any: [value]
+  require_all_any: [station, date]
+  min_score: 0.45
+limits:
+  PM10: 75
+  PM2.5: 37
+  PM25: 37
+  SO2: 50
+  NO2: 200
+  O3: 100
+  CO: 5000
+default_limit: 75
+roles:
+  - id: station
+    kinds: [category, identifier, integer]
+    key: true
+    synonyms: [station, station_id, station_name, site, sensor, estacion, estacion_id, nombre_estacion, nombre_est, sitio, sensor_id]
+  - id: pollutant
+    kinds: [category]
+    synonyms: [pollutant, parameter, variable, contaminante, parametro, msfl_code, polluant, indicator]
+  - id: value
+    kinds: [number, integer]
+    key: true
+    target: false
+    synonyms: [value, concentration, measurement, reading, level, concentracion, med_concentracion, med_concentracion_estandar, valor, medicion, concentration_value, pm10, pm25]
+  - id: date
+    kinds: [date, datetime]
+    key: true
+    synonyms: [date, datetime, timestamp, time, fecha, fecha_hora, med_fecha_inicio, fecha_inicio, date_local, hora]
+  - id: limit
+    kinds: [number, integer]
+    synonyms: [limit, threshold, standard, norma, limite, umbral, seuil]
+  - id: unit
+    kinds: [category]
+    synonyms: [unit, units, unidad, sigla_unidad, nombre_unidad, unite]
+  - id: city
+    kinds: [category]
+    synonyms: [city, municipality, municipio, ciudad, departamento, region, ville]
+goals:
+  - {id: compliance, default: true}
+  - {id: trends}
+  - {id: stations}
+kpis:
+  - id: mean_value
+    requires: [value]
+    unit: number
+    sql: "SELECT AVG({value}) FROM data"
+  - id: max_value
+    requires: [value]
+    unit: number
+    sql: "SELECT MAX({value}) FROM data"
+  - id: exceedance_share
+    requires: [value]
+    unit: ratio
+    sql: "SELECT AVG(CASE WHEN {value} > {limit} THEN 1.0 ELSE 0.0 END) FROM data WHERE {value} IS NOT NULL"
+  - id: stations
+    requires: [station]
+    unit: count
+    sql: "SELECT COUNT(DISTINCT {station}) FROM data"
+  - id: measurements
+    requires: [value]
+    unit: count
+    sql: "SELECT COUNT({value}) FROM data"
+questions:
+  - id: exceedances_by_station
+    requires: [value, station]
+    goals: [compliance, stations]
+    sql: |
+      SELECT {station}, COUNT({value}) AS measurements,
+             SUM(CASE WHEN {value} > {limit} THEN 1 ELSE 0 END) AS exceedances,
+             ROUND(100.0 * AVG(CASE WHEN {value} > {limit} THEN 1.0 ELSE 0.0 END), 1) AS exceedance_pct,
+             ROUND(MAX({value}), 1) AS max_value
+      FROM data WHERE {value} IS NOT NULL GROUP BY 1 ORDER BY exceedance_pct DESC
+  - id: daily_means_over_limit
+    requires: [value, date]
+    goals: [compliance, trends]
+    sql: |
+      WITH d AS (SELECT CAST({date} AS DATE) AS day, AVG({value}) AS daily_mean, MAX({limit}) AS limit_value
+                 FROM data WHERE {value} IS NOT NULL AND {date} IS NOT NULL GROUP BY 1)
+      SELECT day, ROUND(daily_mean, 1) AS daily_mean, limit_value
+      FROM d WHERE daily_mean > limit_value ORDER BY daily_mean DESC LIMIT 30
+  - id: monthly_trend
+    requires: [value, date]
+    goals: [trends]
+    sql: |
+      SELECT strftime(date_trunc('month', {date}), '%Y-%m') AS month, COUNT({value}) AS measurements,
+             ROUND(AVG({value}), 1) AS mean_value, ROUND(MAX({value}), 1) AS max_value
+      FROM data WHERE {date} IS NOT NULL GROUP BY 1 ORDER BY 1
+  - id: hour_of_day
+    requires: [value, date]
+    goals: [trends]
+    sql: |
+      SELECT HOUR({date}) AS hour, ROUND(AVG({value}), 1) AS mean_value, COUNT({value}) AS measurements
+      FROM data WHERE {date} IS NOT NULL GROUP BY 1 ORDER BY 1
+  - id: station_comparison
+    requires: [value, station]
+    goals: [stations]
+    sql: |
+      SELECT {station}, COUNT({value}) AS measurements, ROUND(AVG({value}), 1) AS mean_value,
+             ROUND(MEDIAN({value}), 1) AS median_value, ROUND(quantile_cont({value}, 0.95), 1) AS p95
+      FROM data WHERE {value} IS NOT NULL GROUP BY 1 ORDER BY mean_value DESC
+ml:
+  - {objective: forecast, name: concentration_forecast, goals: [trends, compliance]}
+  - {objective: anomalies, name: exceedance_anomalies, goals: [compliance, stations]}
+  - {objective: segments, goals: [stations]}
+layout:
+  kpis: [exceedance_share, mean_value, max_value, stations, measurements]
+  sections: [trends, drivers, outliers, distributions, quality]
