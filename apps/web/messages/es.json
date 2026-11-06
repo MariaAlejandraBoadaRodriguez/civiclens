@@ -805,6 +805,28 @@
     "metaTitle": "Tablero · CivicLens",
     "title": "Contratación pública · vista ejecutiva",
     "subtitle": "Todos los montos en CAD, convertidos con la tasa del mes de firma de cada contrato.",
+    "heading": {
+      "banking": {
+        "title": "Banca · vista de cartera de crédito",
+        "subtitle": "{name}: cifras clave, hallazgos y gráficos de riesgo de crédito, generados a partir de las columnas del archivo."
+      },
+      "marketing": {
+        "title": "Marketing · vista de campañas",
+        "subtitle": "{name}: cifras clave, hallazgos y gráficos de campañas y conversión, generados a partir de las columnas del archivo."
+      },
+      "environmental": {
+        "title": "Ambiente · vista de monitoreo",
+        "subtitle": "{name}: cifras clave, hallazgos y gráficos de las mediciones, generados a partir de las columnas del archivo."
+      },
+      "generic": {
+        "title": "{name} · vista general",
+        "subtitle": "Cifras clave, hallazgos y gráficos generados a partir de las columnas del archivo."
+      },
+      "unknown": {
+        "title": "Tablero",
+        "subtitle": "Cifras clave, hallazgos y gráficos de un conjunto de datos."
+      }
+    },
     "kpisHeading": "Cifras clave",
     "currencyNote": "Pasa el cursor o enfoca una cifra para ver su definición. Los cambios se comparan con el periodo anterior de la misma duración.",
     "notReady": "Este conjunto de datos aún se está preparando. El tablero aparece en cuanto esté listo.",
